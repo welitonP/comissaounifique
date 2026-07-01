@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -20,11 +21,23 @@ export default async function HomePage() {
   return (
     <div className="space-y-8">
       <section className="rounded-xl bg-gradient-to-br from-unifique to-unifique-blue p-8 text-white shadow-sm">
-        <h1 className="text-3xl font-bold">Comissão de Esportes Unifique</h1>
-        <p className="mt-2 max-w-2xl text-white/90">
-          Acompanhe o campeonato Entre Empresas, o calendário de jogos, a classificação dos
-          times, os comunicados e as enquetes da comissão.
-        </p>
+        <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+          <Image
+            src="/logo-comissao.jpg"
+            alt="Comissão de Esportes Unifique"
+            width={110}
+            height={110}
+            className="rounded-full bg-white shadow-md"
+            priority
+          />
+          <div>
+            <h1 className="text-3xl font-bold">Comissão de Esportes Unifique</h1>
+            <p className="mt-2 max-w-2xl text-white/90">
+              Acompanhe o campeonato Entre Empresas, o calendário de jogos, a classificação dos
+              times, os comunicados e as enquetes da comissão.
+            </p>
+          </div>
+        </div>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link
             href="/entre-empresas"

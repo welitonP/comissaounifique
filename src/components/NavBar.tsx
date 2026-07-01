@@ -18,11 +18,11 @@ export default function NavBar() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src="/logo-comissao.svg"
+            src="/logo-comissao.jpg"
             alt="Comissão de Esportes Unifique"
-            width={44}
-            height={44}
-            className="rounded-full bg-white/10"
+            width={48}
+            height={48}
+            className="rounded-full bg-white"
             priority
           />
           <span className="text-base font-bold leading-tight tracking-tight sm:text-lg">
