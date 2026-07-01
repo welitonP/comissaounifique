@@ -6,6 +6,17 @@ export default async function AdminDashboardPage() {
   await requireAdminPage();
 
   const sections = [
+    {
+      href: "/admin/entre-empresas",
+      label: "Entre Empresas",
+      description: "Modalidades e empresas inscritas.",
+    },
+    {
+      href: "/admin/calendario",
+      label: "Calendário",
+      description: "Datas de jogos e eventos.",
+    },
+    { href: "/admin/materiais", label: "Materiais", description: "Estoque de materiais." },
     { href: "/admin/times", label: "Times", description: "Cadastrar e remover times." },
     { href: "/admin/jogos", label: "Jogos", description: "Agendar jogos e lançar resultados." },
     {

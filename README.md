@@ -28,8 +28,12 @@ Acesse http://localhost:3000. A área administrativa fica em `/admin`
 
 ## Estrutura
 
-- `src/app` — páginas públicas (`/`, `/agenda`, `/classificacao`, `/comunicados`, `/enquetes`)
-  e área administrativa (`/admin/*`) para cadastrar times, jogos, comunicados e enquetes.
+- `src/app` — páginas públicas e área administrativa (`/admin/*`):
+  - `/entre-empresas` — campeonato Entre Empresas: modalidades, empresas inscritas e informações.
+  - `/calendario` — datas de jogos/eventos, visíveis a todos.
+  - `/materiais` — estoque de materiais esportivos.
+  - `/agenda`, `/classificacao`, `/comunicados`, `/enquetes` — jogos, tabela, avisos e enquetes.
+- `public/logo-comissao.svg` — logo exibido no topo (substitua pelo logo oficial da comissão).
 - `src/lib/actions.ts` — Server Actions usadas pelos formulários (todo o CRUD).
 - `src/lib/auth.ts` — autenticação simples de admin (senha única + cookie assinado).
 - `prisma/schema.prisma` — modelo de dados (times, campeonatos, jogos, comunicados, enquetes).

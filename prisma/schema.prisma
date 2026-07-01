@@ -62,3 +62,48 @@ model PollOption {
   text   String
   votes  Int    @default(0)
 }
+
+// Modalidade do campeonato "Entre Empresas" (ex: Futsal, Vôlei, Truco...)
+model Modality {
+  id            String         @id @default(cuid())
+  name          String
+  description   String?
+  info          String?        // regras / informações gerais exibidas na aba
+  order         Int            @default(0)
+  createdAt     DateTime       @default(now())
+  registrations Registration[]
+  events        CalendarEvent[]
+}
+
+// Empresa/time inscrito em uma modalidade do Entre Empresas
+model Registration {
+  id          String   @id @default(cuid())
+  modalityId  String
+  modality    Modality @relation(fields: [modalityId], references: [id], onDelete: Cascade)
+  companyName String   // nome da empresa/time inscrito
+  responsible String?  // responsável
+  contact     String?  // telefone/e-mail
+  createdAt   DateTime @default(now())
+}
+
+// Datas do calendário, visíveis a todos (ex: 17/07 - Futsal)
+model CalendarEvent {
+  id          String    @id @default(cuid())
+  title       String
+  date        DateTime
+  modalityId  String?
+  modality    Modality? @relation(fields: [modalityId], references: [id], onDelete: SetNull)
+  location    String?
+  description String?
+  createdAt   DateTime  @default(now())
+}
+
+// Estoque de materiais esportivos (ex: 5 bolas de futsal)
+model Material {
+  id        String   @id @default(cuid())
+  name      String
+  category  String?  // ex: Futsal, Vôlei, Geral
+  quantity  Int      @default(0)
+  notes     String?
+  createdAt DateTime @default(now())
+}

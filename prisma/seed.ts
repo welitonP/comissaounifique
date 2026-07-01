@@ -53,6 +53,63 @@ async function main() {
     },
   });
 
+  // Modalidades do Entre Empresas + inscritos
+  const futsal = await prisma.modality.create({
+    data: {
+      name: "Futsal",
+      description: "Campeonato de futsal masculino entre empresas.",
+      info: "Jogos aos sábados no Ginásio Municipal. Equipes de até 12 atletas.",
+      order: 1,
+      registrations: {
+        create: [
+          { companyName: "Unifique", responsible: "Weliton", contact: "(47) 99999-0000" },
+          { companyName: "Empresa Parceira A", responsible: "João" },
+        ],
+      },
+    },
+  });
+
+  const volei = await prisma.modality.create({
+    data: {
+      name: "Vôlei",
+      description: "Vôlei misto entre empresas.",
+      info: "Jogos às quartas-feiras. Equipes mistas (mín. 2 mulheres em quadra).",
+      order: 2,
+      registrations: {
+        create: [{ companyName: "Unifique", responsible: "Maria" }],
+      },
+    },
+  });
+
+  // Calendário de datas visível a todos
+  await prisma.calendarEvent.createMany({
+    data: [
+      {
+        title: "Rodada de Futsal",
+        date: new Date("2026-07-17T19:00:00"),
+        modalityId: futsal.id,
+        location: "Ginásio Municipal",
+        description: "Primeira rodada do Entre Empresas.",
+      },
+      {
+        title: "Rodada de Vôlei",
+        date: new Date("2026-07-22T19:30:00"),
+        modalityId: volei.id,
+        location: "Ginásio Municipal",
+      },
+    ],
+  });
+
+  // Estoque de materiais
+  await prisma.material.createMany({
+    data: [
+      { name: "Bola de Futsal", category: "Futsal", quantity: 5 },
+      { name: "Bola de Vôlei", category: "Vôlei", quantity: 5 },
+      { name: "Rede de Vôlei", category: "Vôlei", quantity: 1 },
+      { name: "Coletes", category: "Geral", quantity: 20, notes: "10 azuis, 10 amarelos" },
+    ],
+  });
+
   console.log("Seed concluído.");
 }
 

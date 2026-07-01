@@ -136,7 +136,7 @@ export default async function AdminJogosPage() {
               />
               <button
                 type="submit"
-                className="rounded bg-unifique-light px-3 py-1 text-sm font-medium text-white hover:bg-unifique"
+                className="rounded bg-unifique-blue px-3 py-1 text-sm font-medium text-white hover:bg-unifique"
               >
                 Salvar resultado
               </button>

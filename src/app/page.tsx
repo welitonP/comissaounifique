@@ -4,60 +4,116 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [nextMatch, latestAnnouncement, openPoll] = await Promise.all([
-    prisma.match.findFirst({
-      where: { status: "scheduled" },
+  const now = new Date();
+  const [nextEvent, latestAnnouncement, openPoll, modalityCount, materialCount] = await Promise.all([
+    prisma.calendarEvent.findFirst({
+      where: { date: { gte: new Date(now.toDateString()) } },
       orderBy: { date: "asc" },
-      include: { homeTeam: true, awayTeam: true },
+      include: { modality: true },
     }),
     prisma.announcement.findFirst({ orderBy: { createdAt: "desc" } }),
     prisma.poll.findFirst({ orderBy: { createdAt: "desc" } }),
+    prisma.modality.count(),
+    prisma.material.aggregate({ _sum: { quantity: true } }),
   ]);
 
   return (
     <div className="space-y-8">
-      <section className="rounded-lg bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-unifique-dark">
-          Bem-vindo à Comissão de Esportes Unifique
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Acompanhe a agenda de jogos, a classificação dos times, comunicados e enquetes da
-          comissão.
+      <section className="rounded-xl bg-gradient-to-br from-unifique to-unifique-blue p-8 text-white shadow-sm">
+        <h1 className="text-3xl font-bold">Comissão de Esportes Unifique</h1>
+        <p className="mt-2 max-w-2xl text-white/90">
+          Acompanhe o campeonato Entre Empresas, o calendário de jogos, a classificação dos
+          times, os comunicados e as enquetes da comissão.
         </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link
+            href="/entre-empresas"
+            className="rounded-lg bg-white px-5 py-2 font-semibold text-unifique hover:bg-white/90"
+          >
+            Entre Empresas
+          </Link>
+          <Link
+            href="/calendario"
+            className="rounded-lg bg-white/15 px-5 py-2 font-semibold hover:bg-white/25"
+          >
+            Calendário
+          </Link>
+        </div>
       </section>
 
-      <div className="grid gap-6 sm:grid-cols-3">
-        <Link href="/agenda" className="rounded-lg bg-white p-5 shadow-sm hover:shadow-md">
-          <h2 className="font-semibold text-unifique-dark">Próximo jogo</h2>
-          {nextMatch ? (
-            <p className="mt-2 text-sm text-gray-600">
-              {nextMatch.homeTeam.name} x {nextMatch.awayTeam.name}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <Card href="/calendario" title="Próximo evento">
+          {nextEvent ? (
+            <p className="text-sm text-gray-600">
+              {new Date(nextEvent.date).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "long",
+              })}
               <br />
-              {new Date(nextMatch.date).toLocaleString("pt-BR")}
+              <span className="font-medium">{nextEvent.title}</span>
+              {nextEvent.modality ? ` · ${nextEvent.modality.name}` : ""}
             </p>
           ) : (
-            <p className="mt-2 text-sm text-gray-500">Nenhum jogo agendado.</p>
+            <p className="text-sm text-gray-400">Nenhum evento agendado.</p>
           )}
-        </Link>
+        </Card>
 
-        <Link href="/comunicados" className="rounded-lg bg-white p-5 shadow-sm hover:shadow-md">
-          <h2 className="font-semibold text-unifique-dark">Último comunicado</h2>
+        <Card href="/entre-empresas" title="Entre Empresas">
+          <p className="text-sm text-gray-600">
+            <span className="text-2xl font-bold text-unifique">{modalityCount}</span> modalidade(s)
+            no campeonato.
+          </p>
+        </Card>
+
+        <Card href="/materiais" title="Materiais">
+          <p className="text-sm text-gray-600">
+            <span className="text-2xl font-bold text-unifique">
+              {materialCount._sum.quantity ?? 0}
+            </span>{" "}
+            itens em estoque.
+          </p>
+        </Card>
+
+        <Card href="/comunicados" title="Último comunicado">
           {latestAnnouncement ? (
-            <p className="mt-2 line-clamp-3 text-sm text-gray-600">{latestAnnouncement.title}</p>
+            <p className="line-clamp-3 text-sm text-gray-600">{latestAnnouncement.title}</p>
           ) : (
-            <p className="mt-2 text-sm text-gray-500">Nenhum comunicado ainda.</p>
+            <p className="text-sm text-gray-400">Nenhum comunicado ainda.</p>
           )}
-        </Link>
+        </Card>
 
-        <Link href="/enquetes" className="rounded-lg bg-white p-5 shadow-sm hover:shadow-md">
-          <h2 className="font-semibold text-unifique-dark">Enquete em aberto</h2>
+        <Card href="/enquetes" title="Enquete em aberto">
           {openPoll ? (
-            <p className="mt-2 line-clamp-3 text-sm text-gray-600">{openPoll.question}</p>
+            <p className="line-clamp-3 text-sm text-gray-600">{openPoll.question}</p>
           ) : (
-            <p className="mt-2 text-sm text-gray-500">Nenhuma enquete ativa.</p>
+            <p className="text-sm text-gray-400">Nenhuma enquete ativa.</p>
           )}
-        </Link>
+        </Card>
+
+        <Card href="/classificacao" title="Classificação">
+          <p className="text-sm text-gray-600">Veja a tabela de pontos por modalidade.</p>
+        </Card>
       </div>
     </div>
+  );
+}
+
+function Card({
+  href,
+  title,
+  children,
+}: {
+  href: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-lg border-t-4 border-unifique-blue bg-white p-5 shadow-sm transition hover:shadow-md"
+    >
+      <h2 className="mb-2 font-semibold text-unifique">{title}</h2>
+      {children}
+    </Link>
   );
 }
