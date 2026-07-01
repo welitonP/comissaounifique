@@ -11,7 +11,6 @@ const links = [
   { href: "/uniformes", label: "Uniformes" },
   { href: "/comunicados", label: "Comunicados" },
   { href: "/enquetes", label: "Enquetes" },
-  { href: "/assistente", label: "Assistente IA" },
 ];
 
 export default function NavBar({ user }: { user: SessionUser }) {
