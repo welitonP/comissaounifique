@@ -76,7 +76,7 @@ export default async function AdminEntreEmpresasPage() {
 
             <div className="mt-4">
               <h3 className="text-sm font-semibold text-gray-500">
-                Inscritos ({modality.registrations.length})
+                Nosso elenco ({modality.registrations.length})
               </h3>
               <ul className="mt-2 space-y-1">
                 {modality.registrations.map((reg) => (
@@ -98,7 +98,7 @@ export default async function AdminEntreEmpresasPage() {
                   </li>
                 ))}
                 {modality.registrations.length === 0 && (
-                  <li className="text-sm text-gray-400">Nenhum inscrito.</li>
+                  <li className="text-sm text-gray-400">Nenhum atleta.</li>
                 )}
               </ul>
 
@@ -109,13 +109,13 @@ export default async function AdminEntreEmpresasPage() {
                 <input type="hidden" name="modalityId" value={modality.id} />
                 <input
                   name="companyName"
-                  placeholder="Empresa/time"
+                  placeholder="Nome do atleta"
                   required
                   className="flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm"
                 />
                 <input
                   name="responsible"
-                  placeholder="Responsável"
+                  placeholder="Posição/Função"
                   className="rounded border border-gray-300 px-3 py-1.5 text-sm"
                 />
                 <input
@@ -127,7 +127,7 @@ export default async function AdminEntreEmpresasPage() {
                   type="submit"
                   className="rounded bg-unifique-blue px-3 py-1.5 text-sm font-medium text-white hover:bg-unifique"
                 >
-                  Inscrever
+                  Adicionar atleta
                 </button>
               </form>
             </div>

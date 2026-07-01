@@ -16,8 +16,8 @@ export default async function EntreEmpresasPage() {
       <section className="rounded-lg bg-gradient-to-r from-unifique to-unifique-blue p-6 text-white shadow-sm">
         <h1 className="text-2xl font-bold">Entre Empresas</h1>
         <p className="mt-2 max-w-2xl text-white/90">
-          O campeonato entre empresas da cidade — nosso carro-chefe do ano. Confira as
-          modalidades, as empresas inscritas e as informações de cada esporte.
+          A Unifique participa do campeonato Entre Empresas da cidade. Aqui ficam as modalidades
+          que disputamos, o nosso elenco de atletas e as informações de cada esporte.
         </p>
         <div className="mt-4 flex flex-wrap gap-6 text-sm">
           <div>
@@ -26,7 +26,7 @@ export default async function EntreEmpresasPage() {
           </div>
           <div>
             <span className="block text-2xl font-bold">{totalInscritos}</span>
-            inscritos
+            atletas
           </div>
         </div>
         <Link
@@ -47,7 +47,7 @@ export default async function EntreEmpresasPage() {
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-xl font-bold text-unifique">{modality.name}</h2>
               <span className="rounded-full bg-unifique-light px-3 py-0.5 text-sm text-unifique">
-                {modality.registrations.length} inscrito(s)
+                {modality.registrations.length} atleta(s)
               </span>
             </div>
 
@@ -63,9 +63,9 @@ export default async function EntreEmpresasPage() {
             )}
 
             <div className="mt-4">
-              <h3 className="text-sm font-semibold text-gray-500">Empresas inscritas</h3>
+              <h3 className="text-sm font-semibold text-gray-500">Nosso elenco</h3>
               {modality.registrations.length === 0 ? (
-                <p className="mt-1 text-sm text-gray-400">Nenhuma inscrição ainda.</p>
+                <p className="mt-1 text-sm text-gray-400">Nenhum atleta cadastrado ainda.</p>
               ) : (
                 <ul className="mt-2 grid gap-2 sm:grid-cols-2">
                   {modality.registrations.map((reg) => (
@@ -76,7 +76,7 @@ export default async function EntreEmpresasPage() {
                       <span className="font-medium">{reg.companyName}</span>
                       {reg.responsible && (
                         <span className="block text-xs text-gray-500">
-                          Responsável: {reg.responsible}
+                          {reg.responsible}
                           {reg.contact ? ` · ${reg.contact}` : ""}
                         </span>
                       )}

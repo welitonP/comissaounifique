@@ -22,8 +22,21 @@ export default async function AdminDashboardPage() {
       label: "Uniformes",
       description: "Itens controlados e quem está com eles.",
     },
-    { href: "/admin/times", label: "Times", description: "Cadastrar e remover times." },
-    { href: "/admin/jogos", label: "Jogos", description: "Agendar jogos e lançar resultados." },
+    {
+      href: "/admin/times",
+      label: "Times (interno)",
+      description: "Para campeonatos internos. Cadastrar times.",
+    },
+    {
+      href: "/admin/jogos",
+      label: "Jogos (interno)",
+      description: "Agendar jogos internos e lançar resultados.",
+    },
+    {
+      href: "/classificacao",
+      label: "Classificação (interno)",
+      description: "Tabela de pontos dos campeonatos internos.",
+    },
     {
       href: "/admin/comunicados",
       label: "Comunicados",

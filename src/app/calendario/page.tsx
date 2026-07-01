@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { createCalendarEvent } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +11,13 @@ const MESES = [
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export default async function CalendarioPage() {
-  const events = await prisma.calendarEvent.findMany({
-    orderBy: { date: "asc" },
-    include: { modality: true },
-  });
+  const [events, modalities] = await Promise.all([
+    prisma.calendarEvent.findMany({
+      orderBy: { date: "asc" },
+      include: { modality: true },
+    }),
+    prisma.modality.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   const now = new Date();
   const upcoming = events.filter((e) => new Date(e.date) >= new Date(now.toDateString()));
@@ -29,10 +33,56 @@ export default async function CalendarioPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-unifique">Calendário</h1>
-        <p className="mt-1 text-gray-600">Datas e horários de jogos e eventos da comissão.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-unifique">Calendário</h1>
+          <p className="mt-1 text-gray-600">Datas e horários de jogos e eventos da comissão.</p>
+        </div>
       </div>
+
+      <details className="rounded-lg bg-white p-4 shadow-sm">
+        <summary className="cursor-pointer font-semibold text-unifique">
+          + Adicionar evento ao calendário
+        </summary>
+        <form action={createCalendarEvent} className="mt-3 grid gap-3 sm:grid-cols-2">
+          <input
+            name="title"
+            placeholder="Título (ex: Rodada de Futsal)"
+            required
+            className="rounded border border-gray-300 px-3 py-2 sm:col-span-2"
+          />
+          <input
+            type="datetime-local"
+            name="date"
+            required
+            className="rounded border border-gray-300 px-3 py-2"
+          />
+          <select name="modalityId" className="rounded border border-gray-300 px-3 py-2">
+            <option value="">Sem modalidade</option>
+            {modalities.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+          <input
+            name="location"
+            placeholder="Local (opcional)"
+            className="rounded border border-gray-300 px-3 py-2"
+          />
+          <input
+            name="description"
+            placeholder="Descrição (opcional)"
+            className="rounded border border-gray-300 px-3 py-2"
+          />
+          <button
+            type="submit"
+            className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark sm:col-span-2"
+          >
+            Adicionar
+          </button>
+        </form>
+      </details>
 
       {upcoming.length > 0 && (
         <section className="rounded-lg border-l-4 border-unifique-blue bg-white p-5 shadow-sm">

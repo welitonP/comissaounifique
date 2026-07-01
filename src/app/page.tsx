@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import WeeklySummary from "@/components/WeeklySummary";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,8 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+
+      <WeeklySummary />
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <Card href="/calendario" title="Próximo evento">

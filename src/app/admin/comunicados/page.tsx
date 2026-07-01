@@ -1,6 +1,7 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAnnouncement, deleteAnnouncement } from "@/lib/actions";
+import AnnouncementAIComposer from "@/components/AnnouncementAIComposer";
 
 export default async function AdminComunicadosPage() {
   await requireUserPage();
@@ -9,6 +10,8 @@ export default async function AdminComunicadosPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-unifique-dark">Comunicados</h1>
+
+      <AnnouncementAIComposer />
 
       <form action={createAnnouncement} className="space-y-3 rounded-lg bg-white p-4 shadow-sm">
         <input

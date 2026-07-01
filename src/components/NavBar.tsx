@@ -7,12 +7,11 @@ const links = [
   { href: "/", label: "Início" },
   { href: "/entre-empresas", label: "Entre Empresas" },
   { href: "/calendario", label: "Calendário" },
-  { href: "/agenda", label: "Agenda" },
-  { href: "/classificacao", label: "Classificação" },
   { href: "/materiais", label: "Materiais" },
   { href: "/uniformes", label: "Uniformes" },
   { href: "/comunicados", label: "Comunicados" },
   { href: "/enquetes", label: "Enquetes" },
+  { href: "/assistente", label: "Assistente IA" },
 ];
 
 export default function NavBar({ user }: { user: SessionUser }) {
