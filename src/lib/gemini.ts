@@ -2,8 +2,13 @@
 // Configure a variável de ambiente GEMINI_API_KEY.
 // Opcional: GEMINI_MODEL (padrão gemini-2.0-flash) e GEMINI_MODEL_FALLBACK.
 
-const DEFAULT_MODEL = "gemini-2.0-flash";
-const DEFAULT_FALLBACK = "gemini-2.5-flash";
+// Ordem de tentativa: modelos "lite" têm cota gratuita diária maior.
+const DEFAULT_MODELS = [
+  "gemini-2.0-flash",
+  "gemini-2.5-flash",
+  "gemini-2.0-flash-lite",
+  "gemini-2.5-flash-lite",
+];
 
 export function isGeminiConfigured(): boolean {
   return !!process.env.GEMINI_API_KEY;
@@ -48,16 +53,19 @@ export async function askGemini(system: string, userPrompt: string): Promise<str
     );
   }
 
-  const primary = process.env.GEMINI_MODEL || DEFAULT_MODEL;
-  const fallback = process.env.GEMINI_MODEL_FALLBACK || DEFAULT_FALLBACK;
-  const models = fallback && fallback !== primary ? [primary, fallback] : [primary];
+  // GEMINI_MODEL pode ser um único modelo ou uma lista separada por vírgula.
+  const configured = (process.env.GEMINI_MODEL || "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
+  const models = Array.from(new Set([...configured, ...DEFAULT_MODELS]));
 
   let lastStatus = 0;
   for (const model of models) {
     const result = await callModel(model, key, system, userPrompt);
     if (result.ok) return result.text;
     lastStatus = result.status;
-    // Se foi cota (429) tenta o próximo modelo; outros erros também tentam o fallback.
+    // 429 (cota) ou 404 (modelo indisponível): tenta o próximo modelo da lista.
   }
 
   if (lastStatus === 429) {
