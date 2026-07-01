@@ -6,14 +6,19 @@ Site interno para a comissão de esportes: agenda de jogos, classificação, com
 
 - [Next.js](https://nextjs.org/) (App Router) + TypeScript
 - [Tailwind CSS](https://tailwindcss.com/)
-- [Prisma](https://www.prisma.io/) + SQLite (fácil de trocar para Postgres depois)
+- [Prisma](https://www.prisma.io/) + PostgreSQL (ex: [Supabase](https://supabase.com))
 
 ## Como rodar localmente
 
+1. Crie um projeto gratuito no [Supabase](https://supabase.com) (ou use outro Postgres).
+2. Em *Project Settings > Database > Connection string*, copie a string de conexão
+   pooled (porta `6543`) e a direta (porta `5432`).
+3. Configure o ambiente:
+
 ```bash
 npm install
-cp .env.example .env   # ajuste ADMIN_PASSWORD e AUTH_SECRET
-npm run db:push        # cria o banco SQLite a partir do schema
+cp .env.example .env   # cole DATABASE_URL, DIRECT_URL e ajuste ADMIN_PASSWORD/AUTH_SECRET
+npm run db:push        # cria as tabelas no Postgres a partir do schema
 npm run db:seed        # (opcional) popula dados de exemplo
 npm run dev
 ```
@@ -29,8 +34,11 @@ Acesse http://localhost:3000. A área administrativa fica em `/admin`
 - `src/lib/auth.ts` — autenticação simples de admin (senha única + cookie assinado).
 - `prisma/schema.prisma` — modelo de dados (times, campeonatos, jogos, comunicados, enquetes).
 
-## Deploy
+## Deploy na Vercel
 
-Funciona em qualquer host com suporte a Node.js (Vercel, Railway, etc). Para produção,
-recomenda-se trocar o SQLite por Postgres: basta alterar `provider` e `DATABASE_URL`
-no `prisma/schema.prisma`/`.env` e rodar `npx prisma db push` novamente.
+1. Suba o repositório no GitHub e importe na [Vercel](https://vercel.com).
+2. Em *Environment Variables*, configure `DATABASE_URL`, `DIRECT_URL`, `ADMIN_PASSWORD`
+   e `AUTH_SECRET` com os mesmos valores do seu `.env` (use o Postgres do Supabase —
+   SQLite não funciona em ambiente serverless, pois o disco é temporário).
+3. Faça o deploy. No primeiro deploy, rode `npx prisma db push` uma vez (localmente,
+   apontando para o `DATABASE_URL` de produção) para criar as tabelas.
