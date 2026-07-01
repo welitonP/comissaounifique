@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  modality    String
+  createdAt   DateTime @default(now())
+  homeMatches Match[]  @relation("HomeTeam")
+  awayMatches Match[]  @relation("AwayTeam")
+}
+
+model Championship {
+  id        String   @id @default(cuid())
+  name      String
+  season    String
+  createdAt DateTime @default(now())
+  matches   Match[]
+}
+
+model Match {
+  id             String        @id @default(cuid())
+  championshipId String?
+  championship   Championship? @relation(fields: [championshipId], references: [id], onDelete: SetNull)
+  homeTeamId     String
+  homeTeam       Team          @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: Cascade)
+  awayTeamId     String
+  awayTeam       Team          @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: Cascade)
+  date           DateTime
+  location       String?
+  homeScore      Int?
+  awayScore      Int?
+  status         String        @default("scheduled")
+  createdAt      DateTime      @default(now())
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Poll {
+  id        String       @id @default(cuid())
+  question  String
+  createdAt DateTime     @default(now())
+  options   PollOption[]
+}
+
+model PollOption {
+  id     String @id @default(cuid())
+  pollId String
+  poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  text   String
+  votes  Int    @default(0)
+}
