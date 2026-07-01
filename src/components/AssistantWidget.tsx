@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { askAssistant } from "@/lib/ai-actions";
 
@@ -13,14 +14,26 @@ const SUGESTOES = [
 
 export default function AssistantWidget({ configured }: { configured: boolean }) {
   const [open, setOpen] = useState(false);
+  const [showGreeting, setShowGreeting] = useState(true);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [pending, startTransition] = useTransition();
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Balãozinho "Oi, posso ajudar?" some sozinho após 6s.
+  useEffect(() => {
+    const t = setTimeout(() => setShowGreeting(false), 6000);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, pending]);
+
+  function openChat() {
+    setShowGreeting(false);
+    setOpen((o) => !o);
+  }
 
   function send(question: string) {
     const q = question.trim();
@@ -41,9 +54,18 @@ export default function AssistantWidget({ configured }: { configured: boolean })
       {open && (
         <div className="mb-3 flex h-[28rem] w-80 max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/10">
           <div className="flex items-center justify-between bg-unifique px-4 py-3 text-white">
-            <div>
-              <p className="text-sm font-bold leading-tight">Assistente IA</p>
-              <p className="text-[11px] text-unifique-teal">Comissão de Esportes</p>
+            <div className="flex items-center gap-2">
+              <Image
+                src="/logo-comissao.jpg"
+                alt="Pablinho"
+                width={32}
+                height={32}
+                className="rounded-full bg-white"
+              />
+              <div>
+                <p className="text-sm font-bold leading-tight">Pablinho</p>
+                <p className="text-[11px] text-unifique-teal">Assistente da Comissão</p>
+              </div>
             </div>
             <button
               onClick={() => setOpen(false)}
@@ -58,7 +80,7 @@ export default function AssistantWidget({ configured }: { configured: boolean })
             {messages.length === 0 && (
               <div className="space-y-3">
                 <p className="text-sm text-gray-500">
-                  Oi! 👋 Pergunte sobre materiais, uniformes, jogos e atletas.
+                  Oi! 👋 Sou o Pablinho. Pergunte sobre materiais, uniformes, jogos e atletas.
                 </p>
                 {!configured && (
                   <p className="rounded bg-yellow-100 px-2 py-1 text-xs text-yellow-800">
@@ -127,17 +149,41 @@ export default function AssistantWidget({ configured }: { configured: boolean })
         </div>
       )}
 
-      {/* Botão flutuante pulsante */}
-      <button
-        onClick={() => setOpen((o) => !o)}
-        aria-label="Abrir assistente"
-        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-unifique text-white shadow-lg transition hover:bg-unifique-dark"
-      >
-        {!open && (
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-unifique-blue opacity-60" />
+      {/* Botão flutuante (logo da comissão) + balãozinho */}
+      <div className="flex items-end gap-2">
+        <button
+          onClick={openChat}
+          aria-label="Abrir Pablinho"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition hover:scale-105"
+        >
+          {!open && (
+            <span className="absolute inset-0 animate-ping rounded-full bg-unifique-blue opacity-60" />
+          )}
+          {open ? (
+            <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-unifique text-2xl text-white">
+              ✕
+            </span>
+          ) : (
+            <Image
+              src="/logo-comissao.jpg"
+              alt="Pablinho"
+              width={56}
+              height={56}
+              className="relative h-14 w-14 rounded-full object-cover ring-2 ring-white"
+              priority
+            />
+          )}
+        </button>
+
+        {showGreeting && !open && (
+          <button
+            onClick={openChat}
+            className="mb-2 animate-bounce rounded-2xl rounded-bl-none bg-white px-3 py-2 text-sm font-medium text-unifique shadow-lg ring-1 ring-black/5"
+          >
+            Oi, posso ajudar? 😄
+          </button>
         )}
-        <span className="relative text-2xl">{open ? "✕" : "🤖"}</span>
-      </button>
+      </div>
     </div>
   );
 }
