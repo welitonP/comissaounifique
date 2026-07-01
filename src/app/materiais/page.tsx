@@ -1,9 +1,26 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export default async function MateriaisPage() {
+export default async function MateriaisPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
+  const q = typeof params.q === "string" ? params.q.trim() : "";
+
   const materials = await prisma.material.findMany({
+    where: q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { category: { contains: q, mode: "insensitive" } },
+            { notes: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : undefined,
     orderBy: [{ category: "asc" }, { name: "asc" }],
   });
 
@@ -25,12 +42,35 @@ export default async function MateriaisPage() {
           <p className="mt-1 text-gray-600">Estoque de materiais esportivos da comissão.</p>
         </div>
         <span className="rounded-full bg-unifique-light px-4 py-1 text-sm font-medium text-unifique">
-          {totalItens} itens no total
+          {totalItens} itens {q ? "encontrados" : "no total"}
         </span>
       </div>
 
+      <form method="get" className="flex gap-2">
+        <input
+          type="text"
+          name="q"
+          defaultValue={q}
+          placeholder="Buscar equipamento (ex: bola, colete, rede...)"
+          className="flex-1 rounded border border-gray-300 px-3 py-2"
+        />
+        <button
+          type="submit"
+          className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+        >
+          Buscar
+        </button>
+        {q && (
+          <Link href="/materiais" className="rounded border border-gray-300 px-4 py-2 text-gray-600">
+            Limpar
+          </Link>
+        )}
+      </form>
+
       {materials.length === 0 && (
-        <p className="text-gray-500">Nenhum material cadastrado ainda.</p>
+        <p className="text-gray-500">
+          {q ? "Nenhum material encontrado para a busca." : "Nenhum material cadastrado ainda."}
+        </p>
       )}
 
       <div className="space-y-6">

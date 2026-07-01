@@ -1,8 +1,39 @@
 import { PrismaClient } from "@prisma/client";
+import { scryptSync, randomBytes } from "crypto";
 
 const prisma = new PrismaClient();
 
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const derived = scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${derived}`;
+}
+
 async function main() {
+  // Admin master
+  await prisma.user.create({
+    data: {
+      name: "Weliton Porto",
+      username: "weliton.porto",
+      role: "admin",
+      passwordHash: hashPassword("unifique2015"),
+    },
+  });
+
+  // Itens controlados (uniformes)
+  await prisma.trackedItem.createMany({
+    data: [
+      { name: "Bolsa uniforme masculino futsal", category: "Uniforme Futsal" },
+      { name: "Bolsa uniforme feminino vôlei", category: "Uniforme Vôlei" },
+      {
+        name: "Kit arbitragem",
+        category: "Geral",
+        holderName: "Weliton Porto",
+        since: new Date(),
+      },
+    ],
+  });
+
   const championship = await prisma.championship.create({
     data: { name: "Campeonato Interno Unifique", season: "2026" },
   });

@@ -1,56 +1,67 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { scryptSync, randomBytes, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { prisma } from "./prisma";
+import { SESSION_COOKIE, verifySessionToken } from "./session";
 
-const SESSION_COOKIE = "admin_session";
-const SESSION_VALUE = "admin";
+export type SessionUser = {
+  id: string;
+  name: string;
+  username: string;
+  role: string;
+};
 
-function getSecret(): string {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret) {
-    throw new Error("AUTH_SECRET não está configurado.");
-  }
-  return secret;
+// ===== Hash de senha (scrypt) =====
+
+export function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const derived = scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${derived}`;
 }
 
-function sign(value: string): string {
-  return createHmac("sha256", getSecret()).update(value).digest("hex");
+export function verifyPassword(password: string, stored: string): boolean {
+  const [salt, derived] = stored.split(":");
+  if (!salt || !derived) return false;
+  const derivedBuf = Buffer.from(derived, "hex");
+  const calc = scryptSync(password, salt, 64);
+  if (derivedBuf.length !== calc.length) return false;
+  return timingSafeEqual(derivedBuf, calc);
 }
 
-export function createSessionToken(): string {
-  return `${SESSION_VALUE}.${sign(SESSION_VALUE)}`;
-}
+// ===== Usuário atual a partir do cookie de sessão =====
 
-export function isValidSessionToken(token: string | undefined): boolean {
-  if (!token) return false;
-  const [value, signature] = token.split(".");
-  if (!value || !signature || value !== SESSION_VALUE) return false;
-  const expected = sign(value);
-  const a = Buffer.from(signature);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
-
-export function isAdminPassword(password: string): boolean {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) return false;
-  const a = Buffer.from(password);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
-
-export async function isAdminLoggedIn(): Promise<boolean> {
+export async function getCurrentUser(): Promise<SessionUser | null> {
   const store = await cookies();
-  return isValidSessionToken(store.get(SESSION_COOKIE)?.value);
+  const token = store.get(SESSION_COOKIE)?.value;
+  const userId = await verifySessionToken(token);
+  if (!userId) return null;
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || !user.active) return null;
+  return { id: user.id, name: user.name, username: user.username, role: user.role };
 }
 
-export async function requireAdminPage(): Promise<void> {
-  const ok = await isAdminLoggedIn();
-  if (!ok) {
-    redirect("/admin/login");
-  }
+// Para páginas (Server Components): redireciona ao login se não autenticado.
+export async function requireUserPage(): Promise<SessionUser> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  return user;
 }
 
-export const ADMIN_SESSION_COOKIE = SESSION_COOKIE;
+export async function requireAdminPage(): Promise<SessionUser> {
+  const user = await requireUserPage();
+  if (user.role !== "admin") redirect("/");
+  return user;
+}
+
+// Para server actions (mutações): lança erro se não autorizado.
+export async function requireUser(): Promise<SessionUser> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Não autenticado.");
+  return user;
+}
+
+export async function requireAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "admin") throw new Error("Apenas administradores.");
+  return user;
+}

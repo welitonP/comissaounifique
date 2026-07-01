@@ -107,3 +107,25 @@ model Material {
   notes     String?
   createdAt DateTime @default(now())
 }
+
+// Membro da comissão com login individual
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  username     String   @unique // ex: weliton.porto
+  passwordHash String
+  role         String   @default("member") // "admin" | "member"
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+// Item individual controlado (ex: bolsa de uniforme) e quem está com ele
+model TrackedItem {
+  id         String    @id @default(cuid())
+  name       String
+  category   String?   // ex: Uniforme Futsal, Uniforme Vôlei
+  holderName String?   // quem está com o item (null = na comissão / disponível)
+  since      DateTime? // desde quando está emprestado
+  notes      String?
+  createdAt  DateTime  @default(now())
+}

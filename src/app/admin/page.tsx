@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { requireAdminPage } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth";
 import { logoutAction } from "@/lib/actions";
 
 export default async function AdminDashboardPage() {
-  await requireAdminPage();
+  const user = await requireUserPage();
 
   const sections = [
     {
@@ -17,6 +17,11 @@ export default async function AdminDashboardPage() {
       description: "Datas de jogos e eventos.",
     },
     { href: "/admin/materiais", label: "Materiais", description: "Estoque de materiais." },
+    {
+      href: "/admin/uniformes",
+      label: "Uniformes",
+      description: "Itens controlados e quem está com eles.",
+    },
     { href: "/admin/times", label: "Times", description: "Cadastrar e remover times." },
     { href: "/admin/jogos", label: "Jogos", description: "Agendar jogos e lançar resultados." },
     {
@@ -25,12 +30,27 @@ export default async function AdminDashboardPage() {
       description: "Publicar avisos para todos.",
     },
     { href: "/admin/enquetes", label: "Enquetes", description: "Criar enquetes e ver resultados." },
+    { href: "/admin/conta", label: "Minha conta", description: "Alterar minha senha." },
   ];
+
+  if (user.role === "admin") {
+    sections.push({
+      href: "/admin/membros",
+      label: "Membros",
+      description: "Gerenciar quem tem acesso ao site.",
+    });
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-unifique-dark">Painel da Comissão</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-unifique">Gerenciar</h1>
+          <p className="text-sm text-gray-500">
+            Você está logado como <strong>{user.name}</strong>
+            {user.role === "admin" ? " (administrador)" : ""}.
+          </p>
+        </div>
         <form action={logoutAction}>
           <button type="submit" className="text-sm text-gray-500 underline">
             Sair
@@ -41,7 +61,7 @@ export default async function AdminDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         {sections.map((s) => (
           <Link key={s.href} href={s.href} className="rounded-lg bg-white p-5 shadow-sm hover:shadow-md">
-            <h2 className="font-semibold text-unifique-dark">{s.label}</h2>
+            <h2 className="font-semibold text-unifique">{s.label}</h2>
             <p className="mt-1 text-sm text-gray-500">{s.description}</p>
           </Link>
         ))}

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { SessionUser } from "@/lib/auth";
+import { logoutAction } from "@/lib/actions";
 
 const links = [
   { href: "/", label: "Início" },
@@ -8,11 +10,12 @@ const links = [
   { href: "/agenda", label: "Agenda" },
   { href: "/classificacao", label: "Classificação" },
   { href: "/materiais", label: "Materiais" },
+  { href: "/uniformes", label: "Uniformes" },
   { href: "/comunicados", label: "Comunicados" },
   { href: "/enquetes", label: "Enquetes" },
 ];
 
-export default function NavBar() {
+export default function NavBar({ user }: { user: SessionUser }) {
   return (
     <header className="bg-unifique text-white shadow">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
@@ -30,6 +33,7 @@ export default function NavBar() {
             <span className="block text-xs font-normal text-unifique-teal">Unifique</span>
           </span>
         </Link>
+
         <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="hover:text-unifique-teal">
@@ -37,8 +41,16 @@ export default function NavBar() {
             </Link>
           ))}
           <Link href="/admin" className="rounded bg-white/15 px-3 py-1 hover:bg-white/25">
-            Admin
+            Gerenciar
           </Link>
+          <span className="hidden text-xs text-unifique-teal sm:inline">
+            {user.name.split(" ")[0]}
+          </span>
+          <form action={logoutAction}>
+            <button type="submit" className="text-xs text-white/80 underline hover:text-white">
+              Sair
+            </button>
+          </form>
         </nav>
       </div>
     </header>

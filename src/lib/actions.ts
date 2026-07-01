@@ -4,39 +4,124 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
-import { ADMIN_SESSION_COOKIE, createSessionToken, isAdminLoggedIn, isAdminPassword } from "./auth";
-
-async function requireAdmin() {
-  const ok = await isAdminLoggedIn();
-  if (!ok) {
-    throw new Error("Não autorizado.");
-  }
-}
+import {
+  getCurrentUser,
+  hashPassword,
+  requireAdmin,
+  requireUser,
+  verifyPassword,
+} from "./auth";
+import { SESSION_COOKIE, createSessionToken } from "./session";
 
 export async function loginAction(formData: FormData) {
+  const username = String(formData.get("username") || "")
+    .trim()
+    .toLowerCase();
   const password = String(formData.get("password") || "");
-  if (!isAdminPassword(password)) {
-    redirect("/admin/login?erro=1");
+  const next = String(formData.get("next") || "/");
+
+  const user = username
+    ? await prisma.user.findUnique({ where: { username } })
+    : null;
+
+  if (!user || !user.active || !verifyPassword(password, user.passwordHash)) {
+    redirect("/login?erro=1");
   }
+
   const store = await cookies();
-  store.set(ADMIN_SESSION_COOKIE, createSessionToken(), {
+  store.set(SESSION_COOKIE, await createSessionToken(user.id), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 8,
+    maxAge: 60 * 60 * 24 * 30,
   });
-  redirect("/admin");
+  redirect(next.startsWith("/") ? next : "/");
 }
 
 export async function logoutAction() {
   const store = await cookies();
-  store.delete(ADMIN_SESSION_COOKIE);
-  redirect("/admin/login");
+  store.delete(SESSION_COOKIE);
+  redirect("/login");
+}
+
+// ===== Gestão de membros (somente admin) =====
+
+export async function createUser(formData: FormData) {
+  await requireAdmin();
+  const name = String(formData.get("name") || "").trim();
+  const username = String(formData.get("username") || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ".");
+  const password = String(formData.get("password") || "");
+  const role = String(formData.get("role") || "member") === "admin" ? "admin" : "member";
+  if (!name || !username || password.length < 4) {
+    redirect("/admin/membros?erro=dados");
+  }
+  const existing = await prisma.user.findUnique({ where: { username } });
+  if (existing) {
+    redirect("/admin/membros?erro=usuario");
+  }
+  await prisma.user.create({
+    data: { name, username, role, passwordHash: hashPassword(password) },
+  });
+  revalidatePath("/admin/membros");
+  redirect("/admin/membros?sucesso=1");
+}
+
+export async function resetUserPassword(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") || "");
+  const password = String(formData.get("password") || "");
+  if (!id || password.length < 4) return;
+  await prisma.user.update({
+    where: { id },
+    data: { passwordHash: hashPassword(password) },
+  });
+  revalidatePath("/admin/membros");
+}
+
+export async function toggleUserActive(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  const me = await getCurrentUser();
+  if (me && me.id === id) return; // não desativar a si mesmo
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) return;
+  await prisma.user.update({ where: { id }, data: { active: !user.active } });
+  revalidatePath("/admin/membros");
+}
+
+export async function deleteUser(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  const me = await getCurrentUser();
+  if (me && me.id === id) return; // não excluir a si mesmo
+  await prisma.user.delete({ where: { id } });
+  revalidatePath("/admin/membros");
+}
+
+export async function changeOwnPassword(formData: FormData) {
+  const me = await requireUser();
+  const current = String(formData.get("current") || "");
+  const next = String(formData.get("next") || "");
+  if (next.length < 4) redirect("/admin/conta?erro=curta");
+  const user = await prisma.user.findUnique({ where: { id: me.id } });
+  if (!user || !verifyPassword(current, user.passwordHash)) {
+    redirect("/admin/conta?erro=atual");
+  }
+  await prisma.user.update({
+    where: { id: me.id },
+    data: { passwordHash: hashPassword(next) },
+  });
+  redirect("/admin/conta?sucesso=1");
 }
 
 export async function createTeam(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const name = String(formData.get("name") || "").trim();
   const modality = String(formData.get("modality") || "").trim();
   if (!name || !modality) return;
@@ -47,7 +132,7 @@ export async function createTeam(formData: FormData) {
 }
 
 export async function deleteTeam(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.team.delete({ where: { id } });
@@ -57,7 +142,7 @@ export async function deleteTeam(formData: FormData) {
 }
 
 export async function createChampionship(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const name = String(formData.get("name") || "").trim();
   const season = String(formData.get("season") || "").trim();
   if (!name || !season) return;
@@ -66,7 +151,7 @@ export async function createChampionship(formData: FormData) {
 }
 
 export async function createMatch(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const homeTeamId = String(formData.get("homeTeamId") || "");
   const awayTeamId = String(formData.get("awayTeamId") || "");
   const date = String(formData.get("date") || "");
@@ -87,7 +172,7 @@ export async function createMatch(formData: FormData) {
 }
 
 export async function updateMatchResult(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   const homeScoreRaw = String(formData.get("homeScore") || "");
@@ -105,7 +190,7 @@ export async function updateMatchResult(formData: FormData) {
 }
 
 export async function deleteMatch(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.match.delete({ where: { id } });
@@ -115,7 +200,7 @@ export async function deleteMatch(formData: FormData) {
 }
 
 export async function createAnnouncement(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const title = String(formData.get("title") || "").trim();
   const body = String(formData.get("body") || "").trim();
   if (!title || !body) return;
@@ -125,7 +210,7 @@ export async function createAnnouncement(formData: FormData) {
 }
 
 export async function deleteAnnouncement(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.announcement.delete({ where: { id } });
@@ -134,7 +219,7 @@ export async function deleteAnnouncement(formData: FormData) {
 }
 
 export async function createPoll(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const question = String(formData.get("question") || "").trim();
   const optionsRaw = String(formData.get("options") || "");
   const options = optionsRaw
@@ -150,7 +235,7 @@ export async function createPoll(formData: FormData) {
 }
 
 export async function deletePoll(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.poll.delete({ where: { id } });
@@ -189,7 +274,7 @@ export async function votePoll(formData: FormData) {
 // ===== Entre Empresas: Modalidades =====
 
 export async function createModality(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const name = String(formData.get("name") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const info = String(formData.get("info") || "").trim();
@@ -208,7 +293,7 @@ export async function createModality(formData: FormData) {
 }
 
 export async function updateModality(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   const name = String(formData.get("name") || "").trim();
@@ -230,7 +315,7 @@ export async function updateModality(formData: FormData) {
 }
 
 export async function deleteModality(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.modality.delete({ where: { id } });
@@ -242,7 +327,7 @@ export async function deleteModality(formData: FormData) {
 // ===== Entre Empresas: Inscritos =====
 
 export async function createRegistration(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const modalityId = String(formData.get("modalityId") || "");
   const companyName = String(formData.get("companyName") || "").trim();
   const responsible = String(formData.get("responsible") || "").trim();
@@ -261,7 +346,7 @@ export async function createRegistration(formData: FormData) {
 }
 
 export async function deleteRegistration(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.registration.delete({ where: { id } });
@@ -272,7 +357,7 @@ export async function deleteRegistration(formData: FormData) {
 // ===== Calendário =====
 
 export async function createCalendarEvent(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const title = String(formData.get("title") || "").trim();
   const date = String(formData.get("date") || "");
   const modalityId = String(formData.get("modalityId") || "");
@@ -293,7 +378,7 @@ export async function createCalendarEvent(formData: FormData) {
 }
 
 export async function deleteCalendarEvent(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.calendarEvent.delete({ where: { id } });
@@ -304,7 +389,7 @@ export async function deleteCalendarEvent(formData: FormData) {
 // ===== Materiais (estoque) =====
 
 export async function createMaterial(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const name = String(formData.get("name") || "").trim();
   const category = String(formData.get("category") || "").trim();
   const quantity = Number(formData.get("quantity") || 0);
@@ -323,7 +408,7 @@ export async function createMaterial(formData: FormData) {
 }
 
 export async function updateMaterialQuantity(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   const quantity = Number(formData.get("quantity") || 0);
   if (!id) return;
@@ -336,10 +421,61 @@ export async function updateMaterialQuantity(formData: FormData) {
 }
 
 export async function deleteMaterial(formData: FormData) {
-  await requireAdmin();
+  await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.material.delete({ where: { id } });
   revalidatePath("/materiais");
   revalidatePath("/admin/materiais");
+}
+
+// ===== Uniformes / itens controlados (quem está com o quê) =====
+
+export async function createTrackedItem(formData: FormData) {
+  await requireUser();
+  const name = String(formData.get("name") || "").trim();
+  const category = String(formData.get("category") || "").trim();
+  const notes = String(formData.get("notes") || "").trim();
+  if (!name) return;
+  await prisma.trackedItem.create({
+    data: { name, category: category || null, notes: notes || null },
+  });
+  revalidatePath("/uniformes");
+  revalidatePath("/admin/uniformes");
+}
+
+// Empresta o item para alguém (registra quem está com ele)
+export async function lendTrackedItem(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  const holderName = String(formData.get("holderName") || "").trim();
+  if (!id || !holderName) return;
+  await prisma.trackedItem.update({
+    where: { id },
+    data: { holderName, since: new Date() },
+  });
+  revalidatePath("/uniformes");
+  revalidatePath("/admin/uniformes");
+}
+
+// Marca como devolvido (disponível na comissão)
+export async function returnTrackedItem(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.trackedItem.update({
+    where: { id },
+    data: { holderName: null, since: null },
+  });
+  revalidatePath("/uniformes");
+  revalidatePath("/admin/uniformes");
+}
+
+export async function deleteTrackedItem(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.trackedItem.delete({ where: { id } });
+  revalidatePath("/uniformes");
+  revalidatePath("/admin/uniformes");
 }

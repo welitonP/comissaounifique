@@ -1,9 +1,9 @@
-import { requireAdminPage } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createTeam, deleteTeam } from "@/lib/actions";
 
 export default async function AdminTimesPage() {
-  await requireAdminPage();
+  await requireUserPage();
   const teams = await prisma.team.findMany({ orderBy: { name: "asc" } });
 
   return (

@@ -1,0 +1,23 @@
+{
+  "name": "Comissão de Esportes Unifique",
+  "short_name": "Comissão Esportes",
+  "description": "Área interna da Comissão de Esportes da Unifique.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f4fb",
+  "theme_color": "#212492",
+  "icons": [
+    {
+      "src": "/logo-comissao.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-comissao.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

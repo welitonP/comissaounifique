@@ -1,4 +1,4 @@
-import { requireAdminPage } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   createModality,
@@ -8,7 +8,7 @@ import {
 } from "@/lib/actions";
 
 export default async function AdminEntreEmpresasPage() {
-  await requireAdminPage();
+  await requireUserPage();
   const modalities = await prisma.modality.findMany({
     orderBy: [{ order: "asc" }, { name: "asc" }],
     include: { registrations: { orderBy: { companyName: "asc" } } },

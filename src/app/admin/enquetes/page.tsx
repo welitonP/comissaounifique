@@ -1,9 +1,9 @@
-import { requireAdminPage } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createPoll, deletePoll } from "@/lib/actions";
 
 export default async function AdminEnquetesPage() {
-  await requireAdminPage();
+  await requireUserPage();
   const polls = await prisma.poll.findMany({
     orderBy: { createdAt: "desc" },
     include: { options: true },

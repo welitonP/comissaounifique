@@ -28,12 +28,18 @@ Acesse http://localhost:3000. A área administrativa fica em `/admin`
 
 ## Estrutura
 
-- `src/app` — páginas públicas e área administrativa (`/admin/*`):
+- Acesso é **restrito a membros**: o site inteiro fica atrás de login (`src/middleware.ts`).
+  Cada membro tem usuário e senha próprios (`User`). Papéis: `admin` (gerencia membros)
+  e `member`. Todos os membros logados podem ver e editar o conteúdo.
+- `src/app` — páginas e área de gestão (`/admin/*`):
   - `/entre-empresas` — campeonato Entre Empresas: modalidades, empresas inscritas e informações.
-  - `/calendario` — datas de jogos/eventos, visíveis a todos.
-  - `/materiais` — estoque de materiais esportivos.
+  - `/calendario` — datas de jogos/eventos.
+  - `/materiais` — estoque de materiais esportivos (com busca).
+  - `/uniformes` — itens controlados (bolsas/uniformes) e quem está com cada um (com busca).
   - `/agenda`, `/classificacao`, `/comunicados`, `/enquetes` — jogos, tabela, avisos e enquetes.
-- `public/logo-comissao.svg` — logo exibido no topo (substitua pelo logo oficial da comissão).
+  - `/admin/membros` — gestão de membros (somente admin).
+- `public/logo-comissao.jpg` — logo oficial da comissão, exibido no topo e no login.
+- É uma **PWA**: pode ser adicionada à tela inicial do celular (`public/manifest.webmanifest`).
 - `src/lib/actions.ts` — Server Actions usadas pelos formulários (todo o CRUD).
 - `src/lib/auth.ts` — autenticação simples de admin (senha única + cookie assinado).
 - `prisma/schema.prisma` — modelo de dados (times, campeonatos, jogos, comunicados, enquetes).

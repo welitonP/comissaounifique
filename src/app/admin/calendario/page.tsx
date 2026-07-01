@@ -1,9 +1,9 @@
-import { requireAdminPage } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createCalendarEvent, deleteCalendarEvent } from "@/lib/actions";
 
 export default async function AdminCalendarioPage() {
-  await requireAdminPage();
+  await requireUserPage();
   const [events, modalities] = await Promise.all([
     prisma.calendarEvent.findMany({ orderBy: { date: "asc" }, include: { modality: true } }),
     prisma.modality.findMany({ orderBy: { name: "asc" } }),

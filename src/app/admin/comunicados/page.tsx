@@ -1,9 +1,9 @@
-import { requireAdminPage } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAnnouncement, deleteAnnouncement } from "@/lib/actions";
 
 export default async function AdminComunicadosPage() {
-  await requireAdminPage();
+  await requireUserPage();
   const announcements = await prisma.announcement.findMany({ orderBy: { createdAt: "desc" } });
 
   return (

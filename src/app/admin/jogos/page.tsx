@@ -1,9 +1,9 @@
-import { requireAdminPage } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createChampionship, createMatch, deleteMatch, updateMatchResult } from "@/lib/actions";
 
 export default async function AdminJogosPage() {
-  await requireAdminPage();
+  await requireUserPage();
 
   const [teams, championships, matches] = await Promise.all([
     prisma.team.findMany({ orderBy: { name: "asc" } }),

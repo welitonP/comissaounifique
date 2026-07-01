@@ -1,9 +1,9 @@
-import { requireAdminPage } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createMaterial, deleteMaterial, updateMaterialQuantity } from "@/lib/actions";
 
 export default async function AdminMateriaisPage() {
-  await requireAdminPage();
+  await requireUserPage();
   const materials = await prisma.material.findMany({
     orderBy: [{ category: "asc" }, { name: "asc" }],
   });
