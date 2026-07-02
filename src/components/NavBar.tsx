@@ -4,11 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import {
+  Award,
   CalendarDays,
   Home,
   Megaphone,
   Menu,
   Trophy,
+  Users,
   Vote,
   Lightbulb,
   Package,
@@ -23,6 +25,8 @@ const PUBLIC_LINKS = [
   { href: "/calendario", label: "Calendário", Icon: CalendarDays },
   { href: "/comunicados", label: "Comunicados", Icon: Megaphone },
   { href: "/entre-empresas", label: "Entre Empresas", Icon: Trophy },
+  { href: "/resultados", label: "Resultados", Icon: Award },
+  { href: "/comissao", label: "A Comissão", Icon: Users },
   { href: "/enquetes", label: "Enquetes", Icon: Vote },
   { href: "/sugestoes", label: "Sugestões", Icon: Lightbulb },
 ];
@@ -57,12 +61,12 @@ export default function NavBar({ user }: { user: SessionUser | null }) {
         </Link>
 
         {/* Desktop */}
-        <nav className="hidden items-center gap-1 lg:flex">
-          {links.map(({ href, label }) => (
+        <nav className="hidden items-center gap-0.5 xl:flex">
+          {PUBLIC_LINKS.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
+              className="rounded-lg px-2.5 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
             >
               {label}
             </Link>
@@ -98,7 +102,7 @@ export default function NavBar({ user }: { user: SessionUser | null }) {
         <button
           onClick={() => setOpen((o) => !o)}
           aria-label={open ? "Fechar menu" : "Abrir menu"}
-          className="rounded-lg p-2 hover:bg-white/10 lg:hidden"
+          className="rounded-lg p-2 hover:bg-white/10 xl:hidden"
         >
           {open ? <X size={26} /> : <Menu size={26} />}
         </button>
@@ -106,7 +110,7 @@ export default function NavBar({ user }: { user: SessionUser | null }) {
 
       {/* Painel mobile */}
       {open && (
-        <nav className="border-t border-white/10 bg-unifique-dark px-4 pb-4 pt-2 lg:hidden">
+        <nav className="border-t border-white/10 bg-unifique-dark px-4 pb-4 pt-2 xl:hidden">
           <div className="grid gap-1">
             {links.map(({ href, label, Icon }) => (
               <Link

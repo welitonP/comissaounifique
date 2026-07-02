@@ -550,3 +550,80 @@ export async function deleteSuggestion(formData: FormData) {
   await prisma.suggestion.delete({ where: { id } });
   revalidatePath("/admin/sugestoes");
 }
+
+// ===== Resultados / conquistas =====
+
+export async function createResult(formData: FormData) {
+  await requireUser();
+  const event = String(formData.get("event") || "").trim();
+  const modality = String(formData.get("modality") || "").trim();
+  const placement = String(formData.get("placement") || "").trim();
+  const medalRaw = String(formData.get("medal") || "");
+  const medal = ["ouro", "prata", "bronze"].includes(medalRaw) ? medalRaw : null;
+  const year = Number(formData.get("year") || new Date().getFullYear());
+  const note = String(formData.get("note") || "").trim();
+  if (!event || !modality || !placement) return;
+  await prisma.result.create({
+    data: {
+      event,
+      modality,
+      placement,
+      medal,
+      year: Number.isFinite(year) ? year : new Date().getFullYear(),
+      note: note || null,
+    },
+  });
+  revalidatePath("/resultados");
+  revalidatePath("/admin/resultados");
+}
+
+export async function deleteResult(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.result.delete({ where: { id } });
+  revalidatePath("/resultados");
+  revalidatePath("/admin/resultados");
+}
+
+// ===== Membros da comissão (vitrine "A Comissão") =====
+
+export async function createCommissionMember(formData: FormData) {
+  await requireUser();
+  const name = String(formData.get("name") || "").trim();
+  const role = String(formData.get("role") || "").trim();
+  const order = Number(formData.get("order") || 0);
+  if (!name || !role) return;
+
+  const photo = formData.get("photo");
+  let photoData: Buffer | null = null;
+  let photoMime: string | null = null;
+  if (photo instanceof File && photo.size > 0) {
+    if (!photo.type.startsWith("image/") || photo.size > 2 * 1024 * 1024) {
+      redirect("/admin/comissao?erro=foto");
+    }
+    photoData = Buffer.from(await photo.arrayBuffer());
+    photoMime = photo.type;
+  }
+
+  await prisma.commissionMember.create({
+    data: {
+      name,
+      role,
+      order: Number.isFinite(order) ? order : 0,
+      photoData,
+      photoMime,
+    },
+  });
+  revalidatePath("/comissao");
+  revalidatePath("/admin/comissao");
+}
+
+export async function deleteCommissionMember(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.commissionMember.delete({ where: { id } });
+  revalidatePath("/comissao");
+  revalidatePath("/admin/comissao");
+}

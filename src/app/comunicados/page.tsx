@@ -1,5 +1,6 @@
 import { Megaphone } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import ShareWhatsApp from "@/components/ShareWhatsApp";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,10 @@ export default async function ComunicadosPage() {
                     year: "numeric",
                   })}
                 </p>
-                <h2 className="mt-1 text-lg font-bold text-unifique">{a.title}</h2>
+                <div className="mt-1 flex items-start justify-between gap-3">
+                  <h2 className="text-lg font-bold text-unifique">{a.title}</h2>
+                  <ShareWhatsApp text={`📢 ${a.title}\n\n${a.body}`} />
+                </div>
                 <p className="mt-2 whitespace-pre-wrap text-gray-700">{a.body}</p>
                 {resto.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">

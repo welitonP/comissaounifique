@@ -68,6 +68,30 @@ model Suggestion {
   createdAt DateTime @default(now())
 }
 
+// Membro da comissão (vitrine institucional "A Comissão")
+model CommissionMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  photoData Bytes?
+  photoMime String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+// Resultado/conquista da Unifique em uma modalidade
+model Result {
+  id        String   @id @default(cuid())
+  event     String // ex: "35ª OEE 2026"
+  year      Int
+  modality  String // ex: "Futsal Masculino"
+  placement String // ex: "Campeão", "Vice-campeão", "3º lugar"
+  medal     String? // "ouro" | "prata" | "bronze" | null
+  note      String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
 model Poll {
   id        String       @id @default(cuid())
   question  String

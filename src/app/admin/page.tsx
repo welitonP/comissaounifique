@@ -47,6 +47,16 @@ export default async function AdminDashboardPage() {
       label: "Sugestões",
       description: "Ver o que os atletas sugeriram.",
     },
+    {
+      href: "/admin/resultados",
+      label: "Resultados",
+      description: "Registrar conquistas e medalhas.",
+    },
+    {
+      href: "/admin/comissao",
+      label: "A Comissão",
+      description: "Apresentar os membros da comissão.",
+    },
     { href: "/admin/enquetes", label: "Enquetes", description: "Criar enquetes e ver resultados." },
     { href: "/admin/conta", label: "Minha conta", description: "Alterar minha senha." },
   ];

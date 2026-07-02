@@ -16,6 +16,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import Countdown from "@/components/Countdown";
 import WeeklySummary from "@/components/WeeklySummary";
+import ShareWhatsApp from "@/components/ShareWhatsApp";
 
 export const dynamic = "force-dynamic";
 
@@ -91,6 +92,17 @@ export default async function HomePage() {
                 })}
                 {nextEvent.location ? ` · ${nextEvent.location}` : ""}
               </p>
+              <div className="mt-3">
+                <ShareWhatsApp
+                  text={`🏆 Próximo jogo: ${nextEvent.title} — ${new Date(nextEvent.date).toLocaleDateString(
+                    "pt-BR",
+                    { day: "2-digit", month: "long" },
+                  )} às ${new Date(nextEvent.date).toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}${nextEvent.location ? ` · ${nextEvent.location}` : ""}`}
+                />
+              </div>
             </div>
             <Countdown target={new Date(nextEvent.date).toISOString()} />
           </div>
