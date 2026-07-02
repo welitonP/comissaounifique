@@ -757,3 +757,116 @@ export async function deleteRsvp(formData: FormData) {
   await prisma.eventRsvp.delete({ where: { id } });
   revalidatePath("/admin/presencas");
 }
+
+// ===== Kits e saídas de equipamento =====
+
+export async function createKit(formData: FormData) {
+  await requireUser();
+  const name = String(formData.get("name") || "").trim();
+  const items = String(formData.get("items") || "").trim();
+  if (!name || !items) return;
+  await prisma.equipmentKit.create({ data: { name, items } });
+  revalidatePath("/admin/saidas");
+}
+
+export async function deleteKit(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.equipmentKit.delete({ where: { id } });
+  revalidatePath("/admin/saidas");
+}
+
+export async function createCheckout(formData: FormData) {
+  await requireUser();
+  const eventId = String(formData.get("eventId") || "");
+  const manualTitle = String(formData.get("title") || "").trim();
+  const manualDate = String(formData.get("date") || "");
+  const responsible = String(formData.get("responsible") || "").trim();
+  const kitId = String(formData.get("kitId") || "");
+
+  let title = manualTitle;
+  let date: Date | null = manualDate ? new Date(manualDate) : null;
+
+  if (eventId) {
+    const ev = await prisma.calendarEvent.findUnique({ where: { id: eventId } });
+    if (ev) {
+      title = ev.title;
+      date = ev.date;
+    }
+  }
+  if (!title || !date) {
+    redirect("/admin/saidas?erro=dados");
+  }
+
+  let itemNames: string[] = [];
+  if (kitId) {
+    const kit = await prisma.equipmentKit.findUnique({ where: { id: kitId } });
+    if (kit) {
+      itemNames = kit.items
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+  }
+
+  await prisma.checkout.create({
+    data: {
+      title,
+      date,
+      eventId: eventId || null,
+      responsible: responsible || null,
+      items: itemNames.length > 0 ? { create: itemNames.map((name) => ({ name })) } : undefined,
+    },
+  });
+  revalidatePath("/admin/saidas");
+  redirect("/admin/saidas?sucesso=1");
+}
+
+export async function addCheckoutItem(formData: FormData) {
+  await requireUser();
+  const checkoutId = String(formData.get("checkoutId") || "");
+  const name = String(formData.get("name") || "").trim();
+  if (!checkoutId || !name) return;
+  await prisma.checkoutItem.create({ data: { checkoutId, name } });
+  revalidatePath("/admin/saidas");
+}
+
+export async function toggleCheckoutItem(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  const field = String(formData.get("field") || ""); // "taken" | "returned"
+  if (!id || !["taken", "returned"].includes(field)) return;
+  const item = await prisma.checkoutItem.findUnique({ where: { id } });
+  if (!item) return;
+  await prisma.checkoutItem.update({
+    where: { id },
+    data: field === "taken" ? { taken: !item.taken } : { returned: !item.returned },
+  });
+  revalidatePath("/admin/saidas");
+}
+
+export async function deleteCheckoutItem(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.checkoutItem.delete({ where: { id } });
+  revalidatePath("/admin/saidas");
+}
+
+export async function setCheckoutStatus(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  const status = String(formData.get("status") || "");
+  if (!id || !["aberto", "devolvido"].includes(status)) return;
+  await prisma.checkout.update({ where: { id }, data: { status } });
+  revalidatePath("/admin/saidas");
+}
+
+export async function deleteCheckout(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.checkout.delete({ where: { id } });
+  revalidatePath("/admin/saidas");
+}

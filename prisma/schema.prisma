@@ -111,6 +111,35 @@ model Enrollment {
   createdAt     DateTime @default(now())
 }
 
+// Kit padrão de equipamentos (lista pronta por modalidade)
+model EquipmentKit {
+  id        String   @id @default(cuid())
+  name      String
+  items     String // itens padrão, um por linha
+  createdAt DateTime @default(now())
+}
+
+// Saída de equipamento para um jogo/evento (controle do que levou/devolveu)
+model Checkout {
+  id          String         @id @default(cuid())
+  title       String
+  eventId     String? // opcional: jogo do calendário de origem
+  date        DateTime
+  responsible String?
+  status      String         @default("aberto") // aberto | devolvido
+  createdAt   DateTime       @default(now())
+  items       CheckoutItem[]
+}
+
+model CheckoutItem {
+  id         String   @id @default(cuid())
+  checkoutId String
+  checkout   Checkout @relation(fields: [checkoutId], references: [id], onDelete: Cascade)
+  name       String
+  taken      Boolean  @default(false)
+  returned   Boolean  @default(false)
+}
+
 // Confirmação de presença em um evento (visível só para a comissão)
 model EventRsvp {
   id        String        @id @default(cuid())

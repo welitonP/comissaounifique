@@ -23,6 +23,11 @@ export default async function AdminDashboardPage() {
       description: "Itens controlados e quem está com eles.",
     },
     {
+      href: "/admin/saidas",
+      label: "Saídas de equipamento",
+      description: "Kits e checklist do que sai/volta nos jogos.",
+    },
+    {
       href: "/admin/times",
       label: "Times (interno)",
       description: "Para campeonatos internos. Cadastrar times.",
