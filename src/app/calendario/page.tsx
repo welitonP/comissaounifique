@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { createCalendarEvent } from "@/lib/actions";
+import { createCalendarEvent, createRsvp } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -67,12 +67,25 @@ export default async function CalendarioPage({
   // Lista dos eventos do mês (abaixo da grade)
   const eventosDoMes = Array.from(porDia.entries()).sort((a, b) => a[0] - b[0]);
 
+  const rsvp = typeof params.rsvp === "string" ? params.rsvp : "";
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-unifique">Calendário</h1>
         <p className="mt-1 text-gray-600">Jogos e eventos da comissão.</p>
       </div>
+
+      {rsvp === "ok" && (
+        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+          Presença confirmada! Obrigado por avisar.
+        </p>
+      )}
+      {rsvp === "ja" && (
+        <p className="rounded-xl bg-yellow-100 px-4 py-3 text-sm text-yellow-800">
+          Você já confirmou presença neste evento.
+        </p>
+      )}
 
       {/* Grade do mês */}
       <section className="rounded-xl bg-white p-4 shadow-sm">
@@ -251,20 +264,58 @@ export default async function CalendarioPage({
                   </div>
                   <ul className="divide-y divide-gray-50">
                     {evs.map((ev) => (
-                      <li key={ev.id} className="flex items-start gap-3 px-4 py-2.5">
-                        <span className="rounded bg-unifique-blue/10 px-2 py-0.5 text-sm font-semibold text-unifique-blue">
-                          {new Date(ev.date).toLocaleTimeString("pt-BR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                        <div className="flex-1">
-                          <p className="font-medium">{ev.title}</p>
-                          <p className="text-sm text-gray-500">
-                            {ev.modality ? ev.modality.name : ""}
-                            {ev.location ? `${ev.modality ? " · " : ""}${ev.location}` : ""}
-                          </p>
+                      <li key={ev.id} className="px-4 py-2.5">
+                        <div className="flex items-start gap-3">
+                          <span className="rounded bg-unifique-blue/10 px-2 py-0.5 text-sm font-semibold text-unifique-blue">
+                            {new Date(ev.date).toLocaleTimeString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          <div className="flex-1">
+                            <p className="font-medium">{ev.title}</p>
+                            <p className="text-sm text-gray-500">
+                              {ev.modality ? ev.modality.name : ""}
+                              {ev.location ? `${ev.modality ? " · " : ""}${ev.location}` : ""}
+                            </p>
+                          </div>
                         </div>
+
+                        {!past && (
+                          <details className="mt-2">
+                            <summary className="cursor-pointer text-xs font-semibold text-unifique-blue">
+                              Confirmar presença
+                            </summary>
+                            <form
+                              action={createRsvp}
+                              className="mt-2 flex flex-wrap items-center gap-2"
+                            >
+                              <input type="hidden" name="eventId" value={ev.id} />
+                              <input
+                                name="name"
+                                required
+                                placeholder="Seu nome"
+                                className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+                              />
+                              <button
+                                type="submit"
+                                name="going"
+                                value="1"
+                                className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+                              >
+                                Vou
+                              </button>
+                              <button
+                                type="submit"
+                                name="going"
+                                value="0"
+                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+                              >
+                                Não vou
+                              </button>
+                            </form>
+                          </details>
+                        )}
                       </li>
                     ))}
                   </ul>

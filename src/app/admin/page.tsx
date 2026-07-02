@@ -43,6 +43,16 @@ export default async function AdminDashboardPage() {
       description: "Publicar avisos (com fotos) para todos.",
     },
     {
+      href: "/admin/inscricoes",
+      label: "Inscrições",
+      description: "Abrir/fechar e aprovar inscrições de atletas.",
+    },
+    {
+      href: "/admin/presencas",
+      label: "Presenças",
+      description: "Quem confirmou presença nos jogos.",
+    },
+    {
       href: "/admin/sugestoes",
       label: "Sugestões",
       description: "Ver o que os atletas sugeriram.",

@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import AssistantWidget from "@/components/AssistantWidget";
 import { getCurrentUser } from "@/lib/auth";
 import { isGeminiConfigured } from "@/lib/gemini";
+import { isInscricoesAbertas } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Comissão de Esportes Unifique",
@@ -27,7 +28,7 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
+  const [user, inscricoesAbertas] = await Promise.all([getCurrentUser(), isInscricoesAbertas()]);
 
   return (
     <html lang="pt-BR">
@@ -40,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="flex min-h-screen flex-col">
-        <NavBar user={user} />
+        <NavBar user={user} inscricoesAbertas={inscricoesAbertas} />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
         <Footer />
         {user && <AssistantWidget configured={isGeminiConfigured()} />}

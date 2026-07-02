@@ -627,3 +627,133 @@ export async function deleteCommissionMember(formData: FormData) {
   revalidatePath("/comissao");
   revalidatePath("/admin/comissao");
 }
+
+// ===== Inscrições online =====
+
+export async function toggleInscricoes(formData: FormData) {
+  await requireUser();
+  const abrir = String(formData.get("abrir") || "") === "1";
+  const { setInscricoesAbertas } = await import("./settings");
+  await setInscricoesAbertas(abrir);
+  revalidatePath("/admin/inscricoes");
+  revalidatePath("/inscricao");
+  revalidatePath("/");
+}
+
+export async function createEnrollment(formData: FormData) {
+  const { isInscricoesAbertas } = await import("./settings");
+  if (!(await isInscricoesAbertas())) {
+    redirect("/inscricao?erro=fechado");
+  }
+  const name = String(formData.get("name") || "").trim().slice(0, 100);
+  const sector = String(formData.get("sector") || "").trim().slice(0, 100);
+  const shirtSize = String(formData.get("shirtSize") || "").trim().slice(0, 10);
+  const contact = String(formData.get("contact") || "").trim().slice(0, 60);
+  const modalityIds = formData.getAll("modalidades").map(String).filter(Boolean);
+
+  if (!name || modalityIds.length === 0) {
+    redirect("/inscricao?erro=dados");
+  }
+
+  const mods = await prisma.modality.findMany({
+    where: { id: { in: modalityIds } },
+    select: { id: true, name: true },
+  });
+  if (mods.length === 0) {
+    redirect("/inscricao?erro=dados");
+  }
+
+  await prisma.enrollment.create({
+    data: {
+      name,
+      sector: sector || null,
+      shirtSize: shirtSize || null,
+      contact: contact || null,
+      modalityIds: mods.map((m) => m.id).join(","),
+      modalityNames: mods.map((m) => m.name).join(", "),
+    },
+  });
+  revalidatePath("/admin/inscricoes");
+  redirect("/inscricao?sucesso=1");
+}
+
+export async function approveEnrollment(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  const enr = await prisma.enrollment.findUnique({ where: { id } });
+  if (!enr || enr.status !== "pendente") return;
+
+  const ids = enr.modalityIds.split(",").filter(Boolean);
+  const responsible = [enr.sector, enr.shirtSize ? `Camisa ${enr.shirtSize}` : ""]
+    .filter(Boolean)
+    .join(" · ");
+
+  // Cria a inscrição no elenco de cada modalidade escolhida
+  await prisma.registration.createMany({
+    data: ids.map((modalityId) => ({
+      modalityId,
+      companyName: enr.name,
+      responsible: responsible || null,
+      contact: enr.contact,
+    })),
+  });
+
+  await prisma.enrollment.update({ where: { id }, data: { status: "aprovada" } });
+  revalidatePath("/admin/inscricoes");
+  revalidatePath("/entre-empresas");
+}
+
+export async function rejectEnrollment(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.enrollment.update({ where: { id }, data: { status: "recusada" } });
+  revalidatePath("/admin/inscricoes");
+}
+
+export async function deleteEnrollment(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.enrollment.delete({ where: { id } });
+  revalidatePath("/admin/inscricoes");
+}
+
+// ===== Confirmação de presença (RSVP) =====
+
+export async function createRsvp(formData: FormData) {
+  const eventId = String(formData.get("eventId") || "");
+  const name = String(formData.get("name") || "").trim().slice(0, 80);
+  const going = String(formData.get("going") || "1") === "1";
+  if (!eventId || !name) {
+    redirect("/calendario?rsvp=dados");
+  }
+
+  const store = await cookies();
+  const cookieName = "rsvp_events";
+  const done = (store.get(cookieName)?.value || "").split(",").filter(Boolean);
+  if (done.includes(eventId)) {
+    redirect(`/calendario?rsvp=ja#dia`);
+  }
+
+  await prisma.eventRsvp.create({ data: { eventId, name, going } });
+
+  store.set(cookieName, [...done, eventId].join(","), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 180,
+  });
+  revalidatePath("/calendario");
+  revalidatePath("/admin/presencas");
+  redirect("/calendario?rsvp=ok");
+}
+
+export async function deleteRsvp(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.eventRsvp.delete({ where: { id } });
+  revalidatePath("/admin/presencas");
+}

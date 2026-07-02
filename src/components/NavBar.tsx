@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   Award,
   CalendarDays,
+  ClipboardList,
   Home,
   Megaphone,
   Menu,
@@ -36,7 +37,13 @@ const MEMBER_LINKS = [
   { href: "/uniformes", label: "Uniformes", Icon: Shirt },
 ];
 
-export default function NavBar({ user }: { user: SessionUser | null }) {
+export default function NavBar({
+  user,
+  inscricoesAbertas,
+}: {
+  user: SessionUser | null;
+  inscricoesAbertas?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const links = user ? [...PUBLIC_LINKS, ...MEMBER_LINKS] : PUBLIC_LINKS;
 
@@ -71,6 +78,14 @@ export default function NavBar({ user }: { user: SessionUser | null }) {
               {label}
             </Link>
           ))}
+          {inscricoesAbertas && (
+            <Link
+              href="/inscricao"
+              className="ml-1 whitespace-nowrap rounded-lg bg-unifique-yellow px-3 py-2 text-sm font-bold text-unifique-dark shadow hover:brightness-105"
+            >
+              Inscreva-se
+            </Link>
+          )}
           {user ? (
             <div className="ml-2 flex items-center gap-2 border-l border-white/20 pl-3">
               <Link
@@ -112,6 +127,16 @@ export default function NavBar({ user }: { user: SessionUser | null }) {
       {open && (
         <nav className="border-t border-white/10 bg-unifique-dark px-4 pb-4 pt-2 xl:hidden">
           <div className="grid gap-1">
+            {inscricoesAbertas && (
+              <Link
+                href="/inscricao"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 rounded-lg bg-unifique-yellow px-3 py-2.5 text-sm font-bold text-unifique-dark"
+              >
+                <ClipboardList size={18} />
+                Inscreva-se
+              </Link>
+            )}
             {links.map(({ href, label, Icon }) => (
               <Link
                 key={href}

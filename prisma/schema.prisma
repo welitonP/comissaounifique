@@ -92,6 +92,35 @@ model Result {
   createdAt DateTime @default(now())
 }
 
+// Configurações simples chave/valor (ex: inscrições abertas)
+model Setting {
+  key   String @id
+  value String
+}
+
+// Inscrição online de um atleta em uma ou mais modalidades (fila de aprovação)
+model Enrollment {
+  id            String   @id @default(cuid())
+  name          String
+  sector        String?
+  shirtSize     String?
+  contact       String?
+  modalityIds   String // ids das modalidades escolhidas (CSV)
+  modalityNames String // nomes (snapshot) para exibição (CSV)
+  status        String   @default("pendente") // pendente | aprovada | recusada
+  createdAt     DateTime @default(now())
+}
+
+// Confirmação de presença em um evento (visível só para a comissão)
+model EventRsvp {
+  id        String        @id @default(cuid())
+  eventId   String
+  event     CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name      String
+  going     Boolean       @default(true)
+  createdAt DateTime      @default(now())
+}
+
 model Poll {
   id        String       @id @default(cuid())
   question  String
@@ -140,6 +169,7 @@ model CalendarEvent {
   location    String?
   description String?
   createdAt   DateTime  @default(now())
+  rsvps       EventRsvp[]
 }
 
 // Estoque de materiais esportivos (ex: 5 bolas de futsal)
