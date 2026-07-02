@@ -28,9 +28,7 @@ export default function Countdown({ target }: { target: string }) {
 
   const diff = new Date(target).getTime() - now;
   if (diff <= 0) {
-    return (
-      <p className="font-display text-xl font-bold text-unifique-yellow">É hoje! Bora torcer! 🎉</p>
-    );
+    return <p className="font-display text-xl font-bold text-unifique-yellow">É hoje!</p>;
   }
 
   const dias = Math.floor(diff / 86400000);

@@ -19,23 +19,23 @@ export default async function SugestoesPage({
           </span>
           <div>
             <h1 className="text-2xl font-bold">Caixa de sugestões</h1>
-            <p className="text-sm text-white/85">Sua ideia pode virar a próxima novidade! 💡</p>
+            <p className="text-sm text-white/85">Seu canal direto com a comissão.</p>
           </div>
         </div>
         <p className="mt-4 text-sm text-white/85">
-          Manda pra comissão qualquer sugestão: modalidade nova, horário, uniforme, evento...
-          Pode se identificar ou enviar anônimo — só a comissão vê.
+          Envie sugestões de modalidades, horários, uniformes, eventos e melhorias.
+          Você pode se identificar ou enviar de forma anônima — apenas a comissão tem acesso.
         </p>
       </section>
 
       {params.sucesso === "1" && (
         <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
-          Sugestão enviada, valeu! 🙌 A comissão vai dar uma olhada.
+          Sugestão enviada com sucesso. Obrigado pela contribuição!
         </p>
       )}
       {params.erro === "curta" && (
         <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-          Escreve um pouquinho mais sobre a sua sugestão. 😉
+          Descreva sua sugestão com um pouco mais de detalhes.
         </p>
       )}
 
@@ -55,7 +55,7 @@ export default async function SugestoesPage({
           </label>
           <input
             name="name"
-            placeholder="Deixe em branco pra enviar anônimo"
+            placeholder="Deixe em branco para enviar anonimamente"
             className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
           />
         </div>
@@ -65,7 +65,7 @@ export default async function SugestoesPage({
             name="message"
             required
             rows={5}
-            placeholder="Conta pra gente a sua ideia..."
+            placeholder="Descreva sua sugestão..."
             className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
           />
         </div>

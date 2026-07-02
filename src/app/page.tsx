@@ -107,7 +107,7 @@ export default async function HomePage() {
             href="/sugestoes"
             className="rounded-xl bg-white/15 px-5 py-2.5 font-display font-semibold text-white hover:bg-white/25"
           >
-            💡 Enviar sugestão
+            Enviar sugestão
           </Link>
         </div>
       </section>
