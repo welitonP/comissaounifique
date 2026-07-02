@@ -42,7 +42,7 @@ export default function NavBar({ user }: { user: SessionUser | null }) {
 
   return (
     <header className="sticky top-0 z-40 bg-unifique text-white shadow-lg">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2.5">
         <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           <Image
             src="/logo-comissao.jpg"
@@ -52,9 +52,9 @@ export default function NavBar({ user }: { user: SessionUser | null }) {
             className="rounded-full bg-white ring-2 ring-white/40"
             priority
           />
-          <span className="font-display text-base font-bold leading-tight tracking-tight">
+          <span className="font-display text-base font-bold leading-tight tracking-tight whitespace-nowrap">
             Comissão de Esportes
-            <span className="block text-[11px] font-semibold uppercase tracking-widest text-unifique-teal">
+            <span className="block whitespace-nowrap text-[11px] font-semibold uppercase tracking-widest text-unifique-teal">
               Unifique · desde 2015
             </span>
           </span>
@@ -66,7 +66,7 @@ export default function NavBar({ user }: { user: SessionUser | null }) {
             <Link
               key={href}
               href={href}
-              className="rounded-lg px-2.5 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
+              className="whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
             >
               {label}
             </Link>
