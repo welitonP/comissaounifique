@@ -80,7 +80,8 @@ export default function AssistantWidget({ configured }: { configured: boolean })
             {messages.length === 0 && (
               <div className="space-y-3">
                 <p className="text-sm text-gray-500">
-                  Oi! 👋 Sou o Pablinho. Pergunte sobre materiais, uniformes, jogos e atletas.
+                  Olá! Sou o Pablinho, assistente virtual da comissão. Pergunte sobre materiais,
+                  uniformes, jogos e atletas.
                 </p>
                 {!configured && (
                   <p className="rounded bg-yellow-100 px-2 py-1 text-xs text-yellow-800">
@@ -180,7 +181,7 @@ export default function AssistantWidget({ configured }: { configured: boolean })
             onClick={openChat}
             className="mb-2 animate-bounce rounded-2xl rounded-bl-none bg-white px-3 py-2 text-sm font-medium text-unifique shadow-lg ring-1 ring-black/5"
           >
-            Oi, posso ajudar? 😄
+            Olá! Posso ajudar?
           </button>
         )}
       </div>
