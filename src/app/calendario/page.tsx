@@ -97,55 +97,80 @@ export default async function CalendarioPage({
         <div className="grid grid-cols-7 gap-1">
           {DIAS_CABECALHO.map((d) => (
             <div key={d} className="pb-1 text-center text-xs font-semibold text-gray-400">
-              {d}
+              <span className="sm:hidden">{d[0]}</span>
+              <span className="hidden sm:inline">{d}</span>
             </div>
           ))}
           {celulas.map((dia, i) => {
             const eventos = dia ? porDia.get(dia) ?? [] : [];
-            return (
-              <div
-                key={i}
-                className={`min-h-[76px] rounded-lg border p-1 sm:min-h-[92px] ${
-                  dia === null
-                    ? "border-transparent"
-                    : isHoje(dia)
-                      ? "border-unifique-blue bg-unifique-blue/5"
-                      : "border-gray-100"
-                }`}
-              >
-                {dia !== null && (
-                  <>
+            const temEvento = eventos.length > 0;
+
+            const base = `block min-h-[54px] rounded-lg border p-1 sm:min-h-[92px] ${
+              dia === null
+                ? "border-transparent"
+                : isHoje(dia)
+                  ? "border-unifique-blue bg-unifique-blue/10"
+                  : temEvento
+                    ? "border-unifique-blue/30 bg-unifique-light/50"
+                    : "border-gray-100"
+            }`;
+
+            if (dia === null) return <div key={i} className={base} />;
+
+            const conteudo = (
+              <>
+                <div className="flex justify-end">
+                  <span
+                    className={`text-xs font-semibold ${
+                      isHoje(dia)
+                        ? "flex h-5 w-5 items-center justify-center rounded-full bg-unifique-blue text-white"
+                        : temEvento
+                          ? "text-unifique"
+                          : "text-gray-400"
+                    }`}
+                  >
+                    {dia}
+                  </span>
+                </div>
+
+                {/* Mobile: bolinhas indicando eventos */}
+                <div className="mt-1 flex flex-wrap justify-center gap-0.5 sm:hidden">
+                  {eventos.slice(0, 4).map((ev) => (
+                    <span key={ev.id} className="h-1.5 w-1.5 rounded-full bg-unifique-blue" />
+                  ))}
+                </div>
+
+                {/* Desktop: etiquetas com texto */}
+                <div className="mt-1 hidden space-y-0.5 sm:block">
+                  {eventos.slice(0, 3).map((ev) => (
                     <div
-                      className={`mb-1 text-right text-xs font-semibold ${
-                        isHoje(dia)
-                          ? "inline-flex h-5 w-5 items-center justify-center rounded-full bg-unifique-blue text-white"
-                          : "text-gray-500"
-                      }`}
+                      key={ev.id}
+                      className="truncate rounded bg-unifique px-1 py-0.5 text-[10px] font-medium leading-tight text-white"
                     >
-                      {dia}
+                      {new Date(ev.date).toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      {ev.title}
                     </div>
-                    <div className="space-y-0.5">
-                      {eventos.slice(0, 3).map((ev) => (
-                        <div
-                          key={ev.id}
-                          title={`${new Date(ev.date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} — ${ev.title}`}
-                          className="truncate rounded bg-unifique px-1 py-0.5 text-[10px] font-medium leading-tight text-white"
-                        >
-                          {new Date(ev.date).toLocaleTimeString("pt-BR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}{" "}
-                          {ev.title}
-                        </div>
-                      ))}
-                      {eventos.length > 3 && (
-                        <div className="text-[10px] font-medium text-unifique-blue">
-                          +{eventos.length - 3} mais
-                        </div>
-                      )}
+                  ))}
+                  {eventos.length > 3 && (
+                    <div className="text-[10px] font-medium text-unifique-blue">
+                      +{eventos.length - 3} mais
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
+              </>
+            );
+
+            // Dia com evento vira link para os detalhes abaixo (ótimo no mobile)
+            return temEvento ? (
+              <a key={i} href={`#dia-${dia}`} className={base}>
+                {conteudo}
+              </a>
+            ) : (
+              <div key={i} className={base}>
+                {conteudo}
               </div>
             );
           })}
@@ -211,7 +236,8 @@ export default async function CalendarioPage({
               return (
                 <div
                   key={dia}
-                  className={`overflow-hidden rounded-xl bg-white shadow-sm ${past ? "opacity-70" : ""}`}
+                  id={`dia-${dia}`}
+                  className={`scroll-mt-4 overflow-hidden rounded-xl bg-white shadow-sm ${past ? "opacity-70" : ""}`}
                 >
                   <div className="flex items-center gap-3 border-b border-gray-100 bg-unifique-light/40 px-4 py-2">
                     <div className="flex h-10 w-10 flex-col items-center justify-center rounded-lg bg-unifique text-white">
