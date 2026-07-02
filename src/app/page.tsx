@@ -1,135 +1,228 @@
 import Link from "next/link";
 import Image from "next/image";
+import {
+  CalendarDays,
+  ChevronRight,
+  Lightbulb,
+  Megaphone,
+  Package,
+  Settings,
+  Shirt,
+  Trophy,
+  Vote,
+  type LucideIcon,
+} from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import Countdown from "@/components/Countdown";
 import WeeklySummary from "@/components/WeeklySummary";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const now = new Date();
-  const [nextEvent, latestAnnouncement, openPoll, modalityCount, materialCount] = await Promise.all([
-    prisma.calendarEvent.findFirst({
-      where: { date: { gte: new Date(now.toDateString()) } },
-      orderBy: { date: "asc" },
-      include: { modality: true },
-    }),
-    prisma.announcement.findFirst({ orderBy: { createdAt: "desc" } }),
-    prisma.poll.findFirst({ orderBy: { createdAt: "desc" } }),
-    prisma.modality.count(),
-    prisma.material.aggregate({ _sum: { quantity: true } }),
-  ]);
+  const hoje = new Date(now.toDateString());
+
+  const [user, nextEvent, latestAnnouncements, modalityCount, athleteCount, upcomingCount] =
+    await Promise.all([
+      getCurrentUser(),
+      prisma.calendarEvent.findFirst({
+        where: { date: { gte: hoje } },
+        orderBy: { date: "asc" },
+        include: { modality: true },
+      }),
+      prisma.announcement.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        include: { images: { select: { id: true }, take: 1 } },
+      }),
+      prisma.modality.count(),
+      prisma.registration.count(),
+      prisma.calendarEvent.count({ where: { date: { gte: hoje } } }),
+    ]);
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-xl bg-gradient-to-br from-unifique to-unifique-blue p-8 text-white shadow-sm">
-        <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+    <div className="space-y-10">
+      {/* Hero */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-unifique via-unifique to-unifique-blue p-7 text-white shadow-lg sm:p-10">
+        {/* detalhes decorativos */}
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-unifique-blue/40 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-unifique-teal/20 blur-3xl" />
+
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
           <Image
             src="/logo-comissao.jpg"
             alt="Comissão de Esportes Unifique"
-            width={110}
-            height={110}
-            className="rounded-full bg-white shadow-md"
+            width={120}
+            height={120}
+            className="h-24 w-24 rounded-full bg-white shadow-xl ring-4 ring-white/30 sm:h-28 sm:w-28"
             priority
           />
-          <div>
-            <h1 className="text-3xl font-bold">Comissão de Esportes Unifique</h1>
-            <p className="mt-2 max-w-2xl text-white/90">
-              Acompanhe o campeonato Entre Empresas, o calendário de jogos, a classificação dos
-              times, os comunicados e as enquetes da comissão.
+          <div className="flex-1">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-unifique-teal">
+              Unifique · desde 2015
+            </p>
+            <h1 className="mt-1 text-3xl font-extrabold leading-tight sm:text-4xl">
+              Comissão de Esportes
+            </h1>
+            <p className="mt-2 max-w-2xl text-white/85">
+              Jogos, comunicados, elencos e tudo do esporte na Unifique — em um lugar só.
             </p>
           </div>
         </div>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link
-            href="/entre-empresas"
-            className="rounded-lg bg-white px-5 py-2 font-semibold text-unifique hover:bg-white/90"
-          >
-            Entre Empresas
-          </Link>
+
+        {nextEvent && (
+          <div className="relative mt-7 flex flex-col gap-4 rounded-2xl bg-black/20 p-5 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-unifique-yellow">
+                Próximo jogo
+              </p>
+              <p className="mt-1 font-display text-xl font-bold">{nextEvent.title}</p>
+              <p className="text-sm text-white/80">
+                {new Date(nextEvent.date).toLocaleDateString("pt-BR", {
+                  weekday: "long",
+                  day: "2-digit",
+                  month: "long",
+                })}{" "}
+                às{" "}
+                {new Date(nextEvent.date).toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                {nextEvent.location ? ` · ${nextEvent.location}` : ""}
+              </p>
+            </div>
+            <Countdown target={new Date(nextEvent.date).toISOString()} />
+          </div>
+        )}
+
+        <div className="relative mt-6 flex flex-wrap gap-3">
           <Link
             href="/calendario"
-            className="rounded-lg bg-white/15 px-5 py-2 font-semibold hover:bg-white/25"
+            className="rounded-xl bg-white px-5 py-2.5 font-display font-semibold text-unifique shadow transition hover:scale-[1.02]"
           >
-            Calendário
+            Ver calendário
+          </Link>
+          <Link
+            href="/sugestoes"
+            className="rounded-xl bg-white/15 px-5 py-2.5 font-display font-semibold text-white hover:bg-white/25"
+          >
+            💡 Enviar sugestão
           </Link>
         </div>
       </section>
 
-      <WeeklySummary />
-
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <Card href="/calendario" title="Próximo evento">
-          {nextEvent ? (
-            <p className="text-sm text-gray-600">
-              {new Date(nextEvent.date).toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "long",
-              })}
-              <br />
-              <span className="font-medium">{nextEvent.title}</span>
-              {nextEvent.modality ? ` · ${nextEvent.modality.name}` : ""}
+      {/* Números */}
+      <section className="grid grid-cols-3 gap-3 sm:gap-5">
+        {[
+          { valor: modalityCount, rotulo: "modalidades" },
+          { valor: athleteCount, rotulo: "atletas" },
+          { valor: upcomingCount, rotulo: "eventos por vir" },
+        ].map((s) => (
+          <div key={s.rotulo} className="rounded-2xl bg-white p-4 text-center shadow-sm">
+            <p className="font-display text-3xl font-extrabold text-unifique">{s.valor}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+              {s.rotulo}
             </p>
-          ) : (
-            <p className="text-sm text-gray-400">Nenhum evento agendado.</p>
-          )}
-        </Card>
+          </div>
+        ))}
+      </section>
 
-        <Card href="/entre-empresas" title="Entre Empresas">
-          <p className="text-sm text-gray-600">
-            <span className="text-2xl font-bold text-unifique">{modalityCount}</span> modalidade(s)
-            no campeonato.
+      {/* Últimos comunicados */}
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-xl font-bold text-unifique">
+            <Megaphone size={22} className="text-unifique-blue" /> Últimos comunicados
+          </h2>
+          <Link
+            href="/comunicados"
+            className="flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline"
+          >
+            Ver todos <ChevronRight size={16} />
+          </Link>
+        </div>
+        {latestAnnouncements.length === 0 ? (
+          <p className="rounded-2xl bg-white p-6 text-center text-gray-500 shadow-sm">
+            Nenhum comunicado ainda.
           </p>
-        </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-3">
+            {latestAnnouncements.map((a) => (
+              <Link
+                key={a.id}
+                href="/comunicados"
+                className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                {a.images[0] ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={`/api/imagens/${a.images[0].id}`}
+                    alt=""
+                    className="h-32 w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-32 w-full items-center justify-center bg-gradient-to-br from-unifique to-unifique-blue">
+                    <Megaphone size={30} className="text-white/60" />
+                  </div>
+                )}
+                <div className="p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                    {new Date(a.createdAt).toLocaleDateString("pt-BR")}
+                  </p>
+                  <h3 className="mt-1 line-clamp-2 font-semibold text-gray-800 group-hover:text-unifique">
+                    {a.title}
+                  </h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
-        <Card href="/materiais" title="Materiais">
-          <p className="text-sm text-gray-600">
-            <span className="text-2xl font-bold text-unifique">
-              {materialCount._sum.quantity ?? 0}
-            </span>{" "}
-            itens em estoque.
-          </p>
-        </Card>
-
-        <Card href="/comunicados" title="Último comunicado">
-          {latestAnnouncement ? (
-            <p className="line-clamp-3 text-sm text-gray-600">{latestAnnouncement.title}</p>
-          ) : (
-            <p className="text-sm text-gray-400">Nenhum comunicado ainda.</p>
+      {/* Acesso rápido */}
+      <section>
+        <h2 className="mb-4 text-xl font-bold text-unifique">Acesso rápido</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <Atalho href="/calendario" titulo="Calendário" desc="Jogos e eventos" Icon={CalendarDays} />
+          <Atalho href="/entre-empresas" titulo="Entre Empresas" desc="Modalidades e elencos" Icon={Trophy} />
+          <Atalho href="/enquetes" titulo="Enquetes" desc="Vote e participe" Icon={Vote} />
+          <Atalho href="/sugestoes" titulo="Sugestões" desc="Mande sua ideia" Icon={Lightbulb} />
+          {user && (
+            <>
+              <Atalho href="/materiais" titulo="Materiais" desc="Estoque da comissão" Icon={Package} />
+              <Atalho href="/uniformes" titulo="Uniformes" desc="Quem está com o quê" Icon={Shirt} />
+              <Atalho href="/admin" titulo="Gerenciar" desc="Painel da comissão" Icon={Settings} />
+            </>
           )}
-        </Card>
+        </div>
+      </section>
 
-        <Card href="/enquetes" title="Enquete em aberto">
-          {openPoll ? (
-            <p className="line-clamp-3 text-sm text-gray-600">{openPoll.question}</p>
-          ) : (
-            <p className="text-sm text-gray-400">Nenhuma enquete ativa.</p>
-          )}
-        </Card>
-
-        <Card href="/classificacao" title="Classificação">
-          <p className="text-sm text-gray-600">Veja a tabela de pontos por modalidade.</p>
-        </Card>
-      </div>
+      {user && <WeeklySummary />}
     </div>
   );
 }
 
-function Card({
+function Atalho({
   href,
-  title,
-  children,
+  titulo,
+  desc,
+  Icon,
 }: {
   href: string;
-  title: string;
-  children: React.ReactNode;
+  titulo: string;
+  desc: string;
+  Icon: LucideIcon;
 }) {
   return (
     <Link
       href={href}
-      className="rounded-lg border-t-4 border-unifique-blue bg-white p-5 shadow-sm transition hover:shadow-md"
+      className="group rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
-      <h2 className="mb-2 font-semibold text-unifique">{title}</h2>
-      {children}
+      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-unifique-light text-unifique transition group-hover:bg-unifique group-hover:text-white">
+        <Icon size={22} />
+      </span>
+      <h3 className="mt-3 font-display font-semibold text-gray-800">{titulo}</h3>
+      <p className="text-xs text-gray-400">{desc}</p>
     </Link>
   );
 }

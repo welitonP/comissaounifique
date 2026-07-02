@@ -40,7 +40,12 @@ export default async function AdminDashboardPage() {
     {
       href: "/admin/comunicados",
       label: "Comunicados",
-      description: "Publicar avisos para todos.",
+      description: "Publicar avisos (com fotos) para todos.",
+    },
+    {
+      href: "/admin/sugestoes",
+      label: "Sugestões",
+      description: "Ver o que os atletas sugeriram.",
     },
     { href: "/admin/enquetes", label: "Enquetes", description: "Criar enquetes e ver resultados." },
     { href: "/admin/conta", label: "Minha conta", description: "Alterar minha senha." },

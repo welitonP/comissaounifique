@@ -42,9 +42,29 @@ model Match {
 }
 
 model Announcement {
-  id        String   @id @default(cuid())
+  id        String              @id @default(cuid())
   title     String
   body      String
+  createdAt DateTime            @default(now())
+  images    AnnouncementImage[]
+}
+
+// Foto anexada a um comunicado (bytes servidos por /api/imagens/[id])
+model AnnouncementImage {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  data           Bytes
+  mime           String
+  createdAt      DateTime     @default(now())
+}
+
+// Sugestão enviada por atleta (nome opcional; visível só para a comissão)
+model Suggestion {
+  id        String   @id @default(cuid())
+  name      String?
+  message   String
+  status    String   @default("nova") // "nova" | "analise" | "concluida"
   createdAt DateTime @default(now())
 }
 

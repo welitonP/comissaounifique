@@ -199,14 +199,50 @@ export async function deleteMatch(formData: FormData) {
   revalidatePath("/admin/jogos");
 }
 
+const MAX_PHOTOS = 4;
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024; // 2MB por foto
+const MAX_TOTAL_BYTES = 4 * 1024 * 1024; // limite de upload por comunicado
+
 export async function createAnnouncement(formData: FormData) {
   await requireUser();
   const title = String(formData.get("title") || "").trim();
   const body = String(formData.get("body") || "").trim();
   if (!title || !body) return;
-  await prisma.announcement.create({ data: { title, body } });
+
+  // Fotos (opcionais)
+  const files = formData
+    .getAll("photos")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+
+  if (files.length > MAX_PHOTOS) {
+    redirect("/admin/comunicados?erro=muitas-fotos");
+  }
+  let total = 0;
+  for (const f of files) {
+    total += f.size;
+    if (!f.type.startsWith("image/") || f.size > MAX_PHOTO_BYTES || total > MAX_TOTAL_BYTES) {
+      redirect("/admin/comunicados?erro=foto-grande");
+    }
+  }
+
+  const images = await Promise.all(
+    files.map(async (f) => ({
+      data: Buffer.from(await f.arrayBuffer()),
+      mime: f.type,
+    })),
+  );
+
+  await prisma.announcement.create({
+    data: {
+      title,
+      body,
+      images: images.length > 0 ? { create: images } : undefined,
+    },
+  });
+  revalidatePath("/");
   revalidatePath("/comunicados");
   revalidatePath("/admin/comunicados");
+  redirect("/admin/comunicados?sucesso=1");
 }
 
 export async function deleteAnnouncement(formData: FormData) {
@@ -478,4 +514,39 @@ export async function deleteTrackedItem(formData: FormData) {
   await prisma.trackedItem.delete({ where: { id } });
   revalidatePath("/uniformes");
   revalidatePath("/admin/uniformes");
+}
+
+// ===== Sugestões dos atletas =====
+
+// Pública: qualquer atleta pode enviar (nome opcional).
+export async function createSuggestion(formData: FormData) {
+  // honeypot anti-spam: campo invisível que humanos não preenchem
+  if (String(formData.get("website") || "")) {
+    redirect("/sugestoes?sucesso=1");
+  }
+  const name = String(formData.get("name") || "").trim().slice(0, 80);
+  const message = String(formData.get("message") || "").trim().slice(0, 2000);
+  if (message.length < 5) {
+    redirect("/sugestoes?erro=curta");
+  }
+  await prisma.suggestion.create({ data: { name: name || null, message } });
+  revalidatePath("/admin/sugestoes");
+  redirect("/sugestoes?sucesso=1");
+}
+
+export async function updateSuggestionStatus(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  const status = String(formData.get("status") || "");
+  if (!id || !["nova", "analise", "concluida"].includes(status)) return;
+  await prisma.suggestion.update({ where: { id }, data: { status } });
+  revalidatePath("/admin/sugestoes");
+}
+
+export async function deleteSuggestion(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.suggestion.delete({ where: { id } });
+  revalidatePath("/admin/sugestoes");
 }

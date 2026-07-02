@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
 import { createCalendarEvent } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
@@ -28,9 +29,10 @@ export default async function CalendarioPage({
   const mes = typeof params.mes === "string" && params.mes ? Number(params.mes) : today.getMonth() + 1;
   const ano = typeof params.ano === "string" && params.ano ? Number(params.ano) : today.getFullYear();
 
-  const [allEvents, modalities] = await Promise.all([
+  const [allEvents, modalities, user] = await Promise.all([
     prisma.calendarEvent.findMany({ orderBy: { date: "asc" }, include: { modality: true } }),
     prisma.modality.findMany({ orderBy: { name: "asc" } }),
+    getCurrentUser(),
   ]);
 
   // Eventos do mês exibido, agrupados por dia
@@ -273,7 +275,8 @@ export default async function CalendarioPage({
         )}
       </section>
 
-      {/* Adicionar evento */}
+      {/* Adicionar evento (somente comissão) */}
+      {user && (
       <details className="rounded-lg bg-white p-4 shadow-sm">
         <summary className="cursor-pointer font-semibold text-unifique">
           + Adicionar evento ao calendário
@@ -317,6 +320,7 @@ export default async function CalendarioPage({
           </button>
         </form>
       </details>
+      )}
     </div>
   );
 }

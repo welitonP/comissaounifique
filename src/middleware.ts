@@ -1,17 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
-// Caminhos liberados sem login.
-const PUBLIC_PATHS = ["/login", "/logo-comissao.jpg", "/manifest.webmanifest", "/favicon.ico"];
+// O site é público (informativos). Só as áreas da comissão exigem login.
+const PROTECTED_PREFIXES = ["/admin", "/materiais", "/uniformes"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (
-    PUBLIC_PATHS.includes(pathname) ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/icons")
-  ) {
+  const isProtected = PROTECTED_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+  if (!isProtected) {
     return NextResponse.next();
   }
 
@@ -29,5 +28,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/admin/:path*", "/admin", "/materiais/:path*", "/materiais", "/uniformes/:path*", "/uniformes"],
 };
