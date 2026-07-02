@@ -69,7 +69,7 @@ export default async function AdminCalendarioPage() {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}{" "}
-                — {ev.title}
+                · {ev.title}
               </p>
               <p className="text-xs text-gray-500">
                 {ev.modality ? ev.modality.name : "Geral"}

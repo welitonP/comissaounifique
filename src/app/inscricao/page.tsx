@@ -26,7 +26,7 @@ export default async function InscricaoPage({
           </span>
           <h1 className="mt-4 text-xl font-bold text-unifique">Inscrições encerradas</h1>
           <p className="mt-2 text-gray-600">
-            No momento não há inscrições abertas. Fique de olho nos comunicados — avisaremos quando
+            No momento não há inscrições abertas. Fique de olho nos comunicados: avisaremos quando
             abrir a próxima janela de inscrições.
           </p>
           <Link

@@ -47,7 +47,7 @@ async function buildContext(): Promise<string> {
   if (events.length === 0) lines.push("(nenhum evento futuro)");
   for (const e of events) {
     lines.push(
-      `- ${new Date(e.date).toLocaleString("pt-BR")} — ${e.title}${e.modality ? ` (${e.modality.name})` : ""}${e.location ? ` em ${e.location}` : ""}`,
+      `- ${new Date(e.date).toLocaleString("pt-BR")}: ${e.title}${e.modality ? ` (${e.modality.name})` : ""}${e.location ? ` em ${e.location}` : ""}`,
     );
   }
 

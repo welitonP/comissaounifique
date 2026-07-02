@@ -52,7 +52,7 @@ export default async function AdminEnquetesPage() {
               <ul className="mt-2 space-y-1 text-sm text-gray-600">
                 {poll.options.map((o) => (
                   <li key={o.id}>
-                    {o.text} — {o.votes} voto(s)
+                    {o.text} · {o.votes} voto(s)
                   </li>
                 ))}
               </ul>

@@ -67,7 +67,7 @@ export default async function HomePage() {
               Comissão de Esportes
             </h1>
             <p className="mt-2 max-w-2xl text-white/85">
-              Jogos, comunicados, elencos e tudo do esporte na Unifique — em um lugar só.
+              Jogos, comunicados, elencos e tudo do esporte na Unifique em um lugar só.
             </p>
           </div>
         </div>
@@ -94,13 +94,15 @@ export default async function HomePage() {
               </p>
               <div className="mt-3">
                 <ShareWhatsApp
-                  text={`🏆 Próximo jogo: ${nextEvent.title} — ${new Date(nextEvent.date).toLocaleDateString(
-                    "pt-BR",
-                    { day: "2-digit", month: "long" },
-                  )} às ${new Date(nextEvent.date).toLocaleTimeString("pt-BR", {
+                  text={`🏆 Próximo jogo: ${nextEvent.title}\n📅 ${new Date(
+                    nextEvent.date,
+                  ).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "long",
+                  })} às ${new Date(nextEvent.date).toLocaleTimeString("pt-BR", {
                     hour: "2-digit",
                     minute: "2-digit",
-                  })}${nextEvent.location ? ` · ${nextEvent.location}` : ""}`}
+                  })}${nextEvent.location ? `\n📍 ${nextEvent.location}` : ""}`}
                 />
               </div>
             </div>

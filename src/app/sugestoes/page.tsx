@@ -24,7 +24,7 @@ export default async function SugestoesPage({
         </div>
         <p className="mt-4 text-sm text-white/85">
           Envie sugestões de modalidades, horários, uniformes, eventos e melhorias.
-          Você pode se identificar ou enviar de forma anônima — apenas a comissão tem acesso.
+          Você pode se identificar ou enviar de forma anônima. Apenas a comissão tem acesso.
         </p>
       </section>
 

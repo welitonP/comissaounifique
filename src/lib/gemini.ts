@@ -72,7 +72,7 @@ export async function askGemini(system: string, userPrompt: string): Promise<str
     throw new Error(
       "O Pablinho atingiu o limite de uso gratuito da IA por enquanto. " +
         "Tente de novo daqui a pouco. Se persistir, pode ser que a chave do Gemini esteja " +
-        "compartilhada com outro site (mesma cota) — nesse caso, gere uma chave nova só para este site.",
+        "compartilhada com outro site (mesma cota). Nesse caso, gere uma chave nova só para este site.",
     );
   }
   if (lastStatus === 400 || lastStatus === 403) {

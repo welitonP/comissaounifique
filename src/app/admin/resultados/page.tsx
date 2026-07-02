@@ -76,7 +76,7 @@ export default async function AdminResultadosPage() {
           >
             <div>
               <p className="font-medium">
-                {r.modality} — {r.placement}
+                {r.modality} · {r.placement}
                 {r.medal ? ` · ${MEDAL_LABEL[r.medal]}` : ""}
               </p>
               <p className="text-xs text-gray-500">
