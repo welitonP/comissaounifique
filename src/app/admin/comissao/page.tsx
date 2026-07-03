@@ -45,19 +45,26 @@ export default async function AdminComissaoPage({
             placeholder="WhatsApp com DDD (ex: 47999998888)"
             className="rounded-lg border border-gray-300 px-3 py-2"
           />
-          <input
-            name="order"
-            type="number"
-            placeholder="Ordem"
-            defaultValue={0}
-            className="rounded-lg border border-gray-300 px-3 py-2"
-          />
-          <input
-            type="file"
-            name="photo"
-            accept="image/*"
-            className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-unifique file:px-3 file:py-1.5 file:text-sm file:text-white"
-          />
+          <div>
+            <label className="block text-xs font-medium text-gray-500">
+              Ordem de exibição (0 aparece primeiro)
+            </label>
+            <input
+              name="order"
+              type="number"
+              defaultValue={0}
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500">Foto (opcional)</label>
+            <input
+              type="file"
+              name="photo"
+              accept="image/*"
+              className="mt-1 w-full rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-unifique file:px-3 file:py-1.5 file:text-sm file:text-white"
+            />
+          </div>
         </div>
         <button
           type="submit"
