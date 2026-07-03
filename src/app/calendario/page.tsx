@@ -291,6 +291,15 @@ export default async function CalendarioPage({
                               className="mt-2 flex flex-wrap items-center gap-2"
                             >
                               <input type="hidden" name="eventId" value={ev.id} />
+                              {/* honeypot anti-spam (invisível) */}
+                              <input
+                                type="text"
+                                name="website"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                className="hidden"
+                                aria-hidden="true"
+                              />
                               <input
                                 name="name"
                                 required

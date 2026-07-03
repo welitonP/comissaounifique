@@ -16,8 +16,9 @@ import { SESSION_COOKIE, createSessionToken } from "./session";
 export async function loginAction(formData: FormData) {
   const username = String(formData.get("username") || "")
     .trim()
-    .toLowerCase();
-  const password = String(formData.get("password") || "");
+    .toLowerCase()
+    .slice(0, 100);
+  const password = String(formData.get("password") || "").slice(0, 200);
   const next = String(formData.get("next") || "/");
 
   const user = username
@@ -25,6 +26,8 @@ export async function loginAction(formData: FormData) {
     : null;
 
   if (!user || !user.active || !verifyPassword(password, user.passwordHash)) {
+    // Atraso fixo em falha: inviabiliza tentativa de senhas em massa
+    await new Promise((r) => setTimeout(r, 800));
     redirect("/login?erro=1");
   }
 
@@ -202,6 +205,8 @@ export async function deleteMatch(formData: FormData) {
 const MAX_PHOTOS = 4;
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024; // 2MB por foto
 const MAX_TOTAL_BYTES = 4 * 1024 * 1024; // limite de upload por comunicado
+// Formatos seguros (SVG fica de fora: pode carregar script)
+const ALLOWED_IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 export async function createAnnouncement(formData: FormData) {
   await requireUser();
@@ -220,7 +225,10 @@ export async function createAnnouncement(formData: FormData) {
   let total = 0;
   for (const f of files) {
     total += f.size;
-    if (!f.type.startsWith("image/") || f.size > MAX_PHOTO_BYTES || total > MAX_TOTAL_BYTES) {
+    if (!ALLOWED_IMAGE_MIMES.has(f.type)) {
+      redirect("/admin/comunicados?erro=foto-formato");
+    }
+    if (f.size > MAX_PHOTO_BYTES || total > MAX_TOTAL_BYTES) {
       redirect("/admin/comunicados?erro=foto-grande");
     }
   }
@@ -600,7 +608,7 @@ export async function createCommissionMember(formData: FormData) {
   let photoData: Buffer | null = null;
   let photoMime: string | null = null;
   if (photo instanceof File && photo.size > 0) {
-    if (!photo.type.startsWith("image/") || photo.size > 2 * 1024 * 1024) {
+    if (!ALLOWED_IMAGE_MIMES.has(photo.type) || photo.size > 2 * 1024 * 1024) {
       redirect("/admin/comissao?erro=foto");
     }
     photoData = Buffer.from(await photo.arrayBuffer());
@@ -645,6 +653,10 @@ export async function toggleInscricoes(formData: FormData) {
 
 
 export async function createEnrollment(formData: FormData) {
+  // honeypot anti-spam
+  if (String(formData.get("website") || "")) {
+    redirect("/inscricao?sucesso=1");
+  }
   const { isInscricoesAbertas } = await import("./settings");
   if (!(await isInscricoesAbertas())) {
     redirect("/inscricao?erro=fechado");
@@ -727,6 +739,10 @@ export async function deleteEnrollment(formData: FormData) {
 // ===== Confirmação de presença (RSVP) =====
 
 export async function createRsvp(formData: FormData) {
+  // honeypot anti-spam
+  if (String(formData.get("website") || "")) {
+    redirect("/calendario?rsvp=ok");
+  }
   const eventId = String(formData.get("eventId") || "");
   const name = String(formData.get("name") || "").trim().slice(0, 80);
   const going = String(formData.get("going") || "1") === "1";

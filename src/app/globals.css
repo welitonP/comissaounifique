@@ -7,10 +7,34 @@
   --font-display: "Poppins", "Inter", system-ui, sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: #f0f4fb;
   color: #1a1c2e;
   font-family: var(--font-body);
+}
+
+/* Seleção de texto na cor da marca */
+::selection {
+  background-color: #00a2ff;
+  color: #fff;
+}
+
+/* Foco visível para navegação por teclado (acessibilidade) */
+:focus-visible {
+  outline: 2px solid #00a2ff;
+  outline-offset: 2px;
+}
+
+/* Tato nos botões */
+button {
+  transition: transform 0.12s ease;
+}
+button:active {
+  transform: scale(0.97);
 }
 
 h1,
@@ -36,4 +60,31 @@ h3,
 
 .marquee-container:hover .animate-marquee {
   animation-play-state: paused;
+}
+
+/* Entrada suave das páginas */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.45s ease-out both;
+}
+
+/* Respeita quem prefere menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up,
+  .animate-marquee {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }

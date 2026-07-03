@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Lightbulb } from "lucide-react";
 import { createSuggestion } from "@/lib/actions";
 
@@ -75,6 +76,13 @@ export default async function SugestoesPage({
         >
           Enviar sugestão
         </button>
+        <p className="text-center text-xs text-gray-400">
+          Seus dados são usados apenas pela comissão, conforme a{" "}
+          <Link href="/privacidade" className="underline hover:text-unifique">
+            Política de Privacidade
+          </Link>
+          .
+        </p>
       </form>
     </div>
   );

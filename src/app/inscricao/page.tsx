@@ -75,6 +75,15 @@ export default async function InscricaoPage({
       )}
 
       <form action={createEnrollment} className="space-y-5 rounded-2xl bg-white p-6 shadow-sm">
+        {/* honeypot anti-spam (invisível) */}
+        <input
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          className="hidden"
+          aria-hidden="true"
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className="block text-sm font-semibold text-gray-700">Nome completo</label>
@@ -149,6 +158,14 @@ export default async function InscricaoPage({
         >
           Enviar inscrição
         </button>
+        <p className="text-center text-xs text-gray-400">
+          Ao enviar, você autoriza a comissão a usar estes dados para organizar as competições,
+          conforme a{" "}
+          <Link href="/privacidade" className="underline hover:text-unifique">
+            Política de Privacidade
+          </Link>
+          .
+        </p>
       </form>
     </div>
   );

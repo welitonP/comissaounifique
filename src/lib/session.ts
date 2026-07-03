@@ -37,20 +37,25 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 export const SESSION_COOKIE = "session";
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 dias
 
 export async function createSessionToken(userId: string): Promise<string> {
-  const signature = await hmac(userId);
-  return `${userId}.${signature}`;
+  const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const payload = `${userId}.${exp}`;
+  const signature = await hmac(payload);
+  return `${payload}.${signature}`;
 }
 
-// Retorna o userId se o token for válido, senão null.
+// Retorna o userId se o token for válido e não expirado, senão null.
 export async function verifySessionToken(token: string | undefined): Promise<string | null> {
   if (!token) return null;
-  const sep = token.lastIndexOf(".");
-  if (sep <= 0) return null;
-  const userId = token.slice(0, sep);
-  const signature = token.slice(sep + 1);
-  const expected = await hmac(userId);
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const [userId, expStr, signature] = parts;
+  if (!userId || !expStr || !signature) return null;
+  const expected = await hmac(`${userId}.${expStr}`);
   if (!safeEqual(signature, expected)) return null;
+  const exp = Number(expStr);
+  if (!Number.isFinite(exp) || exp * 1000 < Date.now()) return null;
   return userId;
 }

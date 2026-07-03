@@ -36,6 +36,11 @@ export default async function AdminComunicadosPage({
           Cada foto pode ter no máximo 2MB (e 4MB no total). Diminua/comprima as imagens.
         </p>
       )}
+      {params.erro === "foto-formato" && (
+        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+          Formato de imagem não suportado. Use JPG, PNG, WebP ou GIF.
+        </p>
+      )}
 
       <AnnouncementAIComposer />
 
@@ -61,10 +66,13 @@ export default async function AdminComunicadosPage({
           <input
             type="file"
             name="photos"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/gif"
             multiple
             className="mt-1 w-full rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-unifique file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
           />
+          <p className="mt-1 text-xs text-gray-400">
+            LGPD: publique fotos apenas de pessoas que autorizaram o uso de imagem.
+          </p>
         </div>
         <button
           type="submit"

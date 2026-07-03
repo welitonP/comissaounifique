@@ -45,7 +45,10 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10 py-4 text-center text-xs text-white/50">
-        © {ano} Comissão de Esportes Unifique. Todos os direitos reservados.
+        © {ano} Comissão de Esportes Unifique. Todos os direitos reservados. ·{" "}
+        <Link href="/privacidade" className="underline hover:text-white">
+          Política de Privacidade
+        </Link>
       </div>
     </footer>
   );

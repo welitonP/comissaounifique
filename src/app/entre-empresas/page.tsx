@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function EntreEmpresasPage() {
-  const modalities = await prisma.modality.findMany({
-    orderBy: [{ order: "asc" }, { name: "asc" }],
-    include: { registrations: { orderBy: { companyName: "asc" } } },
-  });
+  const [modalities, user] = await Promise.all([
+    prisma.modality.findMany({
+      orderBy: [{ order: "asc" }, { name: "asc" }],
+      include: { registrations: { orderBy: { companyName: "asc" } } },
+    }),
+    getCurrentUser(),
+  ]);
 
   const totalInscritos = modalities.reduce((sum, m) => sum + m.registrations.length, 0);
 
@@ -77,7 +81,8 @@ export default async function EntreEmpresasPage() {
                       {reg.responsible && (
                         <span className="block text-xs text-gray-500">
                           {reg.responsible}
-                          {reg.contact ? ` · ${reg.contact}` : ""}
+                          {/* Contato é dado pessoal: visível só para a comissão logada */}
+                          {user && reg.contact ? ` · ${reg.contact}` : ""}
                         </span>
                       )}
                     </li>

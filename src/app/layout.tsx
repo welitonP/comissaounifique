@@ -42,7 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="flex min-h-screen flex-col">
         <NavBar user={user} inscricoesAbertas={inscricoesAbertas} />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
+        <main className="fade-in-up mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
         <Footer />
         {user && <AssistantWidget configured={isGeminiConfigured()} />}
       </body>
