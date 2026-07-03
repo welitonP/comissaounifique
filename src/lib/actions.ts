@@ -592,6 +592,7 @@ export async function createCommissionMember(formData: FormData) {
   await requireUser();
   const name = String(formData.get("name") || "").trim();
   const role = String(formData.get("role") || "").trim();
+  const whatsapp = String(formData.get("whatsapp") || "").trim();
   const order = Number(formData.get("order") || 0);
   if (!name || !role) return;
 
@@ -610,6 +611,7 @@ export async function createCommissionMember(formData: FormData) {
     data: {
       name,
       role,
+      whatsapp: whatsapp || null,
       order: Number.isFinite(order) ? order : 0,
       photoData,
       photoMime,
@@ -617,6 +619,7 @@ export async function createCommissionMember(formData: FormData) {
   });
   revalidatePath("/comissao");
   revalidatePath("/admin/comissao");
+  revalidatePath("/");
 }
 
 export async function deleteCommissionMember(formData: FormData) {
@@ -640,17 +643,6 @@ export async function toggleInscricoes(formData: FormData) {
   revalidatePath("/");
 }
 
-export async function saveWhatsappLink(formData: FormData) {
-  await requireUser();
-  const link = String(formData.get("link") || "").trim();
-  // aceita apagar (link vazio) ou salvar uma URL https
-  if (link && !/^https?:\/\//i.test(link)) {
-    redirect("/admin?erro=link");
-  }
-  const { setWhatsappLink } = await import("./settings");
-  await setWhatsappLink(link);
-  revalidatePath("/admin");
-}
 
 export async function createEnrollment(formData: FormData) {
   const { isInscricoesAbertas } = await import("./settings");

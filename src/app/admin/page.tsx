@@ -1,19 +1,11 @@
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
-import { logoutAction, saveWhatsappLink } from "@/lib/actions";
-import { getWhatsappLink } from "@/lib/settings";
+import { logoutAction } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export default async function AdminDashboardPage() {
   const user = await requireUserPage();
-  const whatsappLink = await getWhatsappLink();
-  const params = await searchParams;
 
   const sections = [
     {
@@ -110,48 +102,6 @@ export default async function AdminDashboardPage({
           </button>
         </form>
       </div>
-
-      {/* Grupo da comissão no WhatsApp */}
-      <section className="rounded-xl bg-white p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <MessageCircle size={20} className="text-[#25D366]" />
-            <h2 className="font-semibold text-unifique">Grupo da Comissão (WhatsApp)</h2>
-          </div>
-          {whatsappLink && (
-            <a
-              href={whatsappLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:brightness-105"
-            >
-              Abrir grupo no WhatsApp
-            </a>
-          )}
-        </div>
-        {params.erro === "link" && (
-          <p className="mt-2 rounded bg-red-100 px-3 py-2 text-sm text-red-700">
-            O link precisa começar com https://
-          </p>
-        )}
-        <form action={saveWhatsappLink} className="mt-3 flex flex-wrap gap-2">
-          <input
-            name="link"
-            defaultValue={whatsappLink ?? ""}
-            placeholder="https://chat.whatsapp.com/..."
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-unifique px-4 py-2 text-sm font-medium text-white hover:bg-unifique-dark"
-          >
-            Salvar
-          </button>
-        </form>
-        <p className="mt-2 text-xs text-gray-400">
-          No WhatsApp: abra o grupo &gt; toque no nome &gt; Convidar via link &gt; Copiar link.
-        </p>
-      </section>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {sections.map((s) => (

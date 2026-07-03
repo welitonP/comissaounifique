@@ -17,6 +17,7 @@ import { getCurrentUser } from "@/lib/auth";
 import Countdown from "@/components/Countdown";
 import WeeklySummary from "@/components/WeeklySummary";
 import ShareWhatsApp from "@/components/ShareWhatsApp";
+import MembersMarquee from "@/components/MembersMarquee";
 
 export const dynamic = "force-dynamic";
 
@@ -141,6 +142,9 @@ export default async function HomePage() {
           </div>
         ))}
       </section>
+
+      {/* Carrossel dos membros da comissão */}
+      <MembersMarquee />
 
       {/* Últimos comunicados */}
       <section>

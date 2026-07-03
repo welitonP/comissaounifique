@@ -73,6 +73,7 @@ model CommissionMember {
   id        String   @id @default(cuid())
   name      String
   role      String
+  whatsapp  String?
   photoData Bytes?
   photoMime String?
   order     Int      @default(0)

@@ -41,6 +41,11 @@ export default async function AdminComissaoPage({
             className="rounded-lg border border-gray-300 px-3 py-2"
           />
           <input
+            name="whatsapp"
+            placeholder="WhatsApp com DDD (ex: 47999998888)"
+            className="rounded-lg border border-gray-300 px-3 py-2"
+          />
+          <input
             name="order"
             type="number"
             placeholder="Ordem"

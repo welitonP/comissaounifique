@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { MessageCircle, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +11,12 @@ function iniciais(nome: string) {
     .map((p) => p[0])
     .join("")
     .toUpperCase();
+}
+
+export function waLink(numero: string): string {
+  let d = numero.replace(/\D/g, "");
+  if (d.length <= 11) d = `55${d}`; // adiciona código do Brasil se veio só com DDD
+  return `https://wa.me/${d}`;
 }
 
 export default async function ComissaoPage() {
@@ -57,6 +63,17 @@ export default async function ComissaoPage() {
               )}
               <h2 className="mt-3 font-display font-semibold text-gray-800">{m.name}</h2>
               <p className="text-sm text-unifique-blue">{m.role}</p>
+              {m.whatsapp && (
+                <a
+                  href={waLink(m.whatsapp)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3 py-1.5 text-xs font-semibold text-white hover:brightness-105"
+                >
+                  <MessageCircle size={14} />
+                  WhatsApp
+                </a>
+              )}
             </div>
           ))}
         </div>
