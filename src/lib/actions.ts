@@ -640,15 +640,15 @@ export async function toggleInscricoes(formData: FormData) {
   revalidatePath("/");
 }
 
-export async function saveTeamsLink(formData: FormData) {
+export async function saveWhatsappLink(formData: FormData) {
   await requireUser();
   const link = String(formData.get("link") || "").trim();
   // aceita apagar (link vazio) ou salvar uma URL https
   if (link && !/^https?:\/\//i.test(link)) {
     redirect("/admin?erro=link");
   }
-  const { setTeamsLink } = await import("./settings");
-  await setTeamsLink(link);
+  const { setWhatsappLink } = await import("./settings");
+  await setWhatsappLink(link);
   revalidatePath("/admin");
 }
 

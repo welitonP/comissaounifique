@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { MessageSquare } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
-import { logoutAction, saveTeamsLink } from "@/lib/actions";
-import { getTeamsLink } from "@/lib/settings";
+import { logoutAction, saveWhatsappLink } from "@/lib/actions";
+import { getWhatsappLink } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export default async function AdminDashboardPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const user = await requireUserPage();
-  const teamsLink = await getTeamsLink();
+  const whatsappLink = await getWhatsappLink();
   const params = await searchParams;
 
   const sections = [
@@ -111,21 +111,21 @@ export default async function AdminDashboardPage({
         </form>
       </div>
 
-      {/* Chat da comissão no Teams */}
+      {/* Grupo da comissão no WhatsApp */}
       <section className="rounded-xl bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <MessageSquare size={20} className="text-[#5b5fc7]" />
-            <h2 className="font-semibold text-unifique">Chat da Comissão (Teams)</h2>
+            <MessageCircle size={20} className="text-[#25D366]" />
+            <h2 className="font-semibold text-unifique">Grupo da Comissão (WhatsApp)</h2>
           </div>
-          {teamsLink && (
+          {whatsappLink && (
             <a
-              href={teamsLink}
+              href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg bg-[#5b5fc7] px-4 py-2 text-sm font-semibold text-white hover:brightness-110"
+              className="rounded-lg bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:brightness-105"
             >
-              Abrir chat no Teams
+              Abrir grupo no WhatsApp
             </a>
           )}
         </div>
@@ -134,11 +134,11 @@ export default async function AdminDashboardPage({
             O link precisa começar com https://
           </p>
         )}
-        <form action={saveTeamsLink} className="mt-3 flex flex-wrap gap-2">
+        <form action={saveWhatsappLink} className="mt-3 flex flex-wrap gap-2">
           <input
             name="link"
-            defaultValue={teamsLink ?? ""}
-            placeholder="Cole aqui o link do chat em grupo do Teams"
+            defaultValue={whatsappLink ?? ""}
+            placeholder="https://chat.whatsapp.com/..."
             className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
           <button
@@ -149,8 +149,7 @@ export default async function AdminDashboardPage({
           </button>
         </form>
         <p className="mt-2 text-xs text-gray-400">
-          Use o link do chat em grupo (no Teams: abra o chat &gt; ··· &gt; Copiar link). Evite links
-          com &quot;48:notes&quot;, que são das suas notas pessoais.
+          No WhatsApp: abra o grupo &gt; toque no nome &gt; Convidar via link &gt; Copiar link.
         </p>
       </section>
 

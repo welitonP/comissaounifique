@@ -1,7 +1,7 @@
 import { prisma } from "./prisma";
 
 const INSCRICOES = "inscricoes_abertas";
-const TEAMS_LINK = "teams_link";
+const WHATSAPP_LINK = "whatsapp_link";
 
 export async function isInscricoesAbertas(): Promise<boolean> {
   const s = await prisma.setting.findUnique({ where: { key: INSCRICOES } });
@@ -16,15 +16,15 @@ export async function setInscricoesAbertas(open: boolean): Promise<void> {
   });
 }
 
-export async function getTeamsLink(): Promise<string | null> {
-  const s = await prisma.setting.findUnique({ where: { key: TEAMS_LINK } });
+export async function getWhatsappLink(): Promise<string | null> {
+  const s = await prisma.setting.findUnique({ where: { key: WHATSAPP_LINK } });
   return s?.value || null;
 }
 
-export async function setTeamsLink(link: string): Promise<void> {
+export async function setWhatsappLink(link: string): Promise<void> {
   await prisma.setting.upsert({
-    where: { key: TEAMS_LINK },
-    create: { key: TEAMS_LINK, value: link },
+    where: { key: WHATSAPP_LINK },
+    create: { key: WHATSAPP_LINK, value: link },
     update: { value: link },
   });
 }
