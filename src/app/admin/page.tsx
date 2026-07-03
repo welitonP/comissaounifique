@@ -1,9 +1,19 @@
 import Link from "next/link";
+import { MessageSquare } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
-import { logoutAction } from "@/lib/actions";
+import { logoutAction, saveTeamsLink } from "@/lib/actions";
+import { getTeamsLink } from "@/lib/settings";
 
-export default async function AdminDashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const user = await requireUserPage();
+  const teamsLink = await getTeamsLink();
+  const params = await searchParams;
 
   const sections = [
     {
@@ -100,6 +110,49 @@ export default async function AdminDashboardPage() {
           </button>
         </form>
       </div>
+
+      {/* Chat da comissão no Teams */}
+      <section className="rounded-xl bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <MessageSquare size={20} className="text-[#5b5fc7]" />
+            <h2 className="font-semibold text-unifique">Chat da Comissão (Teams)</h2>
+          </div>
+          {teamsLink && (
+            <a
+              href={teamsLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-[#5b5fc7] px-4 py-2 text-sm font-semibold text-white hover:brightness-110"
+            >
+              Abrir chat no Teams
+            </a>
+          )}
+        </div>
+        {params.erro === "link" && (
+          <p className="mt-2 rounded bg-red-100 px-3 py-2 text-sm text-red-700">
+            O link precisa começar com https://
+          </p>
+        )}
+        <form action={saveTeamsLink} className="mt-3 flex flex-wrap gap-2">
+          <input
+            name="link"
+            defaultValue={teamsLink ?? ""}
+            placeholder="Cole aqui o link do chat em grupo do Teams"
+            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-unifique px-4 py-2 text-sm font-medium text-white hover:bg-unifique-dark"
+          >
+            Salvar
+          </button>
+        </form>
+        <p className="mt-2 text-xs text-gray-400">
+          Use o link do chat em grupo (no Teams: abra o chat &gt; ··· &gt; Copiar link). Evite links
+          com &quot;48:notes&quot;, que são das suas notas pessoais.
+        </p>
+      </section>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {sections.map((s) => (

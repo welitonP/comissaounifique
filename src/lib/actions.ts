@@ -640,6 +640,18 @@ export async function toggleInscricoes(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function saveTeamsLink(formData: FormData) {
+  await requireUser();
+  const link = String(formData.get("link") || "").trim();
+  // aceita apagar (link vazio) ou salvar uma URL https
+  if (link && !/^https?:\/\//i.test(link)) {
+    redirect("/admin?erro=link");
+  }
+  const { setTeamsLink } = await import("./settings");
+  await setTeamsLink(link);
+  revalidatePath("/admin");
+}
+
 export async function createEnrollment(formData: FormData) {
   const { isInscricoesAbertas } = await import("./settings");
   if (!(await isInscricoesAbertas())) {
