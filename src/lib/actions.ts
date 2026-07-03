@@ -664,10 +664,12 @@ export async function createEnrollment(formData: FormData) {
   const name = String(formData.get("name") || "").trim().slice(0, 100);
   const birthDate = String(formData.get("birthDate") || "").trim().slice(0, 10);
   const phone = String(formData.get("phone") || "").trim().slice(0, 30);
+  const sector = String(formData.get("sector") || "").trim().slice(0, 100);
+  const shirtSize = String(formData.get("shirtSize") || "").trim().slice(0, 10);
   const modalityIds = formData.getAll("modalidades").map(String).filter(Boolean);
 
-  // Nome, data de nascimento e telefone são obrigatórios.
-  if (!name || !birthDate || !phone || modalityIds.length === 0) {
+  // Nome, nascimento, telefone, setor e camisa são obrigatórios.
+  if (!name || !birthDate || !phone || !sector || !shirtSize || modalityIds.length === 0) {
     redirect("/inscricao?erro=dados");
   }
 
@@ -684,6 +686,8 @@ export async function createEnrollment(formData: FormData) {
       name,
       birthDate,
       phone,
+      sector,
+      shirtSize,
       modalityIds: mods.map((m) => m.id).join(","),
       modalityNames: mods.map((m) => m.name).join(", "),
     },
@@ -700,9 +704,14 @@ export async function approveEnrollment(formData: FormData) {
   if (!enr || enr.status !== "pendente") return;
 
   const ids = enr.modalityIds.split(",").filter(Boolean);
-  const responsible = enr.birthDate
-    ? `Nasc. ${enr.birthDate.split("-").reverse().join("/")}`
-    : enr.sector || null;
+  const responsible =
+    [
+      enr.birthDate ? `Nasc. ${enr.birthDate.split("-").reverse().join("/")}` : "",
+      enr.sector || "",
+      enr.shirtSize ? `Camisa ${enr.shirtSize}` : "",
+    ]
+      .filter(Boolean)
+      .join(" · ") || null;
   const contato = enr.phone || enr.contact || null;
 
   // Cria a inscrição no elenco de cada modalidade escolhida

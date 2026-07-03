@@ -88,10 +88,18 @@ export default async function AdminInscricoesPage({
         <div className="space-y-3">
           {pendentes.map((e) => (
             <div key={e.id} className="rounded-xl bg-white p-4 shadow-sm">
-              <p className="font-semibold">{e.name}</p>
+              <p className="font-semibold">
+                {e.name}
+                {e.shirtSize ? (
+                  <span className="ml-2 rounded bg-unifique-light px-2 py-0.5 text-xs text-unifique">
+                    Camisa {e.shirtSize}
+                  </span>
+                ) : null}
+              </p>
               <p className="text-sm text-gray-500">
                 {[
                   e.birthDate ? `Nasc. ${e.birthDate.split("-").reverse().join("/")}` : "",
+                  e.sector || "",
                   e.phone || e.contact || "",
                 ]
                   .filter(Boolean)

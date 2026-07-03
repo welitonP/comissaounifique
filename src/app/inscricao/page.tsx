@@ -65,7 +65,8 @@ export default async function InscricaoPage({
       )}
       {params.erro === "dados" && (
         <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-          Preencha nome, data de nascimento, telefone e selecione ao menos uma modalidade.
+          Preencha nome, data de nascimento, telefone, setor, tamanho de camisa e selecione ao menos
+          uma modalidade.
         </p>
       )}
       {params.erro === "fechado" && (
@@ -120,6 +121,37 @@ export default async function InscricaoPage({
               placeholder="(47) 90000-0000"
               className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700">
+              Setor <span className="text-unifique-blue">*</span>
+            </label>
+            <input
+              name="sector"
+              required
+              placeholder="Ex: TI, Comercial..."
+              className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700">
+              Tamanho de camisa <span className="text-unifique-blue">*</span>
+            </label>
+            <select
+              name="shirtSize"
+              required
+              defaultValue=""
+              className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
+            >
+              <option value="" disabled>
+                Selecione
+              </option>
+              {["PP", "P", "M", "G", "GG", "XG", "XXG"].map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
