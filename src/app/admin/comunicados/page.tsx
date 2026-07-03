@@ -2,6 +2,7 @@ import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAnnouncement, deleteAnnouncement } from "@/lib/actions";
 import AnnouncementAIComposer from "@/components/AnnouncementAIComposer";
+import PhotoField from "@/components/PhotoField";
 
 export const dynamic = "force-dynamic";
 
@@ -59,21 +60,7 @@ export default async function AdminComunicadosPage({
           rows={4}
           className="w-full rounded-lg border border-gray-300 px-3 py-2"
         />
-        <div>
-          <label className="block text-sm font-semibold text-gray-700">
-            Fotos <span className="font-normal text-gray-400">(opcional · até 4, máx 2MB cada)</span>
-          </label>
-          <input
-            type="file"
-            name="photos"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            multiple
-            className="mt-1 w-full rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-unifique file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
-          />
-          <p className="mt-1 text-xs text-gray-400">
-            LGPD: publique fotos apenas de pessoas que autorizaram o uso de imagem.
-          </p>
-        </div>
+        <PhotoField />
         <button
           type="submit"
           className="rounded-lg bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"

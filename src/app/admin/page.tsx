@@ -30,21 +30,6 @@ export default async function AdminDashboardPage() {
       description: "Kits e checklist do que sai/volta nos jogos.",
     },
     {
-      href: "/admin/times",
-      label: "Times (interno)",
-      description: "Para campeonatos internos. Cadastrar times.",
-    },
-    {
-      href: "/admin/jogos",
-      label: "Jogos (interno)",
-      description: "Agendar jogos internos e lançar resultados.",
-    },
-    {
-      href: "/classificacao",
-      label: "Classificação (interno)",
-      description: "Tabela de pontos dos campeonatos internos.",
-    },
-    {
       href: "/admin/comunicados",
       label: "Comunicados",
       description: "Publicar avisos (com fotos) para todos.",
@@ -53,6 +38,11 @@ export default async function AdminDashboardPage() {
       href: "/admin/inscricoes",
       label: "Inscrições",
       description: "Abrir/fechar e aprovar inscrições de atletas.",
+    },
+    {
+      href: "/admin/exportar",
+      label: "Exportar dados",
+      description: "Baixar o elenco em planilha, filtrando por modalidade.",
     },
     {
       href: "/admin/presencas",

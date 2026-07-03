@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, requireUserPage } from "@/lib/auth";
 import { lendTrackedItem, returnTrackedItem } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +10,8 @@ export default async function UniformesPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  // Controle de uniformes é restrito à comissão (reforço além do middleware).
+  await requireUserPage();
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const user = await getCurrentUser();

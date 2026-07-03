@@ -68,12 +68,15 @@ async function buildContext(): Promise<string> {
 }
 
 const BASE_SYSTEM =
-  "Você é o assistente virtual da Comissão de Esportes da Unifique, uma empresa. " +
-  "A comissão organiza a participação da Unifique em eventos esportivos (como o campeonato " +
-  "Entre Empresas) e cuida de materiais, uniformes, calendário e comunicados internos. " +
-  "Responda em português do Brasil, de forma curta, direta, cordial e profissional. " +
-  "Use SOMENTE as informações fornecidas no contexto. Se a resposta não estiver no contexto, " +
-  "diga que não há essa informação cadastrada.";
+  "Você é o Pablinho, assistente virtual da Comissão de Esportes da Unifique. " +
+  "A comissão representa a Unifique em eventos esportivos (como a Olimpíada Entre Empresas) e " +
+  "cuida de materiais, uniformes, calendário, inscrições e comunicados internos. " +
+  "Fale em português do Brasil de forma natural, cordial, objetiva e profissional, como um colega " +
+  "de equipe prestativo. Responda saudações e agradecimentos normalmente. " +
+  "Baseie as respostas sobre dados da comissão (eventos, estoque, elenco, comunicados) no CONTEXTO " +
+  "fornecido; quando a informação específica não estiver no contexto, diga com clareza que ela " +
+  "ainda não está cadastrada e oriente quem procurar, em vez de inventar. " +
+  "Nunca use travessão (—); escreva frases completas e bem pontuadas.";
 
 export type AssistantState = { question: string; answer: string; error?: string };
 
@@ -129,14 +132,18 @@ export async function generateAnnouncement(
   try {
     const raw = await askGemini(
       BASE_SYSTEM +
-        " Agora você vai redigir um comunicado interno. Responda EXATAMENTE neste formato:\n" +
-        "TITULO: <um título curto>\nCORPO: <o texto do comunicado, 2 a 4 frases>",
-      `Escreva um comunicado da comissão sobre: ${topic}`,
+        "\n\nTAREFA: redigir um comunicado interno curto e completo para os atletas e a comissão. " +
+        "Regras: título objetivo (máx. 8 palavras); corpo de 2 a 4 frases completas, tom claro e " +
+        "acolhedor; sem travessão (—); termine sempre com a frase inteira, nunca corte no meio. " +
+        "Responda SOMENTE neste formato, sem comentários extras:\n" +
+        "TITULO: <título>\nCORPO: <texto do comunicado>",
+      `Assunto do comunicado: ${topic}`,
     );
-    const titleMatch = raw.match(/TITULO:\s*(.+)/i);
+    const titleMatch = raw.match(/T[IÍ]TULO:\s*(.+)/i);
     const bodyMatch = raw.match(/CORPO:\s*([\s\S]+)/i);
-    const title = titleMatch ? titleMatch[1].trim() : topic;
-    const body = bodyMatch ? bodyMatch[1].trim() : raw;
+    const clean = (s: string) => s.replace(/\s*—\s*/g, ", ").trim();
+    const title = titleMatch ? clean(titleMatch[1]) : topic;
+    const body = bodyMatch ? clean(bodyMatch[1]) : clean(raw);
     return { title, body };
   } catch (e) {
     return { title: "", body: "", error: e instanceof Error ? e.message : "Erro na IA." };

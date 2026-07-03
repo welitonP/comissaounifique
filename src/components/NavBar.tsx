@@ -50,13 +50,17 @@ export default function NavBar({
   return (
     <header className="sticky top-0 z-40 bg-unifique text-white shadow-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2.5">
-        <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
+        <Link
+          href="/"
+          className="flex shrink-0 items-center gap-3"
+          onClick={() => setOpen(false)}
+        >
           <Image
             src="/logo-comissao.jpg"
             alt="Comissão de Esportes Unifique"
             width={46}
             height={46}
-            className="rounded-full bg-white ring-2 ring-white/40"
+            className="h-[46px] w-[46px] shrink-0 rounded-full bg-white object-cover ring-2 ring-white/40"
             priority
           />
           <span className="font-display text-base font-bold leading-tight tracking-tight whitespace-nowrap">

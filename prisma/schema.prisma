@@ -103,9 +103,11 @@ model Setting {
 model Enrollment {
   id            String   @id @default(cuid())
   name          String
-  sector        String?
-  shirtSize     String?
-  contact       String?
+  birthDate     String? // data de nascimento (YYYY-MM-DD)
+  phone         String? // telefone/WhatsApp
+  sector        String? // legado (não usado nos novos formulários)
+  shirtSize     String? // legado
+  contact       String? // legado
   modalityIds   String // ids das modalidades escolhidas (CSV)
   modalityNames String // nomes (snapshot) para exibição (CSV)
   status        String   @default("pendente") // pendente | aprovada | recusada

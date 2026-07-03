@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireUserPage } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,8 @@ export default async function MateriaisPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  // Estoque é restrito à comissão (além do middleware, reforço na própria página).
+  await requireUserPage();
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
 

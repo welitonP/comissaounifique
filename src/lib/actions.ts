@@ -662,12 +662,12 @@ export async function createEnrollment(formData: FormData) {
     redirect("/inscricao?erro=fechado");
   }
   const name = String(formData.get("name") || "").trim().slice(0, 100);
-  const sector = String(formData.get("sector") || "").trim().slice(0, 100);
-  const shirtSize = String(formData.get("shirtSize") || "").trim().slice(0, 10);
-  const contact = String(formData.get("contact") || "").trim().slice(0, 60);
+  const birthDate = String(formData.get("birthDate") || "").trim().slice(0, 10);
+  const phone = String(formData.get("phone") || "").trim().slice(0, 30);
   const modalityIds = formData.getAll("modalidades").map(String).filter(Boolean);
 
-  if (!name || modalityIds.length === 0) {
+  // Nome, data de nascimento e telefone são obrigatórios.
+  if (!name || !birthDate || !phone || modalityIds.length === 0) {
     redirect("/inscricao?erro=dados");
   }
 
@@ -682,9 +682,8 @@ export async function createEnrollment(formData: FormData) {
   await prisma.enrollment.create({
     data: {
       name,
-      sector: sector || null,
-      shirtSize: shirtSize || null,
-      contact: contact || null,
+      birthDate,
+      phone,
       modalityIds: mods.map((m) => m.id).join(","),
       modalityNames: mods.map((m) => m.name).join(", "),
     },
@@ -701,17 +700,18 @@ export async function approveEnrollment(formData: FormData) {
   if (!enr || enr.status !== "pendente") return;
 
   const ids = enr.modalityIds.split(",").filter(Boolean);
-  const responsible = [enr.sector, enr.shirtSize ? `Camisa ${enr.shirtSize}` : ""]
-    .filter(Boolean)
-    .join(" · ");
+  const responsible = enr.birthDate
+    ? `Nasc. ${enr.birthDate.split("-").reverse().join("/")}`
+    : enr.sector || null;
+  const contato = enr.phone || enr.contact || null;
 
   // Cria a inscrição no elenco de cada modalidade escolhida
   await prisma.registration.createMany({
     data: ids.map((modalityId) => ({
       modalityId,
       companyName: enr.name,
-      responsible: responsible || null,
-      contact: enr.contact,
+      responsible,
+      contact: contato,
     })),
   });
 
@@ -734,6 +734,24 @@ export async function deleteEnrollment(formData: FormData) {
   if (!id) return;
   await prisma.enrollment.delete({ where: { id } });
   revalidatePath("/admin/inscricoes");
+}
+
+// Nova temporada: limpa a fila de inscrições (pedidos pendentes/históricos).
+export async function clearEnrollments() {
+  await requireUser();
+  await prisma.enrollment.deleteMany({});
+  revalidatePath("/admin/inscricoes");
+  redirect("/admin/inscricoes?limpou=inscricoes");
+}
+
+// Nova temporada: limpa o elenco atual (todos os atletas do Entre Empresas).
+export async function clearElenco() {
+  await requireUser();
+  await prisma.registration.deleteMany({});
+  revalidatePath("/entre-empresas");
+  revalidatePath("/admin/entre-empresas");
+  revalidatePath("/admin/inscricoes");
+  redirect("/admin/inscricoes?limpou=elenco");
 }
 
 // ===== Confirmação de presença (RSVP) =====

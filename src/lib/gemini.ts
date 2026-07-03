@@ -21,13 +21,25 @@ async function callModel(
   userPrompt: string,
 ): Promise<{ ok: true; text: string } | { ok: false; status: number; detail: string }> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+
+  // Espaço de saída folgado para o texto nunca cortar no meio de uma palavra.
+  const generationConfig: Record<string, unknown> = {
+    temperature: 0.5,
+    maxOutputTokens: 2048,
+  };
+  // Os modelos "2.5" gastam tokens escondidos "pensando" e acabam truncando a
+  // resposta. Desligamos esse modo para o texto sair completo e mais rápido.
+  if (model.includes("2.5")) {
+    generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  }
+
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 700 },
+      generationConfig,
     }),
     cache: "no-store",
   });

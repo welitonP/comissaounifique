@@ -65,7 +65,7 @@ export default async function InscricaoPage({
       )}
       {params.erro === "dados" && (
         <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-          Preencha seu nome e selecione pelo menos uma modalidade.
+          Preencha nome, data de nascimento, telefone e selecione ao menos uma modalidade.
         </p>
       )}
       {params.erro === "fechado" && (
@@ -86,7 +86,9 @@ export default async function InscricaoPage({
         />
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700">Nome completo</label>
+            <label className="block text-sm font-semibold text-gray-700">
+              Nome completo <span className="text-unifique-blue">*</span>
+            </label>
             <input
               name="name"
               required
@@ -94,33 +96,28 @@ export default async function InscricaoPage({
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700">Setor</label>
+            <label className="block text-sm font-semibold text-gray-700">
+              Data de nascimento <span className="text-unifique-blue">*</span>
+            </label>
             <input
-              name="sector"
-              placeholder="Ex: TI, Comercial..."
+              type="date"
+              name="birthDate"
+              required
+              max="2015-12-31"
+              min="1940-01-01"
               className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700">Tamanho de camisa</label>
-            <select
-              name="shirtSize"
-              className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-            >
-              <option value="">Selecione</option>
-              {["PP", "P", "M", "G", "GG", "XG", "XXG"].map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="sm:col-span-2">
             <label className="block text-sm font-semibold text-gray-700">
-              Contato <span className="font-normal text-gray-400">(telefone ou e-mail)</span>
+              Telefone (WhatsApp) <span className="text-unifique-blue">*</span>
             </label>
             <input
-              name="contact"
+              type="tel"
+              name="phone"
+              required
+              inputMode="tel"
+              placeholder="(47) 90000-0000"
               className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
             />
           </div>

@@ -3,10 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { isInscricoesAbertas } from "@/lib/settings";
 import {
   approveEnrollment,
+  clearElenco,
+  clearEnrollments,
   deleteEnrollment,
   rejectEnrollment,
   toggleInscricoes,
 } from "@/lib/actions";
+import ConfirmButton from "@/components/ConfirmButton";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +19,17 @@ const STATUS_STYLE: Record<string, string> = {
   recusada: "bg-red-100 text-red-700",
 };
 
-export default async function AdminInscricoesPage() {
+export default async function AdminInscricoesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   await requireUserPage();
-  const [aberto, enrollments] = await Promise.all([
+  const [params, aberto, enrollments, elencoCount] = await Promise.all([
+    searchParams,
     isInscricoesAbertas(),
     prisma.enrollment.findMany({ orderBy: { createdAt: "desc" } }),
+    prisma.registration.count(),
   ]);
 
   const pendentes = enrollments.filter((e) => e.status === "pendente");
@@ -29,6 +38,17 @@ export default async function AdminInscricoesPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-unifique">Inscrições</h1>
+
+      {params.limpou === "inscricoes" && (
+        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+          Fila de inscrições limpa. Pronto para a nova temporada.
+        </p>
+      )}
+      {params.limpou === "elenco" && (
+        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+          Elenco atual limpo. Os novos aprovados montam o elenco do próximo ano.
+        </p>
+      )}
 
       {/* Abrir/fechar inscrições */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
@@ -68,16 +88,14 @@ export default async function AdminInscricoesPage() {
         <div className="space-y-3">
           {pendentes.map((e) => (
             <div key={e.id} className="rounded-xl bg-white p-4 shadow-sm">
-              <p className="font-semibold">
-                {e.name}
-                {e.shirtSize ? (
-                  <span className="ml-2 rounded bg-unifique-light px-2 py-0.5 text-xs text-unifique">
-                    Camisa {e.shirtSize}
-                  </span>
-                ) : null}
-              </p>
+              <p className="font-semibold">{e.name}</p>
               <p className="text-sm text-gray-500">
-                {[e.sector, e.contact].filter(Boolean).join(" · ") || "sem dados extras"}
+                {[
+                  e.birthDate ? `Nasc. ${e.birthDate.split("-").reverse().join("/")}` : "",
+                  e.phone || e.contact || "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "sem dados extras"}
               </p>
               <p className="mt-1 text-sm">
                 <span className="font-medium text-unifique">Modalidades:</span> {e.modalityNames}
@@ -139,6 +157,34 @@ export default async function AdminInscricoesPage() {
           </div>
         </section>
       )}
+
+      {/* Nova temporada: limpeza para o próximo ano */}
+      <section className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <h2 className="font-semibold text-amber-800">Nova temporada</h2>
+        <p className="mt-1 text-sm text-amber-700">
+          Antes de reabrir as inscrições para o próximo ano, limpe os dados do ano anterior para
+          não misturar quem participou com quem ainda vai se inscrever. Esta ação não pode ser
+          desfeita.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <form action={clearEnrollments}>
+            <ConfirmButton
+              message="Limpar TODA a fila de inscrições (pendentes e histórico)? Esta ação não pode ser desfeita."
+              className="rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100"
+            >
+              Limpar fila de inscrições ({enrollments.length})
+            </ConfirmButton>
+          </form>
+          <form action={clearElenco}>
+            <ConfirmButton
+              message="Limpar TODO o elenco atual do Entre Empresas? Todos os atletas cadastrados nas modalidades serão removidos. Esta ação não pode ser desfeita."
+              className="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+            >
+              Limpar elenco atual ({elencoCount})
+            </ConfirmButton>
+          </form>
+        </div>
+      </section>
     </div>
   );
 }
