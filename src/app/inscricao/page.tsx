@@ -3,6 +3,7 @@ import { ClipboardList, Lock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { isInscricoesAbertas } from "@/lib/settings";
 import { createEnrollment } from "@/lib/actions";
+import SuccessCelebration from "@/components/SuccessCelebration";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,10 @@ export default async function InscricaoPage({
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <SuccessCelebration
+        active={params.sucesso === "1"}
+        message="Inscrição enviada! A comissão vai confirmar."
+      />
       <section className="rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-7 text-white shadow-md">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">

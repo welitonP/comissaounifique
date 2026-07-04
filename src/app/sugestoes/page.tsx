@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Lightbulb } from "lucide-react";
 import { createSuggestion } from "@/lib/actions";
+import SuccessCelebration from "@/components/SuccessCelebration";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,10 @@ export default async function SugestoesPage({
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
+      <SuccessCelebration
+        active={params.sucesso === "1"}
+        message="Sugestão enviada! Obrigado pela contribuição."
+      />
       <section className="rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-7 text-white shadow-md">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">

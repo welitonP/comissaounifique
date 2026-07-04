@@ -18,6 +18,8 @@ import Countdown from "@/components/Countdown";
 import WeeklySummary from "@/components/WeeklySummary";
 import ShareWhatsApp from "@/components/ShareWhatsApp";
 import MembersMarquee from "@/components/MembersMarquee";
+import CountUp from "@/components/CountUp";
+import Reveal from "@/components/Reveal";
 
 export const dynamic = "force-dynamic";
 
@@ -128,26 +130,33 @@ export default async function HomePage() {
       </section>
 
       {/* Números */}
-      <section className="grid grid-cols-3 gap-3 sm:gap-5">
-        {[
-          { valor: modalityCount, rotulo: "modalidades" },
-          { valor: athleteCount, rotulo: "atletas" },
-          { valor: upcomingCount, rotulo: "eventos por vir" },
-        ].map((s) => (
-          <div key={s.rotulo} className="rounded-2xl bg-white p-4 text-center shadow-sm">
-            <p className="font-display text-3xl font-extrabold text-unifique">{s.valor}</p>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-              {s.rotulo}
-            </p>
-          </div>
-        ))}
-      </section>
+      <Reveal>
+        <section className="grid grid-cols-3 gap-3 sm:gap-5">
+          {[
+            { valor: modalityCount, rotulo: "modalidades" },
+            { valor: athleteCount, rotulo: "atletas" },
+            { valor: upcomingCount, rotulo: "eventos por vir" },
+          ].map((s) => (
+            <div key={s.rotulo} className="rounded-2xl bg-white p-4 text-center shadow-sm">
+              <p className="font-display text-3xl font-extrabold text-unifique">
+                <CountUp value={s.valor} />
+              </p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                {s.rotulo}
+              </p>
+            </div>
+          ))}
+        </section>
+      </Reveal>
 
       {/* Carrossel dos membros da comissão */}
-      <MembersMarquee />
+      <Reveal>
+        <MembersMarquee />
+      </Reveal>
 
       {/* Últimos comunicados */}
-      <section>
+      <Reveal>
+        <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-xl font-bold text-unifique">
             <Megaphone size={22} className="text-unifique-blue" /> Últimos comunicados
@@ -195,10 +204,12 @@ export default async function HomePage() {
             ))}
           </div>
         )}
-      </section>
+        </section>
+      </Reveal>
 
       {/* Acesso rápido */}
-      <section>
+      <Reveal>
+        <section>
         <h2 className="mb-4 text-xl font-bold text-unifique">Acesso rápido</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <Atalho href="/calendario" titulo="Calendário" desc="Jogos e eventos" Icon={CalendarDays} />
@@ -213,7 +224,8 @@ export default async function HomePage() {
             </>
           )}
         </div>
-      </section>
+        </section>
+      </Reveal>
 
       {user && <WeeklySummary />}
     </div>

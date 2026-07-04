@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createCalendarEvent, createRsvp } from "@/lib/actions";
+import SuccessCelebration from "@/components/SuccessCelebration";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +77,7 @@ export default async function CalendarioPage({
         <p className="mt-1 text-gray-600">Jogos e eventos da comissão.</p>
       </div>
 
+      <SuccessCelebration active={rsvp === "ok"} message="Presença confirmada! Obrigado por avisar." />
       {rsvp === "ok" && (
         <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
           Presença confirmada! Obrigado por avisar.
