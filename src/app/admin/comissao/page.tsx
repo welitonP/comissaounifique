@@ -1,6 +1,7 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createCommissionMember, deleteCommissionMember } from "@/lib/actions";
+import { createCommissionMember } from "@/lib/actions";
+import CommissionMemberRow from "@/components/CommissionMemberRow";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,16 @@ export default async function AdminComissaoPage({
       {params.erro === "foto" && (
         <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
           A foto precisa ser uma imagem de até 2MB.
+        </p>
+      )}
+      {params.erro === "dados" && (
+        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+          Preencha nome e função do membro.
+        </p>
+      )}
+      {params.sucesso === "editado" && (
+        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+          Membro atualizado com sucesso.
         </p>
       )}
 
@@ -76,33 +87,17 @@ export default async function AdminComissaoPage({
 
       <div className="grid gap-3 sm:grid-cols-2">
         {membros.map((m) => (
-          <div
+          <CommissionMemberRow
             key={m.id}
-            className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm"
-          >
-            {m.photoMime ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={`/api/comissao-foto/${m.id}`}
-                alt={m.name}
-                className="h-14 w-14 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-unifique-light text-sm font-bold text-unifique">
-                {m.name.slice(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div className="flex-1">
-              <p className="font-medium">{m.name}</p>
-              <p className="text-sm text-gray-500">{m.role}</p>
-            </div>
-            <form action={deleteCommissionMember}>
-              <input type="hidden" name="id" value={m.id} />
-              <button type="submit" className="text-sm text-red-600 hover:underline">
-                Remover
-              </button>
-            </form>
-          </div>
+            member={{
+              id: m.id,
+              name: m.name,
+              role: m.role,
+              whatsapp: m.whatsapp,
+              order: m.order,
+              photoMime: m.photoMime,
+            }}
+          />
         ))}
         {membros.length === 0 && <p className="text-gray-500">Nenhum membro cadastrado.</p>}
       </div>

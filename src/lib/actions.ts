@@ -630,6 +630,49 @@ export async function createCommissionMember(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateCommissionMember(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  const name = String(formData.get("name") || "").trim();
+  const role = String(formData.get("role") || "").trim();
+  const whatsapp = String(formData.get("whatsapp") || "").trim();
+  const order = Number(formData.get("order") || 0);
+  if (!name || !role) {
+    redirect("/admin/comissao?erro=dados");
+  }
+
+  const data: {
+    name: string;
+    role: string;
+    whatsapp: string | null;
+    order: number;
+    photoData?: Buffer;
+    photoMime?: string;
+  } = {
+    name,
+    role,
+    whatsapp: whatsapp || null,
+    order: Number.isFinite(order) ? order : 0,
+  };
+
+  // Foto é opcional: só troca se enviarem uma nova.
+  const photo = formData.get("photo");
+  if (photo instanceof File && photo.size > 0) {
+    if (!ALLOWED_IMAGE_MIMES.has(photo.type) || photo.size > 2 * 1024 * 1024) {
+      redirect("/admin/comissao?erro=foto");
+    }
+    data.photoData = Buffer.from(await photo.arrayBuffer());
+    data.photoMime = photo.type;
+  }
+
+  await prisma.commissionMember.update({ where: { id }, data });
+  revalidatePath("/comissao");
+  revalidatePath("/admin/comissao");
+  revalidatePath("/");
+  redirect("/admin/comissao?sucesso=editado");
+}
+
 export async function deleteCommissionMember(formData: FormData) {
   await requireUser();
   const id = String(formData.get("id") || "");
