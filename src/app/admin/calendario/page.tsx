@@ -1,6 +1,7 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createCalendarEvent, deleteCalendarEvent } from "@/lib/actions";
+import { fmtDataHora } from "@/lib/datas";
 
 export default async function AdminCalendarioPage() {
   await requireUserPage();
@@ -63,13 +64,7 @@ export default async function AdminCalendarioPage() {
           >
             <div>
               <p className="font-medium">
-                {new Date(ev.date).toLocaleString("pt-BR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}{" "}
-                · {ev.title}
+                {fmtDataHora(ev.date)} · {ev.title}
               </p>
               <p className="text-xs text-gray-500">
                 {ev.modality ? ev.modality.name : "Geral"}

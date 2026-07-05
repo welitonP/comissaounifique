@@ -10,6 +10,7 @@ import {
   setCheckoutStatus,
   toggleCheckoutItem,
 } from "@/lib/actions";
+import { fmtData, fmtDataHora } from "@/lib/datas";
 
 export const dynamic = "force-dynamic";
 
@@ -97,11 +98,7 @@ export default async function AdminSaidasPage({
               <option value="">Selecione um jogo...</option>
               {eventos.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {new Date(e.date).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}{" "}
-                  · {e.title}
+                  {fmtData(e.date)} · {e.title}
                 </option>
               ))}
             </select>
@@ -164,12 +161,7 @@ export default async function AdminSaidasPage({
                   <div>
                     <p className="font-semibold text-unifique">{c.title}</p>
                     <p className="text-sm text-gray-500">
-                      {new Date(c.date).toLocaleString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {fmtDataHora(c.date)}
                       {c.responsible ? ` · resp: ${c.responsible}` : ""}
                     </p>
                   </div>
@@ -323,8 +315,7 @@ export default async function AdminSaidasPage({
                 <div>
                   <p className="font-medium">{c.title}</p>
                   <p className="text-xs text-gray-500">
-                    {new Date(c.date).toLocaleDateString("pt-BR")} · {c.items.length} itens ·
-                    devolvido
+                    {fmtData(c.date)} · {c.items.length} itens · devolvido
                   </p>
                 </div>
                 <div className="flex items-center gap-3">

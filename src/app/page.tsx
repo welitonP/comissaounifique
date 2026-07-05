@@ -20,6 +20,7 @@ import ShareWhatsApp from "@/components/ShareWhatsApp";
 import MembersMarquee from "@/components/MembersMarquee";
 import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
+import { fmtDataHora, fmtHora, fmtDiaSemanaLongo } from "@/lib/datas";
 
 export const dynamic = "force-dynamic";
 
@@ -83,29 +84,14 @@ export default async function HomePage() {
               </p>
               <p className="mt-1 font-display text-xl font-bold">{nextEvent.title}</p>
               <p className="text-sm text-white/80">
-                {new Date(nextEvent.date).toLocaleDateString("pt-BR", {
-                  weekday: "long",
-                  day: "2-digit",
-                  month: "long",
-                })}{" "}
-                às{" "}
-                {new Date(nextEvent.date).toLocaleTimeString("pt-BR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {fmtDiaSemanaLongo(nextEvent.date)} às {fmtHora(nextEvent.date)}
                 {nextEvent.location ? ` · ${nextEvent.location}` : ""}
               </p>
               <div className="mt-3">
                 <ShareWhatsApp
-                  text={`🏆 Próximo jogo: ${nextEvent.title}\n📅 ${new Date(
+                  text={`🏆 Próximo jogo: ${nextEvent.title}\n📅 ${fmtDataHora(
                     nextEvent.date,
-                  ).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "long",
-                  })} às ${new Date(nextEvent.date).toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}${nextEvent.location ? `\n📍 ${nextEvent.location}` : ""}`}
+                  )}${nextEvent.location ? `\n📍 ${nextEvent.location}` : ""}`}
                 />
               </div>
             </div>

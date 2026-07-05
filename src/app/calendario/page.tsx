@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createCalendarEvent, createRsvp } from "@/lib/actions";
 import SuccessCelebration from "@/components/SuccessCelebration";
+import { partesDataBrasil, fmtHora } from "@/lib/datas";
 
 export const dynamic = "force-dynamic";
 
@@ -36,12 +37,11 @@ export default async function CalendarioPage({
     getCurrentUser(),
   ]);
 
-  // Eventos do mês exibido, agrupados por dia
+  // Eventos do mês exibido, agrupados por dia (no fuso de Brasília)
   const porDia = new Map<number, typeof allEvents>();
   for (const ev of allEvents) {
-    const d = new Date(ev.date);
-    if (d.getFullYear() === ano && d.getMonth() + 1 === mes) {
-      const dia = d.getDate();
+    const { ano: a, mes: m, dia } = partesDataBrasil(ev.date);
+    if (a === ano && m === mes) {
       if (!porDia.has(dia)) porDia.set(dia, []);
       porDia.get(dia)!.push(ev);
     }
@@ -164,11 +164,7 @@ export default async function CalendarioPage({
                       key={ev.id}
                       className="truncate rounded bg-unifique px-1 py-0.5 text-[10px] font-medium leading-tight text-white"
                     >
-                      {new Date(ev.date).toLocaleTimeString("pt-BR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}{" "}
-                      {ev.title}
+                      {fmtHora(ev.date)} {ev.title}
                     </div>
                   ))}
                   {eventos.length > 3 && (
@@ -269,10 +265,7 @@ export default async function CalendarioPage({
                       <li key={ev.id} className="px-4 py-2.5">
                         <div className="flex items-start gap-3">
                           <span className="rounded bg-unifique-blue/10 px-2 py-0.5 text-sm font-semibold text-unifique-blue">
-                            {new Date(ev.date).toLocaleTimeString("pt-BR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {fmtHora(ev.date)}
                           </span>
                           <div className="flex-1">
                             <p className="font-medium">{ev.title}</p>

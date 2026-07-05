@@ -1,6 +1,7 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { deleteRsvp } from "@/lib/actions";
+import { fmtDataHora } from "@/lib/datas";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +29,7 @@ export default async function AdminPresencasPage() {
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h3 className="font-semibold text-unifique">{ev.title}</h3>
               <p className="text-sm text-gray-500">
-                {new Date(ev.date).toLocaleString("pt-BR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {fmtDataHora(ev.date)}
                 {ev.location ? ` · ${ev.location}` : ""}
               </p>
             </div>

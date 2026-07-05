@@ -407,11 +407,13 @@ export async function createCalendarEvent(formData: FormData) {
   const modalityId = String(formData.get("modalityId") || "");
   const location = String(formData.get("location") || "").trim();
   const description = String(formData.get("description") || "").trim();
-  if (!title || !date) return;
+  const { parseDataLocal } = await import("./datas");
+  const quando = parseDataLocal(date);
+  if (!title || !quando) return;
   await prisma.calendarEvent.create({
     data: {
       title,
-      date: new Date(date),
+      date: quando,
       modalityId: modalityId || null,
       location: location || null,
       description: description || null,
@@ -875,8 +877,9 @@ export async function createCheckout(formData: FormData) {
   const responsible = String(formData.get("responsible") || "").trim();
   const kitId = String(formData.get("kitId") || "");
 
+  const { parseDataLocal } = await import("./datas");
   let title = manualTitle;
-  let date: Date | null = manualDate ? new Date(manualDate) : null;
+  let date: Date | null = manualDate ? parseDataLocal(manualDate) : null;
 
   if (eventId) {
     const ev = await prisma.calendarEvent.findUnique({ where: { id: eventId } });

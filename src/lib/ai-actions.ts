@@ -3,6 +3,7 @@
 import { prisma } from "./prisma";
 import { requireUser } from "./auth";
 import { askGemini } from "./gemini";
+import { fmtDataHora } from "./datas";
 
 // Monta um resumo textual dos dados da comissão para servir de contexto à IA.
 async function buildContext(): Promise<string> {
@@ -47,7 +48,7 @@ async function buildContext(): Promise<string> {
   if (events.length === 0) lines.push("(nenhum evento futuro)");
   for (const e of events) {
     lines.push(
-      `- ${new Date(e.date).toLocaleString("pt-BR")}: ${e.title}${e.modality ? ` (${e.modality.name})` : ""}${e.location ? ` em ${e.location}` : ""}`,
+      `- ${fmtDataHora(e.date)}: ${e.title}${e.modality ? ` (${e.modality.name})` : ""}${e.location ? ` em ${e.location}` : ""}`,
     );
   }
 
