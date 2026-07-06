@@ -111,9 +111,11 @@ export async function weeklySummary(
     const context = await buildContext();
     const summary = await askGemini(
       BASE_SYSTEM,
-      `Com base no contexto abaixo, faça um resumo curto (bullet points) para a comissão sobre a semana: ` +
+      `Com base no contexto abaixo, faça um resumo curto para a comissão sobre a semana, cobrindo: ` +
         `próximos eventos/jogos, itens emprestados que ainda não voltaram e qualquer ponto de atenção. ` +
-        `Seja objetivo.\n\nContexto:\n${context}`,
+        `Seja objetivo. Escreva em texto simples, uma linha por item começando com "- " ` +
+        `(sem markdown, sem asteriscos e sem negrito). Se alguma seção não tiver nada, diga isso em uma linha. ` +
+        `\n\nContexto:\n${context}`,
     );
     return { summary };
   } catch (e) {

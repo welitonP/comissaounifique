@@ -14,22 +14,30 @@ export function isGeminiConfigured(): boolean {
   return !!process.env.GEMINI_API_KEY;
 }
 
+type ModelResult =
+  | { ok: true; text: string; finishReason?: string }
+  | { ok: false; status: number; detail: string };
+
 async function callModel(
   model: string,
   key: string,
   system: string,
   userPrompt: string,
-): Promise<{ ok: true; text: string } | { ok: false; status: number; detail: string }> {
+): Promise<ModelResult> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-  // Espaço de saída folgado para o texto nunca cortar no meio de uma palavra.
+  // Espaço de saída bem folgado para o texto nunca cortar no meio (o resumo da
+  // semana é a resposta mais longa e era a que truncava).
   const generationConfig: Record<string, unknown> = {
     temperature: 0.5,
-    maxOutputTokens: 2048,
+    maxOutputTokens: 8192,
   };
-  // Os modelos "2.5" gastam tokens escondidos "pensando" e acabam truncando a
-  // resposta. Desligamos esse modo para o texto sair completo e mais rápido.
-  if (model.includes("2.5")) {
+  // Modelos com "raciocínio" (família 2.5 e variantes *thinking*) gastam tokens
+  // escondidos "pensando", e esse gasto entra no mesmo orçamento da resposta.
+  // Sem desligar, eles estouram o limite e devolvem só a primeira linha (ex.:
+  // "* Próximos Eventos/Jogos:" e nada mais). Desligamos para o texto sair
+  // completo e mais rápido.
+  if (/2\.5|thinking/i.test(model)) {
     generationConfig.thinkingConfig = { thinkingBudget: 0 };
   }
 
@@ -50,11 +58,12 @@ async function callModel(
   }
 
   const data = await res.json();
-  const parts = data?.candidates?.[0]?.content?.parts;
+  const candidate = data?.candidates?.[0];
+  const parts = candidate?.content?.parts;
   const text = Array.isArray(parts)
-    ? parts.map((p: { text?: string }) => p.text ?? "").join("")
+    ? parts.map((p: { text?: string }) => p.text ?? "").join("").trim()
     : "";
-  return { ok: true, text: text.trim() || "Não consegui gerar uma resposta agora." };
+  return { ok: true, text, finishReason: candidate?.finishReason };
 }
 
 export async function askGemini(system: string, userPrompt: string): Promise<string> {
@@ -73,12 +82,22 @@ export async function askGemini(system: string, userPrompt: string): Promise<str
   const models = Array.from(new Set([...configured, ...DEFAULT_MODELS]));
 
   let lastStatus = 0;
+  let partial = ""; // melhor resposta que veio cortada, usada só como último recurso
   for (const model of models) {
     const result = await callModel(model, key, system, userPrompt);
-    if (result.ok) return result.text;
-    lastStatus = result.status;
-    // 429 (cota) ou 404 (modelo indisponível): tenta o próximo modelo da lista.
+    if (!result.ok) {
+      lastStatus = result.status;
+      // 429 (cota) ou 404 (modelo indisponível): tenta o próximo modelo da lista.
+      continue;
+    }
+    // Resposta completa: entrega na hora.
+    if (result.text && result.finishReason !== "MAX_TOKENS") return result.text;
+    // Veio cortada por limite de tokens (ou vazia): guarda a maior parcial e
+    // tenta outro modelo, que pode devolver o texto inteiro.
+    if (result.text.length > partial.length) partial = result.text;
   }
+
+  if (partial) return partial;
 
   if (lastStatus === 429) {
     throw new Error(
@@ -91,6 +110,10 @@ export async function askGemini(system: string, userPrompt: string): Promise<str
     throw new Error(
       "A chave da IA parece inválida ou sem permissão. Confira a GEMINI_API_KEY nas configurações.",
     );
+  }
+  if (lastStatus === 0) {
+    // Os modelos responderam, mas sem texto aproveitável.
+    throw new Error("A IA não conseguiu gerar uma resposta agora. Tente novamente.");
   }
   throw new Error(`Não consegui falar com a IA agora (erro ${lastStatus}). Tente novamente.`);
 }
