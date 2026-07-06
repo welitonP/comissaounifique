@@ -23,7 +23,7 @@ export default function PhotoSlideshow({ fotos }: { fotos: Foto[] }) {
   return (
     <Link
       href="/fotos"
-      className="relative block h-64 overflow-hidden rounded-2xl bg-unifique-dark shadow-sm sm:h-80"
+      className="relative block h-72 overflow-hidden rounded-2xl bg-unifique-dark shadow-sm sm:h-96"
       onMouseEnter={() => setPausado(true)}
       onMouseLeave={() => setPausado(false)}
       aria-label="Ver a galeria de fotos"
@@ -36,12 +36,23 @@ export default function PhotoSlideshow({ fotos }: { fotos: Foto[] }) {
           }`}
           aria-hidden={i !== atual}
         >
+          {/* Fundo: a própria foto desfocada preenchendo a faixa (fotos de
+              celular são em pé e não cobrem a largura sem cortar) */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/fotos/${f.id}`}
+            alt=""
+            aria-hidden
+            loading={i === 0 ? "eager" : "lazy"}
+            className="absolute inset-0 h-full w-full scale-110 object-cover blur-lg brightness-[.65]"
+          />
+          {/* Frente: a foto inteira, sem cortar nada */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`/api/fotos/${f.id}`}
             alt={f.caption || "Foto da Comissão de Esportes"}
             loading={i === 0 ? "eager" : "lazy"}
-            className="h-full w-full object-cover"
+            className="relative h-full w-full object-contain"
           />
           <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-10 text-sm font-medium text-white">
             {f.caption ? `${f.caption} · ` : ""}
