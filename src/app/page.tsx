@@ -18,6 +18,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { votePoll } from "@/lib/actions";
 import Countdown from "@/components/Countdown";
+import PhotoSlideshow from "@/components/PhotoSlideshow";
 import WeeklySummary from "@/components/WeeklySummary";
 import ShareWhatsApp from "@/components/ShareWhatsApp";
 import MembersMarquee from "@/components/MembersMarquee";
@@ -31,7 +32,7 @@ export default async function HomePage() {
   const now = new Date();
   const hoje = new Date(now.toDateString());
 
-  const [user, nextEvent, latestAnnouncements, modalityCount, athleteCount, upcomingCount, latestPoll] =
+  const [user, nextEvent, latestAnnouncements, modalityCount, athleteCount, upcomingCount, latestPoll, galleryPhotos] =
     await Promise.all([
       getCurrentUser(),
       prisma.calendarEvent.findFirst({
@@ -51,7 +52,18 @@ export default async function HomePage() {
         orderBy: { createdAt: "desc" },
         include: { options: true },
       }),
+      prisma.galleryPhoto.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        select: { id: true, caption: true, createdAt: true },
+      }),
     ]);
+
+  const fotosSlide = galleryPhotos.map((f) => ({
+    id: f.id,
+    caption: f.caption,
+    dataFmt: new Date(f.createdAt).toLocaleDateString("pt-BR"),
+  }));
 
   // Já votou na enquete mais recente? (mesmo cookie usado na página de enquetes)
   const votedCookie = (await cookies()).get("voted_polls")?.value ?? "";
@@ -208,6 +220,26 @@ export default async function HomePage() {
         )}
         </section>
       </Reveal>
+
+      {/* Slideshow de fotos da galeria */}
+      {fotosSlide.length > 0 && (
+        <Reveal>
+          <section>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-unifique">
+                <Camera size={22} className="text-unifique-blue" /> Momentos
+              </h2>
+              <Link
+                href="/fotos"
+                className="flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline"
+              >
+                Ver todas <ChevronRight size={16} />
+              </Link>
+            </div>
+            <PhotoSlideshow fotos={fotosSlide} />
+          </section>
+        </Reveal>
+      )}
 
       {/* Acesso rápido */}
       <Reveal>
