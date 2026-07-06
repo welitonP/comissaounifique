@@ -49,10 +49,10 @@ export default function NavBar({
 
   return (
     <header className="sticky top-0 z-40 bg-unifique text-white shadow-lg">
-      <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-3 px-4 py-2.5">
+      <div className="mx-auto flex max-w-[86rem] items-center justify-between gap-3 px-4 py-2.5">
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-3"
+          className="flex min-w-0 items-center gap-3"
           onClick={() => setOpen(false)}
         >
           <Image
@@ -63,16 +63,18 @@ export default function NavBar({
             className="h-[46px] w-[46px] shrink-0 rounded-full bg-white object-cover ring-2 ring-white/40"
             priority
           />
-          <span className="font-display text-base font-bold leading-tight tracking-tight whitespace-nowrap">
-            Comissão de Esportes
-            <span className="block whitespace-nowrap text-[11px] font-semibold uppercase tracking-widest text-unifique-teal">
+          <span className="min-w-0 leading-tight">
+            <span className="block truncate font-display text-base font-bold tracking-tight">
+              Comissão de Esportes
+            </span>
+            <span className="block truncate text-[11px] font-semibold uppercase tracking-widest text-unifique-teal">
               Unifique · desde 2015
             </span>
           </span>
         </Link>
 
         {/* Desktop */}
-        <nav className="hidden items-center gap-0.5 2xl:flex">
+        <nav className="hidden shrink-0 items-center gap-0.5 xl:flex">
           {PUBLIC_LINKS.map(({ href, label }) => (
             <Link
               key={href}
@@ -121,7 +123,7 @@ export default function NavBar({
         <button
           onClick={() => setOpen((o) => !o)}
           aria-label={open ? "Fechar menu" : "Abrir menu"}
-          className="rounded-lg p-2 hover:bg-white/10 2xl:hidden"
+          className="rounded-lg p-2 hover:bg-white/10 xl:hidden"
         >
           {open ? <X size={26} /> : <Menu size={26} />}
         </button>
@@ -129,7 +131,7 @@ export default function NavBar({
 
       {/* Painel mobile */}
       {open && (
-        <nav className="border-t border-white/10 bg-unifique-dark px-4 pb-4 pt-2 2xl:hidden">
+        <nav className="border-t border-white/10 bg-unifique-dark px-4 pb-4 pt-2 xl:hidden">
           <div className="grid gap-1">
             {inscricoesAbertas && (
               <Link
