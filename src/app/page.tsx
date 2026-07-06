@@ -13,8 +13,10 @@ import {
   Vote,
   type LucideIcon,
 } from "lucide-react";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { votePoll } from "@/lib/actions";
 import Countdown from "@/components/Countdown";
 import WeeklySummary from "@/components/WeeklySummary";
 import ShareWhatsApp from "@/components/ShareWhatsApp";
@@ -29,7 +31,7 @@ export default async function HomePage() {
   const now = new Date();
   const hoje = new Date(now.toDateString());
 
-  const [user, nextEvent, latestAnnouncements, modalityCount, athleteCount, upcomingCount] =
+  const [user, nextEvent, latestAnnouncements, modalityCount, athleteCount, upcomingCount, latestPoll] =
     await Promise.all([
       getCurrentUser(),
       prisma.calendarEvent.findFirst({
@@ -45,7 +47,20 @@ export default async function HomePage() {
       prisma.modality.count(),
       prisma.registration.count(),
       prisma.calendarEvent.count({ where: { date: { gte: hoje } } }),
+      prisma.poll.findFirst({
+        orderBy: { createdAt: "desc" },
+        include: { options: true },
+      }),
     ]);
+
+  // Já votou na enquete mais recente? (mesmo cookie usado na página de enquetes)
+  const votedCookie = (await cookies()).get("voted_polls")?.value ?? "";
+  const jaVotou = latestPoll
+    ? votedCookie.split(",").filter(Boolean).includes(latestPoll.id)
+    : false;
+  const totalVotos = latestPoll
+    ? latestPoll.options.reduce((sum, o) => sum + o.votes, 0)
+    : 0;
 
   return (
     <div className="space-y-10">
@@ -202,7 +217,6 @@ export default async function HomePage() {
           <Atalho href="/calendario" titulo="Calendário" desc="Jogos e eventos" Icon={CalendarDays} />
           <Atalho href="/fotos" titulo="Fotos" desc="Momentos dos jogos" Icon={Camera} />
           <Atalho href="/entre-empresas" titulo="Entre Empresas" desc="Modalidades e elencos" Icon={Trophy} />
-          <Atalho href="/enquetes" titulo="Enquetes" desc="Vote e participe" Icon={Vote} />
           <Atalho href="/sugestoes" titulo="Sugestões" desc="Mande sua ideia" Icon={Lightbulb} />
           {user && (
             <>
@@ -216,6 +230,60 @@ export default async function HomePage() {
       </Reveal>
 
       {user && <WeeklySummary />}
+
+      {/* Enquete mais recente (vote sem sair da home) */}
+      {latestPoll && (
+        <Reveal>
+          <section>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-unifique">
+                <Vote size={22} className="text-unifique-blue" /> Enquete
+              </h2>
+              <Link
+                href="/enquetes"
+                className="flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline"
+              >
+                Ver todas <ChevronRight size={16} />
+              </Link>
+            </div>
+            <div className="rounded-2xl bg-white p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-800">{latestPoll.question}</h3>
+              <div className="mt-4 space-y-2">
+                {latestPoll.options.map((option) => {
+                  const pct = totalVotos > 0 ? Math.round((option.votes / totalVotos) * 100) : 0;
+                  return jaVotou ? (
+                    <div key={option.id}>
+                      <div className="flex justify-between text-sm">
+                        <span>{option.text}</span>
+                        <span className="text-gray-500">
+                          {option.votes} voto(s) · {pct}%
+                        </span>
+                      </div>
+                      <div className="mt-1 h-2 w-full rounded bg-gray-100">
+                        <div className="h-2 rounded bg-unifique" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <form key={option.id} action={votePoll}>
+                      <input type="hidden" name="pollId" value={latestPoll.id} />
+                      <input type="hidden" name="optionId" value={option.id} />
+                      <button
+                        type="submit"
+                        className="w-full rounded border border-unifique px-3 py-2 text-left text-sm text-unifique-dark hover:bg-unifique/10"
+                      >
+                        {option.text}
+                      </button>
+                    </form>
+                  );
+                })}
+              </div>
+              {!jaVotou && (
+                <p className="mt-3 text-xs text-gray-400">Toque em uma opção para votar.</p>
+              )}
+            </div>
+          </section>
+        </Reveal>
+      )}
     </div>
   );
 }

@@ -28,7 +28,9 @@ export default function Footer() {
           <ul className="space-y-1 text-sm text-white/80">
             <li><Link href="/calendario" className="hover:text-white">Calendário de jogos</Link></li>
             <li><Link href="/comunicados" className="hover:text-white">Comunicados</Link></li>
+            <li><Link href="/fotos" className="hover:text-white">Fotos</Link></li>
             <li><Link href="/resultados" className="hover:text-white">Resultados</Link></li>
+            <li><Link href="/enquetes" className="hover:text-white">Enquetes</Link></li>
             <li><Link href="/comissao" className="hover:text-white">A Comissão</Link></li>
             <li><Link href="/sugestoes" className="hover:text-white">Sugestões</Link></li>
           </ul>
