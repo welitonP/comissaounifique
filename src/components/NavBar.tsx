@@ -49,7 +49,7 @@ export default function NavBar({
 
   return (
     <header className="sticky top-0 z-40 bg-unifique text-white shadow-lg">
-      <div className="mx-auto flex max-w-[86rem] items-center justify-between gap-3 px-4 py-2.5">
+      <div className="mx-auto flex max-w-[86rem] items-center justify-between gap-2 px-4 py-2.5">
         <Link
           href="/"
           className="flex min-w-0 items-center gap-3"
@@ -79,7 +79,7 @@ export default function NavBar({
             <Link
               key={href}
               href={href}
-              className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
+              className="whitespace-nowrap rounded-lg px-1.5 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
             >
               {label}
             </Link>
@@ -93,14 +93,14 @@ export default function NavBar({
             </Link>
           )}
           {user ? (
-            <div className="ml-2 flex items-center gap-2 border-l border-white/20 pl-3">
+            <div className="ml-1.5 flex items-center gap-2 border-l border-white/20 pl-2.5">
               <Link
                 href="/admin"
-                className="rounded-lg bg-unifique-blue px-3.5 py-2 text-sm font-semibold text-white shadow hover:brightness-110"
+                className="rounded-lg bg-unifique-blue px-3 py-2 text-sm font-semibold text-white shadow hover:brightness-110"
               >
                 Gerenciar
               </Link>
-              <span className="text-xs font-medium text-unifique-teal">
+              <span className="hidden text-xs font-medium text-unifique-teal 2xl:inline">
                 {user.name.split(" ")[0]}
               </span>
               <form action={logoutAction}>
