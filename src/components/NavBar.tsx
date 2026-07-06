@@ -49,7 +49,7 @@ export default function NavBar({
 
   return (
     <header className="sticky top-0 z-40 bg-unifique text-white shadow-lg">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2.5">
+      <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-3 px-4 py-2.5">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-3"
@@ -72,12 +72,12 @@ export default function NavBar({
         </Link>
 
         {/* Desktop */}
-        <nav className="hidden items-center gap-0.5 xl:flex">
+        <nav className="hidden items-center gap-0.5 2xl:flex">
           {PUBLIC_LINKS.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              className="whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
+              className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
             >
               {label}
             </Link>
@@ -121,7 +121,7 @@ export default function NavBar({
         <button
           onClick={() => setOpen((o) => !o)}
           aria-label={open ? "Fechar menu" : "Abrir menu"}
-          className="rounded-lg p-2 hover:bg-white/10 xl:hidden"
+          className="rounded-lg p-2 hover:bg-white/10 2xl:hidden"
         >
           {open ? <X size={26} /> : <Menu size={26} />}
         </button>
@@ -129,7 +129,7 @@ export default function NavBar({
 
       {/* Painel mobile */}
       {open && (
-        <nav className="border-t border-white/10 bg-unifique-dark px-4 pb-4 pt-2 xl:hidden">
+        <nav className="border-t border-white/10 bg-unifique-dark px-4 pb-4 pt-2 2xl:hidden">
           <div className="grid gap-1">
             {inscricoesAbertas && (
               <Link
