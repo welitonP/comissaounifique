@@ -4,15 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import {
-  Award,
   CalendarDays,
+  Camera,
   ClipboardList,
   Home,
   Megaphone,
   Menu,
   Trophy,
   Users,
-  Vote,
   Lightbulb,
   Package,
   Shirt,
@@ -25,10 +24,9 @@ const PUBLIC_LINKS = [
   { href: "/", label: "Início", Icon: Home },
   { href: "/calendario", label: "Calendário", Icon: CalendarDays },
   { href: "/comunicados", label: "Comunicados", Icon: Megaphone },
+  { href: "/fotos", label: "Fotos", Icon: Camera },
   { href: "/entre-empresas", label: "Entre Empresas", Icon: Trophy },
-  { href: "/resultados", label: "Resultados", Icon: Award },
   { href: "/comissao", label: "A Comissão", Icon: Users },
-  { href: "/enquetes", label: "Enquetes", Icon: Vote },
   { href: "/sugestoes", label: "Sugestões", Icon: Lightbulb },
 ];
 

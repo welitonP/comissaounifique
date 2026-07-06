@@ -75,9 +75,10 @@ export default function PrivacidadePage() {
         <section>
           <h2 className="font-display text-lg font-bold text-unifique">5. Fotos e imagem</h2>
           <p className="mt-2 text-sm leading-relaxed">
-            Fotos de eventos publicadas nos comunicados passam pela comissão, que se compromete a
-            publicar apenas imagens de pessoas que autorizaram o uso. Se você aparece em alguma
-            foto e deseja a remoção, fale com qualquer membro da comissão e removeremos.
+            Fotos de eventos publicadas nos comunicados e na galeria de fotos passam pela
+            comissão, que se compromete a publicar apenas imagens de pessoas que autorizaram o
+            uso. Se você aparece em alguma foto e deseja a remoção, fale com qualquer membro da
+            comissão e removeremos.
           </p>
         </section>
 

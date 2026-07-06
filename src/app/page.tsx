@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   CalendarDays,
+  Camera,
   ChevronRight,
   Lightbulb,
   Megaphone,
@@ -199,6 +200,7 @@ export default async function HomePage() {
         <h2 className="mb-4 text-xl font-bold text-unifique">Acesso rápido</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <Atalho href="/calendario" titulo="Calendário" desc="Jogos e eventos" Icon={CalendarDays} />
+          <Atalho href="/fotos" titulo="Fotos" desc="Momentos dos jogos" Icon={Camera} />
           <Atalho href="/entre-empresas" titulo="Entre Empresas" desc="Modalidades e elencos" Icon={Trophy} />
           <Atalho href="/enquetes" titulo="Enquetes" desc="Vote e participe" Icon={Vote} />
           <Atalho href="/sugestoes" titulo="Sugestões" desc="Mande sua ideia" Icon={Lightbulb} />

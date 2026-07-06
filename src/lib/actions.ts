@@ -262,6 +262,50 @@ export async function deleteAnnouncement(formData: FormData) {
   revalidatePath("/admin/comunicados");
 }
 
+// ===== Galeria de fotos =====
+
+export async function addGalleryPhotos(formData: FormData) {
+  await requireUser();
+  const caption = String(formData.get("caption") || "").trim();
+
+  const files = formData
+    .getAll("photos")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+
+  if (files.length === 0) redirect("/admin/fotos?erro=sem-foto");
+  if (files.length > MAX_PHOTOS) redirect("/admin/fotos?erro=muitas-fotos");
+
+  let total = 0;
+  for (const f of files) {
+    total += f.size;
+    if (!ALLOWED_IMAGE_MIMES.has(f.type)) redirect("/admin/fotos?erro=foto-formato");
+    if (f.size > MAX_PHOTO_BYTES || total > MAX_TOTAL_BYTES) {
+      redirect("/admin/fotos?erro=foto-grande");
+    }
+  }
+
+  const photos = await Promise.all(
+    files.map(async (f) => ({
+      caption: caption || null,
+      data: Buffer.from(await f.arrayBuffer()),
+      mime: f.type,
+    })),
+  );
+  await prisma.galleryPhoto.createMany({ data: photos });
+  revalidatePath("/fotos");
+  revalidatePath("/admin/fotos");
+  redirect("/admin/fotos?sucesso=1");
+}
+
+export async function deleteGalleryPhoto(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.galleryPhoto.delete({ where: { id } });
+  revalidatePath("/fotos");
+  revalidatePath("/admin/fotos");
+}
+
 export async function createPoll(formData: FormData) {
   await requireUser();
   const question = String(formData.get("question") || "").trim();

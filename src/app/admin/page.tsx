@@ -55,6 +55,7 @@ export default async function AdminDashboardPage() {
     { href: "/admin/uniformes", label: "Uniformes", description: "Itens controlados e quem está com eles." },
     { href: "/admin/saidas", label: "Saídas de equipamento", description: "Kits e checklist do que sai/volta nos jogos." },
     { href: "/admin/comunicados", label: "Comunicados", description: "Publicar avisos (com fotos) para todos." },
+    { href: "/admin/fotos", label: "Fotos", description: "Galeria pública de fotos dos jogos e eventos." },
     { href: "/admin/inscricoes", label: "Inscrições", description: "Abrir/fechar e aprovar inscrições de atletas." },
     { href: "/admin/exportar", label: "Exportar dados", description: "Baixar o elenco em planilha, filtrando por modalidade." },
     { href: "/admin/presencas", label: "Presenças", description: "Quem confirmou presença nos jogos." },

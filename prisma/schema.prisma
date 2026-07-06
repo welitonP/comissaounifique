@@ -225,6 +225,15 @@ model User {
   createdAt    DateTime @default(now())
 }
 
+// Foto da galeria pública (bytes servidos por /api/fotos/[id])
+model GalleryPhoto {
+  id        String   @id @default(cuid())
+  caption   String? // legenda opcional, ex: "Futsal · jogo contra a Viacredi"
+  data      Bytes
+  mime      String
+  createdAt DateTime @default(now())
+}
+
 // Item individual controlado (ex: bolsa de uniforme) e quem está com ele
 model TrackedItem {
   id         String    @id @default(cuid())
