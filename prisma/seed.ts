@@ -10,12 +10,12 @@ function hashPassword(password: string): string {
 }
 
 async function main() {
-  // Admin master
+  // Conta master (dona do site: única que gerencia membros)
   await prisma.user.create({
     data: {
       name: "Weliton Porto",
       username: "weliton.porto",
-      role: "admin",
+      role: "master",
       passwordHash: hashPassword("unifique2015"),
     },
   });

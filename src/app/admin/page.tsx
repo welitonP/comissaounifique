@@ -66,8 +66,8 @@ export default async function AdminDashboardPage() {
     { href: "/admin/conta", label: "Minha conta", description: "Alterar minha senha." },
   ];
 
-  if (user.role === "admin") {
-    sections.push({ href: "/admin/membros", label: "Membros", description: "Gerenciar quem tem acesso ao site." });
+  if (user.role === "master" || user.role === "admin") {
+    sections.push({ href: "/admin/membros", label: "Membros", description: "Gerenciar quem tem acesso ao site (conta master)." });
   }
 
   return (
@@ -77,7 +77,7 @@ export default async function AdminDashboardPage() {
           <h1 className="text-2xl font-bold text-unifique">Gerenciar</h1>
           <p className="text-sm text-gray-500">
             Você está logado como <strong>{user.name}</strong>
-            {user.role === "admin" ? " (administrador)" : ""}.
+            {user.role === "master" ? " (master)" : user.role === "admin" ? " (administrador)" : ""}.
           </p>
         </div>
         <form action={logoutAction}>

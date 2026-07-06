@@ -5,9 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
 import {
-  getCurrentUser,
   hashPassword,
-  requireAdmin,
+  requireMaster,
   requireUser,
   verifyPassword,
 } from "./auth";
@@ -48,17 +47,16 @@ export async function logoutAction() {
   redirect("/login");
 }
 
-// ===== Gestão de membros (somente admin) =====
+// ===== Gestão de membros (somente o master, dono do site) =====
 
 export async function createUser(formData: FormData) {
-  await requireAdmin();
+  await requireMaster();
   const name = String(formData.get("name") || "").trim();
   const username = String(formData.get("username") || "")
     .trim()
     .toLowerCase()
     .replace(/\s+/g, ".");
   const password = String(formData.get("password") || "");
-  const role = String(formData.get("role") || "member") === "admin" ? "admin" : "member";
   if (!name || !username || password.length < 4) {
     redirect("/admin/membros?erro=dados");
   }
@@ -66,18 +64,22 @@ export async function createUser(formData: FormData) {
   if (existing) {
     redirect("/admin/membros?erro=usuario");
   }
+  // Todo novo usuário nasce como membro; o master é único.
   await prisma.user.create({
-    data: { name, username, role, passwordHash: hashPassword(password) },
+    data: { name, username, role: "member", passwordHash: hashPassword(password) },
   });
   revalidatePath("/admin/membros");
   redirect("/admin/membros?sucesso=1");
 }
 
 export async function resetUserPassword(formData: FormData) {
-  await requireAdmin();
+  await requireMaster();
   const id = String(formData.get("id") || "");
   const password = String(formData.get("password") || "");
   if (!id || password.length < 4) return;
+  const target = await prisma.user.findUnique({ where: { id } });
+  // A senha do master só é trocada pelo próprio, em "Minha conta".
+  if (!target || target.role === "master") return;
   await prisma.user.update({
     where: { id },
     data: { passwordHash: hashPassword(password) },
@@ -86,23 +88,21 @@ export async function resetUserPassword(formData: FormData) {
 }
 
 export async function toggleUserActive(formData: FormData) {
-  await requireAdmin();
+  const me = await requireMaster();
   const id = String(formData.get("id") || "");
-  if (!id) return;
-  const me = await getCurrentUser();
-  if (me && me.id === id) return; // não desativar a si mesmo
+  if (!id || me.id === id) return; // não desativar a si mesmo
   const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) return;
+  if (!user || user.role === "master") return; // conta master é intocável
   await prisma.user.update({ where: { id }, data: { active: !user.active } });
   revalidatePath("/admin/membros");
 }
 
 export async function deleteUser(formData: FormData) {
-  await requireAdmin();
+  const me = await requireMaster();
   const id = String(formData.get("id") || "");
-  if (!id) return;
-  const me = await getCurrentUser();
-  if (me && me.id === id) return; // não excluir a si mesmo
+  if (!id || me.id === id) return; // não excluir a si mesmo
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user || user.role === "master") return; // conta master é intocável
   await prisma.user.delete({ where: { id } });
   revalidatePath("/admin/membros");
 }

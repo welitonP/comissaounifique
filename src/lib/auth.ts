@@ -47,9 +47,17 @@ export async function requireUserPage(): Promise<SessionUser> {
   return user;
 }
 
+// Papéis com poder de administração ("master" é o dono do site: além de tudo
+// que o admin faz, é o único que gerencia membros e ninguém pode editá-lo).
+const ADMIN_ROLES = ["admin", "master"];
+
+export function isAdminRole(role: string): boolean {
+  return ADMIN_ROLES.includes(role);
+}
+
 export async function requireAdminPage(): Promise<SessionUser> {
   const user = await requireUserPage();
-  if (user.role !== "admin") redirect("/");
+  if (!isAdminRole(user.role)) redirect("/");
   return user;
 }
 
@@ -62,6 +70,13 @@ export async function requireUser(): Promise<SessionUser> {
 
 export async function requireAdmin(): Promise<SessionUser> {
   const user = await requireUser();
-  if (user.role !== "admin") throw new Error("Apenas administradores.");
+  if (!isAdminRole(user.role)) throw new Error("Apenas administradores.");
+  return user;
+}
+
+// Só o dono do site (conta master) pode gerenciar membros.
+export async function requireMaster(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "master") throw new Error("Apenas o administrador master.");
   return user;
 }
