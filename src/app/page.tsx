@@ -32,7 +32,7 @@ export default async function HomePage() {
   const now = new Date();
   const hoje = new Date(now.toDateString());
 
-  const [user, nextEvent, latestAnnouncements, modalityCount, athleteCount, upcomingCount, latestPoll, galleryPhotos] =
+  const [user, nextEvent, latestAnnouncements, modalityCount, atletasDistintos, upcomingCount, latestPoll, galleryPhotos] =
     await Promise.all([
       getCurrentUser(),
       prisma.calendarEvent.findFirst({
@@ -46,7 +46,8 @@ export default async function HomePage() {
         include: { images: { select: { id: true }, take: 1 } },
       }),
       prisma.modality.count(),
-      prisma.registration.count(),
+      // Conta atletas distintos (uma pessoa pode estar em várias modalidades).
+      prisma.registration.findMany({ distinct: ["companyName"], select: { companyName: true } }),
       prisma.calendarEvent.count({ where: { date: { gte: hoje } } }),
       prisma.poll.findFirst({
         orderBy: { createdAt: "desc" },
@@ -58,6 +59,7 @@ export default async function HomePage() {
         select: { id: true, caption: true, createdAt: true },
       }),
     ]);
+  const athleteCount = atletasDistintos.length;
 
   const fotosSlide = galleryPhotos.map((f) => ({
     id: f.id,

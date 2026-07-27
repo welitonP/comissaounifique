@@ -13,7 +13,10 @@ export default async function EntreEmpresasPage() {
     getCurrentUser(),
   ]);
 
-  const totalInscritos = modalities.reduce((sum, m) => sum + m.registrations.length, 0);
+  // Atletas distintos (uma pessoa pode disputar várias modalidades).
+  const totalAtletas = new Set(
+    modalities.flatMap((m) => m.registrations.map((r) => r.companyName)),
+  ).size;
 
   return (
     <div className="space-y-8">
@@ -29,7 +32,7 @@ export default async function EntreEmpresasPage() {
             modalidades
           </div>
           <div>
-            <span className="block text-2xl font-bold">{totalInscritos}</span>
+            <span className="block text-2xl font-bold">{totalAtletas}</span>
             atletas
           </div>
         </div>
