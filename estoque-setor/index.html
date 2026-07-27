@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Estoque da Bancada</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #1c2733;
+    --muted: #64748b;
+    --accent: #0d6efd;
+    --accent-dark: #0b5ed7;
+    --ok: #16a34a;
+    --warn: #d97706;
+    --danger: #dc2626;
+    --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .container { max-width: 860px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  header h1 { font-size: 1.35rem; }
+  header .sub { color: var(--muted); font-size: .85rem; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .stat .num { font-size: 1.5rem; font-weight: 700; }
+  .stat .label { color: var(--muted); font-size: .8rem; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1rem; margin-bottom: 12px; }
+
+  form .row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  @media (max-width: 640px) {
+    form .row { grid-template-columns: 1fr; }
+  }
+  label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
+  input, select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: .95rem;
+    background: #fff;
+    color: var(--text);
+  }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+
+  button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: .95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-weight: 500;
+    padding: 8px 12px;
+    font-size: .85rem;
+  }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-out { background: #eef2ff; color: var(--accent-dark); font-size: .8rem; padding: 6px 10px; }
+  .btn-out:hover { background: #e0e7ff; }
+  .btn-del { background: transparent; color: var(--danger); font-size: .8rem; padding: 6px 8px; }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .toolbar input[type="search"] { flex: 1; min-width: 160px; }
+
+  ul.items { list-style: none; }
+  li.item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  li.item:last-child { border-bottom: none; }
+  .item .info { flex: 1; min-width: 200px; }
+  .item .name { font-weight: 600; }
+  .item .meta { color: var(--muted); font-size: .8rem; margin-top: 2px; }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge.ok    { background: #dcfce7; color: var(--ok); }
+  .badge.warn  { background: #fef3c7; color: var(--warn); }
+  .badge.late  { background: #fee2e2; color: var(--danger); }
+
+  .empty { text-align: center; color: var(--muted); padding: 24px 0; font-size: .9rem; }
+
+  details.saidas summary { cursor: pointer; font-size: .9rem; color: var(--muted); font-weight: 600; }
+  .saida-item { color: var(--muted); font-size: .85rem; padding: 8px 4px; border-bottom: 1px solid var(--border); }
+  .saida-item:last-child { border-bottom: none; }
+
+  footer { text-align: center; color: var(--muted); font-size: .75rem; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1>📦 Estoque da Bancada</h1>
+      <div class="sub">Controle simples de equipamentos do setor</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn-ghost" onclick="exportarBackup()">⬇ Backup</button>
+      <button class="btn-ghost" onclick="document.getElementById('importFile').click()">⬆ Restaurar</button>
+      <input type="file" id="importFile" accept=".json" hidden onchange="importarBackup(this)" />
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="statTotal">0</div><div class="label">na bancada</div></div>
+    <div class="stat"><div class="num" id="statAntigo">—</div><div class="label">mais antigo</div></div>
+    <div class="stat"><div class="num" id="statSaidas">0</div><div class="label">saídas registradas</div></div>
+  </div>
+
+  <div class="card">
+    <h2>➕ Entrada de equipamento</h2>
+    <form id="formAdd">
+      <div class="row">
+        <div>
+          <label for="modelo">Equipamento / modelo</label>
+          <input id="modelo" list="modelosConhecidos" placeholder="Ex: Mikrotik hEX GR3" required />
+          <datalist id="modelosConhecidos"></datalist>
+        </div>
+        <div>
+          <label for="serial">Serial / patrimônio (opcional)</label>
+          <input id="serial" placeholder="Ex: SN12345" />
+        </div>
+        <div>
+          <label for="dataEntrada">Data de entrada</label>
+          <input id="dataEntrada" type="date" required />
+        </div>
+      </div>
+      <div class="row">
+        <div style="grid-column: 1 / -1;">
+          <label for="obs">Observação (opcional)</label>
+          <input id="obs" placeholder="Ex: veio pra manutenção, cliente X..." />
+        </div>
+      </div>
+      <button type="submit" class="btn-primary">Adicionar à bancada</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>🛠 Na bancada</h2>
+    <div class="toolbar">
+      <input type="search" id="busca" placeholder="Buscar por modelo, serial ou observação..." oninput="render()" />
+      <select id="ordenar" onchange="render()">
+        <option value="antigo">Mais antigos primeiro</option>
+        <option value="novo">Mais novos primeiro</option>
+        <option value="nome">Por nome</option>
+      </select>
+    </div>
+    <ul class="items" id="lista"></ul>
+    <div class="empty" id="vazio" hidden>Nenhum equipamento na bancada. 🎉</div>
+  </div>
+
+  <div class="card">
+    <details class="saidas">
+      <summary>📤 Histórico de saídas (<span id="qtdSaidas">0</span>)</summary>
+      <div id="listaSaidas" style="margin-top:10px;"></div>
+    </details>
+  </div>
+
+  <footer>Os dados ficam salvos neste navegador. Use o botão <b>Backup</b> de vez em quando pra não perder nada.</footer>
+</div>
+
+<script>
+const KEY = 'estoque-bancada-v1';
+
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if (d && Array.isArray(d.itens) && Array.isArray(d.saidas)) return d;
+  } catch (e) {}
+  return { itens: [], saidas: [] };
+}
+let db = load();
+function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
+
+function hoje() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function diasDesde(dataISO) {
+  const [y, m, d] = dataISO.split('-').map(Number);
+  const entrada = new Date(y, m - 1, d);
+  const agora = new Date();
+  const hj = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+  return Math.round((hj - entrada) / 86400000);
+}
+
+function labelTempo(dias) {
+  if (dias <= 0) return 'chegou hoje';
+  if (dias === 1) return 'há 1 dia';
+  return 'há ' + dias + ' dias';
+}
+
+function fmtData(dataISO) {
+  const [y, m, d] = dataISO.split('-');
+  return d + '/' + m + '/' + y;
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+document.getElementById('dataEntrada').value = hoje();
+
+document.getElementById('formAdd').addEventListener('submit', function (e) {
+  e.preventDefault();
+  db.itens.push({
+    id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    modelo: document.getElementById('modelo').value.trim(),
+    serial: document.getElementById('serial').value.trim(),
+    entrada: document.getElementById('dataEntrada').value,
+    obs: document.getElementById('obs').value.trim()
+  });
+  save();
+  this.reset();
+  document.getElementById('dataEntrada').value = hoje();
+  document.getElementById('modelo').focus();
+  render();
+});
+
+function darSaida(id) {
+  const i = db.itens.findIndex(x => x.id === id);
+  if (i < 0) return;
+  const item = db.itens[i];
+  const destino = prompt('Saída de "' + item.modelo + '"\n\nPra onde foi? (opcional — cliente, instalado, devolvido...)');
+  if (destino === null) return;
+  db.itens.splice(i, 1);
+  db.saidas.unshift({ ...item, saida: hoje(), destino: destino.trim() });
+  save();
+  render();
+}
+
+function excluir(id) {
+  const item = db.itens.find(x => x.id === id);
+  if (!item) return;
+  if (!confirm('Excluir "' + item.modelo + '" sem registrar saída?')) return;
+  db.itens = db.itens.filter(x => x.id !== id);
+  save();
+  render();
+}
+
+function render() {
+  const busca = document.getElementById('busca').value.toLowerCase();
+  const ordenar = document.getElementById('ordenar').value;
+
+  let itens = db.itens.filter(i =>
+    (i.modelo + ' ' + i.serial + ' ' + i.obs).toLowerCase().includes(busca)
+  );
+
+  if (ordenar === 'antigo') itens.sort((a, b) => a.entrada.localeCompare(b.entrada));
+  if (ordenar === 'novo')   itens.sort((a, b) => b.entrada.localeCompare(a.entrada));
+  if (ordenar === 'nome')   itens.sort((a, b) => a.modelo.localeCompare(b.modelo, 'pt-BR'));
+
+  const ul = document.getElementById('lista');
+  ul.innerHTML = itens.map(i => {
+    const dias = diasDesde(i.entrada);
+    const cls = dias >= 30 ? 'late' : dias >= 15 ? 'warn' : 'ok';
+    return '<li class="item">' +
+      '<div class="info">' +
+        '<div class="name">' + esc(i.modelo) + (i.serial ? ' <span style="color:var(--muted);font-weight:400;">· ' + esc(i.serial) + '</span>' : '') + '</div>' +
+        '<div class="meta">entrada ' + fmtData(i.entrada) + (i.obs ? ' — ' + esc(i.obs) : '') + '</div>' +
+      '</div>' +
+      '<span class="badge ' + cls + '">' + labelTempo(dias) + '</span>' +
+      '<span>' +
+        '<button class="btn-out" onclick="darSaida(\'' + i.id + '\')">Dar saída</button> ' +
+        '<button class="btn-del" onclick="excluir(\'' + i.id + '\')" title="Excluir">✕</button>' +
+      '</span>' +
+    '</li>';
+  }).join('');
+  document.getElementById('vazio').hidden = itens.length > 0;
+
+  // estatísticas
+  document.getElementById('statTotal').textContent = db.itens.length;
+  const maisAntigo = db.itens.reduce((max, i) => Math.max(max, diasDesde(i.entrada)), 0);
+  document.getElementById('statAntigo').textContent = db.itens.length ? maisAntigo + 'd' : '—';
+  document.getElementById('statSaidas').textContent = db.saidas.length;
+  document.getElementById('qtdSaidas').textContent = db.saidas.length;
+
+  // histórico de saídas
+  document.getElementById('listaSaidas').innerHTML = db.saidas.length
+    ? db.saidas.map(s =>
+        '<div class="saida-item"><b>' + esc(s.modelo) + '</b>' +
+        (s.serial ? ' · ' + esc(s.serial) : '') +
+        ' — entrou ' + fmtData(s.entrada) + ', saiu ' + fmtData(s.saida) +
+        (s.destino ? ' → ' + esc(s.destino) : '') + '</div>'
+      ).join('')
+    : '<div class="empty">Nenhuma saída registrada ainda.</div>';
+
+  // sugestões de modelos já usados
+  const modelos = [...new Set([...db.itens, ...db.saidas].map(i => i.modelo))];
+  document.getElementById('modelosConhecidos').innerHTML =
+    modelos.map(m => '<option value="' + esc(m) + '"></option>').join('');
+}
+
+function exportarBackup() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'estoque-bancada-' + hoje() + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importarBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const d = JSON.parse(reader.result);
+      if (!Array.isArray(d.itens) || !Array.isArray(d.saidas)) throw new Error();
+      if (!confirm('Restaurar backup? Isso substitui os dados atuais (' + db.itens.length + ' itens na bancada).')) return;
+      db = d;
+      save();
+      render();
+      alert('Backup restaurado!');
+    } catch (e) {
+      alert('Arquivo inválido. Use um backup gerado por este sistema.');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+render();
+</script>
+</body>
+</html>
