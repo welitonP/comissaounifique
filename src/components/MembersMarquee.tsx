@@ -18,8 +18,14 @@ export default async function MembersMarquee() {
 
   if (membros.length === 0) return null;
 
-  // duplica a lista para o loop ficar contínuo
-  const loop = [...membros, ...membros];
+  // Para o loop ser contínuo (sem vazio ao final), cada "metade" da faixa
+  // precisa ser larga o bastante para cobrir a tela. Repetimos os membros até
+  // ter um bom número e então duplicamos: a animação desliza exatamente uma
+  // metade (-50%), então volta ao início sem emenda.
+  const MIN_POR_METADE = 12;
+  let metade = [...membros];
+  while (metade.length < MIN_POR_METADE) metade = [...metade, ...membros];
+  const loop = [...metade, ...metade];
 
   return (
     <section>
