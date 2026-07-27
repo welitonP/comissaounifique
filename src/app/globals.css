@@ -44,6 +44,30 @@ h3,
   font-family: var(--font-display);
 }
 
+/* Esqueleto de carregamento (efeito shimmer) */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeleton {
+  background: #e6ecf5;
+  background-image: linear-gradient(90deg, #e6ecf5 0px, #f2f6fc 200px, #e6ecf5 400px);
+  background-size: 800px 100%;
+  animation: shimmer 1.3s linear infinite;
+  border-radius: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
 /* Carrossel em loop (marquee) dos membros da comissão */
 @keyframes marquee {
   from {
