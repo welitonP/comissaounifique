@@ -253,6 +253,59 @@ export async function createAnnouncement(formData: FormData) {
   redirect("/admin/comunicados?sucesso=1");
 }
 
+export async function updateAnnouncement(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  const title = String(formData.get("title") || "").trim();
+  const body = String(formData.get("body") || "").trim();
+  if (!id || !title || !body) return;
+
+  // Imagens existentes marcadas para remover.
+  const remover = formData.getAll("removeImage").map(String).filter(Boolean);
+
+  // Novas fotos (opcionais) — já chegam redimensionadas pelo PhotoField.
+  const files = formData
+    .getAll("photos")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+
+  let total = 0;
+  for (const f of files) {
+    total += f.size;
+    if (!ALLOWED_IMAGE_MIMES.has(f.type)) {
+      redirect("/admin/comunicados?erro=foto-formato");
+    }
+    if (f.size > MAX_PHOTO_BYTES || total > MAX_TOTAL_BYTES) {
+      redirect("/admin/comunicados?erro=foto-grande");
+    }
+  }
+
+  const existentes = await prisma.announcementImage.count({ where: { announcementId: id } });
+  if (existentes - remover.length + files.length > MAX_PHOTOS) {
+    redirect("/admin/comunicados?erro=muitas-fotos");
+  }
+
+  const novas = await Promise.all(
+    files.map(async (f) => ({
+      announcementId: id,
+      data: Buffer.from(await f.arrayBuffer()),
+      mime: f.type,
+    })),
+  );
+
+  await prisma.$transaction([
+    prisma.announcement.update({ where: { id }, data: { title, body } }),
+    ...(remover.length > 0
+      ? [prisma.announcementImage.deleteMany({ where: { id: { in: remover }, announcementId: id } })]
+      : []),
+    ...(novas.length > 0 ? [prisma.announcementImage.createMany({ data: novas })] : []),
+  ]);
+
+  revalidatePath("/");
+  revalidatePath("/comunicados");
+  revalidatePath("/admin/comunicados");
+  redirect("/admin/comunicados?sucesso=editado");
+}
+
 export async function deleteAnnouncement(formData: FormData) {
   await requireUser();
   const id = String(formData.get("id") || "");

@@ -1,8 +1,9 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createAnnouncement, deleteAnnouncement } from "@/lib/actions";
+import { createAnnouncement } from "@/lib/actions";
 import AnnouncementAIComposer from "@/components/AnnouncementAIComposer";
 import PhotoField from "@/components/PhotoField";
+import AnnouncementRow from "@/components/AnnouncementRow";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,11 @@ export default async function AdminComunicadosPage({
       {params.sucesso === "1" && (
         <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
           Comunicado publicado! 🎉
+        </p>
+      )}
+      {params.sucesso === "editado" && (
+        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+          Comunicado atualizado com sucesso.
         </p>
       )}
       {params.erro === "muitas-fotos" && (
@@ -71,33 +77,7 @@ export default async function AdminComunicadosPage({
 
       <div className="space-y-2">
         {announcements.map((a) => (
-          <div key={a.id} className="rounded-xl bg-white p-4 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <h2 className="font-semibold">{a.title}</h2>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-gray-600">{a.body}</p>
-                {a.images.length > 0 && (
-                  <div className="mt-2 flex gap-2">
-                    {a.images.map((img) => (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        key={img.id}
-                        src={`/api/imagens/${img.id}`}
-                        alt=""
-                        className="h-16 w-16 rounded-lg object-cover"
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-              <form action={deleteAnnouncement}>
-                <input type="hidden" name="id" value={a.id} />
-                <button type="submit" className="text-sm text-red-600 hover:underline">
-                  Remover
-                </button>
-              </form>
-            </div>
-          </div>
+          <AnnouncementRow key={a.id} announcement={a} />
         ))}
         {announcements.length === 0 && <p className="text-gray-500">Nenhum comunicado publicado.</p>}
       </div>
