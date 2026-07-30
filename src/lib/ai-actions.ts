@@ -152,3 +152,33 @@ export async function generateAnnouncement(
     return { title: "", body: "", error: e instanceof Error ? e.message : "Erro na IA." };
   }
 }
+
+export type TournamentComposeState = { title: string; description: string; error?: string };
+
+export async function generateTournamentText(
+  _prev: TournamentComposeState | null,
+  formData: FormData,
+): Promise<TournamentComposeState> {
+  await requireUser();
+  const topic = String(formData.get("topic") || "").trim();
+  if (!topic) return { title: "", description: "" };
+  try {
+    const raw = await askGemini(
+      BASE_SYSTEM +
+        "\n\nTAREFA: escrever a chamada de um torneio interno da comissão para os atletas. " +
+        "Regras: título curto e animado (máx. 8 palavras); descrição de 2 a 4 frases com formato, " +
+        "como participar e um tom empolgante convidando a galera; sem travessão (—); termine sempre " +
+        "com a frase inteira. Responda SOMENTE neste formato, sem comentários extras:\n" +
+        "TITULO: <título>\nDESCRICAO: <texto>",
+      `Torneio: ${topic}`,
+    );
+    const titleMatch = raw.match(/T[IÍ]TULO:\s*(.+)/i);
+    const descMatch = raw.match(/DESCRI[ÇC][AÃ]O:\s*([\s\S]+)/i);
+    const clean = (s: string) => s.replace(/\s*—\s*/g, ", ").trim();
+    const title = titleMatch ? clean(titleMatch[1]) : topic;
+    const description = descMatch ? clean(descMatch[1]) : clean(raw);
+    return { title, description };
+  } catch (e) {
+    return { title: "", description: "", error: e instanceof Error ? e.message : "Erro na IA." };
+  }
+}

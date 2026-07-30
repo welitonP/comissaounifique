@@ -1151,12 +1151,23 @@ export async function deleteCheckout(formData: FormData) {
 
 // ===== Torneios internos (ex: Torneio de Truco, CS) =====
 
+// Normaliza as perguntas extras (uma por linha, sem vazias).
+function limparPerguntas(raw: string): string | null {
+  const linhas = raw
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .slice(0, 10);
+  return linhas.length > 0 ? linhas.join("\n") : null;
+}
+
 export async function createTournament(formData: FormData) {
   await requireUser();
   const title = String(formData.get("title") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const location = String(formData.get("location") || "").trim();
   const dateRaw = String(formData.get("date") || "");
+  const questions = limparPerguntas(String(formData.get("questions") || ""));
   if (!title) return;
   const { parseDataLocal } = await import("./datas");
   await prisma.tournament.create({
@@ -1165,12 +1176,39 @@ export async function createTournament(formData: FormData) {
       description: description || null,
       location: location || null,
       date: dateRaw ? parseDataLocal(dateRaw) : null,
+      questions,
       open: true,
     },
   });
   revalidatePath("/torneios");
   revalidatePath("/admin/torneios");
   revalidatePath("/");
+}
+
+export async function updateTournament(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  const title = String(formData.get("title") || "").trim();
+  if (!id || !title) return;
+  const description = String(formData.get("description") || "").trim();
+  const location = String(formData.get("location") || "").trim();
+  const dateRaw = String(formData.get("date") || "");
+  const questions = limparPerguntas(String(formData.get("questions") || ""));
+  const { parseDataLocal } = await import("./datas");
+  await prisma.tournament.update({
+    where: { id },
+    data: {
+      title,
+      description: description || null,
+      location: location || null,
+      date: dateRaw ? parseDataLocal(dateRaw) : null,
+      questions,
+    },
+  });
+  revalidatePath("/torneios");
+  revalidatePath("/admin/torneios");
+  revalidatePath("/");
+  redirect("/admin/torneios?ok=editado");
 }
 
 export async function toggleTournament(formData: FormData) {
@@ -1210,13 +1248,23 @@ export async function createTournamentSignup(formData: FormData) {
   }
   const t = await prisma.tournament.findUnique({
     where: { id: tournamentId },
-    select: { open: true },
+    select: { open: true, questions: true },
   });
   if (!t || !t.open) {
     redirect("/torneios?erro=fechado");
   }
+
+  // Respostas às perguntas extras do torneio (todas opcionais).
+  const perguntas = (t.questions || "").split("\n").map((p) => p.trim()).filter(Boolean);
+  const respostas: Record<string, string> = {};
+  perguntas.forEach((pergunta, i) => {
+    const resp = String(formData.get(`q_${i}`) || "").trim().slice(0, 200);
+    if (resp) respostas[pergunta] = resp;
+  });
+  const answers = Object.keys(respostas).length > 0 ? JSON.stringify(respostas) : null;
+
   await prisma.tournamentSignup.create({
-    data: { tournamentId, name, phone, note: note || null },
+    data: { tournamentId, name, phone, note: note || null, answers },
   });
   revalidatePath("/admin/torneios");
   redirect("/torneios?ok=1");

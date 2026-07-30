@@ -19,6 +19,9 @@ export default async function TorneiosPage({
     }),
   ]);
 
+  const perguntasDe = (q: string | null) =>
+    (q || "").split("\n").map((p) => p.trim()).filter(Boolean);
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <SuccessCelebration active={params.ok === "1"} message="Inscrição feita! Bom jogo!" />
@@ -128,13 +131,25 @@ export default async function TorneiosPage({
                     />
                   </div>
                 </div>
+                {perguntasDe(t.questions).map((pergunta, i) => (
+                  <div key={i}>
+                    <label className="block text-sm font-semibold text-gray-700">
+                      {pergunta} <span className="font-normal text-gray-400">(opcional)</span>
+                    </label>
+                    <input
+                      name={`q_${i}`}
+                      maxLength={200}
+                      className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
+                    />
+                  </div>
+                ))}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700">
                     Observação <span className="font-normal text-gray-400">(opcional)</span>
                   </label>
                   <input
                     name="note"
-                    placeholder="Ex: jogo em dupla com o Fulano"
+                    placeholder="Algo que a comissão precise saber"
                     className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
                   />
                 </div>

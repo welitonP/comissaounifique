@@ -54,6 +54,22 @@ export function fmtHora(d: Date | string): string {
   });
 }
 
+// Formata para o value de um <input type="datetime-local"> no fuso de Brasília
+// (ex: "2026-07-17T20:00"), para preencher o campo ao editar.
+export function toInputLocal(d: Date | string | null | undefined): string {
+  if (!d) return "";
+  const s = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: TZ_BRASIL,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(d));
+  return s.replace(" ", "T");
+}
+
 export function fmtDiaSemanaLongo(d: Date | string): string {
   return new Date(d).toLocaleDateString("pt-BR", {
     timeZone: TZ_BRASIL,

@@ -254,6 +254,7 @@ model Tournament {
   location    String? // onde vai ser
   date        DateTime? // quando (opcional)
   open        Boolean           @default(true) // inscrições abertas?
+  questions   String? // perguntas extras da comissão, uma por linha (ex: "Nome da sua dupla")
   createdAt   DateTime          @default(now())
   signups     TournamentSignup[]
 }
@@ -265,7 +266,8 @@ model TournamentSignup {
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   name         String
   phone        String
-  note         String? // observação, ex: "jogo em dupla com o Fulano"
+  note         String? // observação livre
+  answers      String? // respostas às perguntas extras (JSON: {"pergunta":"resposta"})
   createdAt    DateTime   @default(now())
 }
 
