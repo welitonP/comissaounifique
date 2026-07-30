@@ -17,13 +17,17 @@ function cell(value: string | null | undefined): string {
   return `"${s}"`;
 }
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
 
+  // Filtro opcional por modalidade (texto exato). "all" ou vazio = todas.
+  const modalidade = req.nextUrl.searchParams.get("modalidade") || "";
+
   const treinos = await prisma.training.findMany({
+    where: modalidade && modalidade !== "all" ? { modality: modalidade } : undefined,
     include: { signups: { orderBy: { createdAt: "asc" } } },
   });
   // Ordena por dia (Segunda -> Domingo) e depois por horário.
@@ -51,10 +55,14 @@ export async function GET(_req: NextRequest) {
     "﻿" +
     [header.map(cell).join(";"), ...rows.map((cols) => cols.join(";"))].join("\r\n");
 
+  const slug =
+    modalidade && modalidade !== "all"
+      ? modalidade.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase().slice(0, 40)
+      : "todos";
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="inscritos-treinos.csv"`,
+      "Content-Disposition": `attachment; filename="inscritos-treinos-${slug}.csv"`,
       "Cache-Control": "no-store",
     },
   });

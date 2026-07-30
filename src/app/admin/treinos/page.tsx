@@ -22,9 +22,21 @@ export default async function AdminTreinosPage() {
   }
   const totalInscritos = treinos.reduce((n, t) => n + t.signups.length, 0);
 
+  // Modalidades que já têm inscritos (para o filtro do export).
+  const inscritosPorModalidade = new Map<string, number>();
+  for (const t of treinos) {
+    inscritosPorModalidade.set(
+      t.modality,
+      (inscritosPorModalidade.get(t.modality) || 0) + t.signups.length,
+    );
+  }
+  const modalidades = [...inscritosPorModalidade.entries()]
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => a[0].localeCompare(b[0]));
+
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-unifique">Grade de treinos</h1>
           <p className="text-sm text-gray-500">
@@ -32,12 +44,33 @@ export default async function AdminTreinosPage() {
           </p>
         </div>
         {totalInscritos > 0 && (
-          <a
-            href="/api/export/treinos"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-unifique px-3 py-2 text-xs font-semibold text-unifique hover:bg-unifique/10"
+          <form
+            method="get"
+            action="/api/export/treinos"
+            className="flex shrink-0 items-end gap-2"
           >
-            <Download size={15} /> Exportar Excel
-          </a>
+            <div>
+              <label className="block text-xs font-medium text-gray-500">Exportar inscritos</label>
+              <select
+                name="modalidade"
+                defaultValue="all"
+                className="mt-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              >
+                <option value="all">Todas ({totalInscritos})</option>
+                {modalidades.map(([m, n]) => (
+                  <option key={m} value={m}>
+                    {m} ({n})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-unifique px-3 py-2 text-sm font-semibold text-white hover:bg-unifique-dark"
+            >
+              <Download size={15} /> Excel
+            </button>
+          </form>
         )}
       </div>
 
