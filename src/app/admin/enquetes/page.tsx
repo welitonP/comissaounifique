@@ -1,6 +1,11 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createPoll, deletePoll, deletePollSuggestion } from "@/lib/actions";
+import {
+  createPoll,
+  deletePoll,
+  deletePollSuggestion,
+  updatePollSuggestion,
+} from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -65,19 +70,28 @@ export default async function AdminEnquetesPage() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-unifique">
                     Modalidades sugeridas pelos atletas ({poll.suggestions.length})
                   </p>
-                  <ul className="mt-2 space-y-1">
+                  <ul className="mt-2 space-y-2">
                     {poll.suggestions.map((s) => (
-                      <li
-                        key={s.id}
-                        className="flex items-center justify-between gap-2 text-sm text-gray-700"
-                      >
-                        <span>• {s.text}</span>
-                        <form action={deletePollSuggestion}>
+                      <li key={s.id} className="flex items-center gap-2">
+                        {/* editar o texto (corrige erro de digitação) */}
+                        <form action={updatePollSuggestion} className="flex flex-1 items-center gap-2">
                           <input type="hidden" name="id" value={s.id} />
+                          <input
+                            name="text"
+                            defaultValue={s.text}
+                            maxLength={80}
+                            className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+                          />
                           <button
                             type="submit"
-                            className="text-xs text-red-600 hover:underline"
+                            className="rounded bg-unifique px-2 py-1 text-xs font-medium text-white hover:bg-unifique-dark"
                           >
+                            Salvar
+                          </button>
+                        </form>
+                        <form action={deletePollSuggestion}>
+                          <input type="hidden" name="id" value={s.id} />
+                          <button type="submit" className="text-xs text-red-600 hover:underline">
                             remover
                           </button>
                         </form>

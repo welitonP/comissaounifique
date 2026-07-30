@@ -102,6 +102,7 @@ export default async function EnquetesPage({
                 className="mt-4 border-t border-gray-100 pt-3"
               >
                 <input type="hidden" name="pollId" value={poll.id} />
+                <input type="hidden" name="from" value="/enquetes" />
                 {/* honeypot anti-spam */}
                 <input
                   type="text"

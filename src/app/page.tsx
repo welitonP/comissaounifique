@@ -16,7 +16,8 @@ import {
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { votePoll } from "@/lib/actions";
+import { votePoll, suggestPollModality } from "@/lib/actions";
+import SuccessCelebration from "@/components/SuccessCelebration";
 import Countdown from "@/components/Countdown";
 import PhotoSlideshow from "@/components/PhotoSlideshow";
 import WeeklySummary from "@/components/WeeklySummary";
@@ -28,7 +29,12 @@ import { fmtDataHora, fmtHora, fmtDiaSemanaLongo } from "@/lib/datas";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
   const now = new Date();
   const hoje = new Date(now.toDateString());
 
@@ -78,6 +84,10 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-10">
+      <SuccessCelebration
+        active={params.sugestao === "ok"}
+        message="Modalidade sugerida! A comissão vai avaliar."
+      />
       {/* Hero */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-unifique via-unifique to-unifique-blue p-7 text-white shadow-lg sm:p-10">
         {/* detalhes decorativos */}
@@ -314,6 +324,40 @@ export default async function HomePage() {
               {!jaVotou && (
                 <p className="mt-3 text-xs text-gray-400">Toque em uma opção para votar.</p>
               )}
+
+              {/* Sugerir uma modalidade que não está nas opções */}
+              <form
+                action={suggestPollModality}
+                className="mt-4 border-t border-gray-100 pt-3"
+              >
+                <input type="hidden" name="pollId" value={latestPoll.id} />
+                <input type="hidden" name="from" value="/" />
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  className="hidden"
+                  aria-hidden="true"
+                />
+                <label className="block text-sm font-medium text-gray-600">
+                  Quer uma modalidade que não está na lista? Sugira aqui:
+                </label>
+                <div className="mt-1 flex gap-2">
+                  <input
+                    name="text"
+                    maxLength={80}
+                    placeholder="Ex: Beach Tennis, Padel..."
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-unifique focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-unifique px-4 py-2 text-sm font-medium text-white hover:bg-unifique-dark"
+                  >
+                    Sugerir
+                  </button>
+                </div>
+              </form>
             </div>
           </section>
         </Reveal>

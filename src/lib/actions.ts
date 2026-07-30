@@ -386,20 +386,33 @@ export async function deletePoll(formData: FormData) {
 
 // Pública: o atleta sugere uma modalidade que não está entre as opções.
 export async function suggestPollModality(formData: FormData) {
+  // De onde veio (home "/" ou "/enquetes"), para voltar ao mesmo lugar.
+  const fromRaw = String(formData.get("from") || "/enquetes");
+  const from = fromRaw.startsWith("/") ? fromRaw : "/enquetes";
   // honeypot anti-spam
   if (String(formData.get("website") || "")) {
-    redirect("/enquetes?sugestao=ok");
+    redirect(`${from}?sugestao=ok`);
   }
   const pollId = String(formData.get("pollId") || "");
   const text = String(formData.get("text") || "").trim().slice(0, 80);
   if (!pollId || text.length < 2) {
-    redirect("/enquetes?sugestao=curta");
+    redirect(`${from}?sugestao=curta`);
   }
   const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { id: true } });
-  if (!poll) redirect("/enquetes");
+  if (!poll) redirect(from);
   await prisma.pollSuggestion.create({ data: { pollId, text } });
   revalidatePath("/admin/enquetes");
-  redirect("/enquetes?sugestao=ok");
+  redirect(`${from}?sugestao=ok`);
+}
+
+// Comissão corrige o texto de uma sugestão (ex: erro de digitação).
+export async function updatePollSuggestion(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  const text = String(formData.get("text") || "").trim().slice(0, 80);
+  if (!id || text.length < 2) return;
+  await prisma.pollSuggestion.update({ where: { id }, data: { text } });
+  revalidatePath("/admin/enquetes");
 }
 
 export async function deletePollSuggestion(formData: FormData) {
