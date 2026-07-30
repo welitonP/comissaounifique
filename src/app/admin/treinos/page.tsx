@@ -1,6 +1,6 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createTraining, deleteTraining } from "@/lib/actions";
+import { createTraining, deleteTraining, deleteTrainingSignup } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +11,7 @@ export default async function AdminTreinosPage() {
   await requireUserPage();
   const treinos = await prisma.training.findMany({
     orderBy: [{ weekday: "asc" }, { time: "asc" }],
+    include: { signups: { orderBy: { createdAt: "asc" } } },
   });
 
   const porDia = new Map<number, typeof treinos>();
@@ -97,21 +98,53 @@ export default async function AdminTreinosPage() {
             <h2 className="mb-2 font-semibold text-unifique">{DIAS[dia]}</h2>
             <div className="space-y-2">
               {porDia.get(dia)!.map((t) => (
-                <div
-                  key={t.id}
-                  className="flex items-center justify-between gap-2 rounded-lg bg-white p-3 shadow-sm"
-                >
-                  <p className="text-sm">
-                    <span className="font-semibold text-unifique">{t.time}</span> · {t.modality}
-                    {t.location ? ` · ${t.location}` : ""}
-                    {t.notes ? <span className="text-gray-400"> · {t.notes}</span> : ""}
-                  </p>
-                  <form action={deleteTraining}>
-                    <input type="hidden" name="id" value={t.id} />
-                    <button type="submit" className="text-sm text-red-600 hover:underline">
-                      Remover
-                    </button>
-                  </form>
+                <div key={t.id} className="rounded-lg bg-white p-3 shadow-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm">
+                      <span className="font-semibold text-unifique">{t.time}</span> · {t.modality}
+                      {t.location ? ` · ${t.location}` : ""}
+                      {t.notes ? <span className="text-gray-400"> · {t.notes}</span> : ""}
+                    </p>
+                    <form action={deleteTraining}>
+                      <input type="hidden" name="id" value={t.id} />
+                      <button type="submit" className="text-sm text-red-600 hover:underline">
+                        Remover
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Inscritos (nome e WhatsApp, visível só para a comissão) */}
+                  <div className="mt-2 border-t border-gray-100 pt-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                      Inscritos ({t.signups.length})
+                    </p>
+                    {t.signups.length === 0 ? (
+                      <p className="mt-1 text-xs text-gray-400">Ninguém inscrito ainda.</p>
+                    ) : (
+                      <ul className="mt-1 space-y-1">
+                        {t.signups.map((s) => (
+                          <li
+                            key={s.id}
+                            className="flex items-center justify-between gap-2 text-sm text-gray-700"
+                          >
+                            <span>
+                              {s.name}
+                              {s.phone ? <span className="text-gray-400"> · {s.phone}</span> : ""}
+                            </span>
+                            <form action={deleteTrainingSignup}>
+                              <input type="hidden" name="id" value={s.id} />
+                              <button
+                                type="submit"
+                                className="text-xs text-red-600 hover:underline"
+                              >
+                                remover
+                              </button>
+                            </form>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

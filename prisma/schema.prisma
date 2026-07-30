@@ -255,6 +255,17 @@ model Training {
   notes     String?
   order     Int      @default(0)
   createdAt DateTime @default(now())
+  signups   TrainingSignup[]
+}
+
+// Quem participa de um treino da grade (inscrição por nome, sem login).
+model TrainingSignup {
+  id         String   @id @default(cuid())
+  trainingId String
+  training   Training @relation(fields: [trainingId], references: [id], onDelete: Cascade)
+  name       String
+  phone      String? // WhatsApp (opcional); visível só para a comissão
+  createdAt  DateTime @default(now())
 }
 
 // Torneio/campeonato interno da comissão (ex: Torneio de Truco, CS).

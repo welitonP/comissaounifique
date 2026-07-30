@@ -1315,3 +1315,52 @@ export async function deleteTraining(formData: FormData) {
   revalidatePath("/treinos");
   revalidatePath("/admin/treinos");
 }
+
+// Inscrição pública num treino da grade (nome obrigatório, WhatsApp opcional).
+export async function createTrainingSignup(formData: FormData) {
+  // honeypot anti-spam
+  if (String(formData.get("website") || "")) {
+    redirect("/treinos?ok=1");
+  }
+  const trainingId = String(formData.get("trainingId") || "");
+  const name = String(formData.get("name") || "").trim().slice(0, 100);
+  const phone = String(formData.get("phone") || "").trim().slice(0, 30);
+  if (!trainingId || !name) {
+    redirect("/treinos?erro=dados");
+  }
+  const treino = await prisma.training.findUnique({
+    where: { id: trainingId },
+    select: { id: true, signups: { select: { name: true, phone: true } } },
+  });
+  if (!treino) {
+    redirect("/treinos?erro=dados");
+  }
+
+  // Impede a mesma pessoa de entrar duas vezes no mesmo treino (nome ou WhatsApp).
+  const normNome = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+  const soDigitos = (s: string) => s.replace(/\D/g, "");
+  const nomeAlvo = normNome(name);
+  const foneAlvo = soDigitos(phone);
+  const jaInscrito = treino.signups.some(
+    (s) => normNome(s.name) === nomeAlvo || (foneAlvo && s.phone && soDigitos(s.phone) === foneAlvo),
+  );
+  if (jaInscrito) {
+    redirect("/treinos?erro=ja-inscrito");
+  }
+
+  await prisma.trainingSignup.create({
+    data: { trainingId, name, phone: phone || null },
+  });
+  revalidatePath("/treinos");
+  revalidatePath("/admin/treinos");
+  redirect("/treinos?ok=1");
+}
+
+export async function deleteTrainingSignup(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.trainingSignup.delete({ where: { id } });
+  revalidatePath("/treinos");
+  revalidatePath("/admin/treinos");
+}
