@@ -7,6 +7,7 @@ import {
   updatePollSuggestion,
 } from "@/lib/actions";
 import PollEditForm from "@/components/PollEditForm";
+import ShareEnquete from "@/components/ShareEnquete";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,11 @@ export default async function AdminEnquetesPage({
                 ))}
               </ul>
               <p className="mt-1 text-xs text-gray-400">Total de votos: {total}</p>
+
+              <div className="mt-3 border-t border-gray-100 pt-3">
+                <p className="mb-2 text-xs font-medium text-gray-500">Compartilhar esta enquete:</p>
+                <ShareEnquete question={poll.question} pollId={poll.id} />
+              </div>
 
               <PollEditForm poll={poll} />
 

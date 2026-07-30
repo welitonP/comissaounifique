@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { votePoll, suggestPollModality } from "@/lib/actions";
+import ShareEnquete from "@/components/ShareEnquete";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,11 @@ export default async function EnquetesPage({
           const alreadyVoted = votedPolls.has(poll.id);
 
           return (
-            <div key={poll.id} className="rounded-lg bg-white p-5 shadow-sm">
+            <div
+              key={poll.id}
+              id={`enquete-${poll.id}`}
+              className="scroll-mt-20 rounded-lg bg-white p-5 shadow-sm"
+            >
               <h2 className="font-semibold text-unifique-dark">{poll.question}</h2>
 
               <div className="mt-4 space-y-2">
@@ -130,6 +135,12 @@ export default async function EnquetesPage({
                   </button>
                 </div>
               </form>
+
+              {/* Compartilhar a enquete */}
+              <div className="mt-4 border-t border-gray-100 pt-3">
+                <p className="mb-2 text-xs font-medium text-gray-500">Chame a galera pra votar:</p>
+                <ShareEnquete question={poll.question} pollId={poll.id} />
+              </div>
             </div>
           );
         })}
