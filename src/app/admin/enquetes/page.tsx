@@ -6,19 +6,33 @@ import {
   deletePollSuggestion,
   updatePollSuggestion,
 } from "@/lib/actions";
+import PollEditForm from "@/components/PollEditForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminEnquetesPage() {
+export default async function AdminEnquetesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   await requireUserPage();
-  const polls = await prisma.poll.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { options: true, suggestions: { orderBy: { createdAt: "desc" } } },
-  });
+  const [params, polls] = await Promise.all([
+    searchParams,
+    prisma.poll.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { options: true, suggestions: { orderBy: { createdAt: "desc" } } },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-unifique-dark">Enquetes</h1>
+
+      {params.enquete === "salva" && (
+        <p className="rounded bg-green-100 px-4 py-2 text-sm text-green-800">
+          Enquete atualizada com sucesso.
+        </p>
+      )}
 
       <form action={createPoll} className="space-y-3 rounded-lg bg-white p-4 shadow-sm">
         <input
@@ -64,6 +78,8 @@ export default async function AdminEnquetesPage() {
                 ))}
               </ul>
               <p className="mt-1 text-xs text-gray-400">Total de votos: {total}</p>
+
+              <PollEditForm poll={poll} />
 
               {poll.suggestions.length > 0 && (
                 <div className="mt-3 rounded-lg bg-unifique-light/50 p-3">

@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import {
   hashPassword,
@@ -373,6 +374,45 @@ export async function createPoll(formData: FormData) {
   });
   revalidatePath("/enquetes");
   revalidatePath("/admin/enquetes");
+}
+
+// Edita a enquete: pergunta, texto das opções (mantém os votos), remove
+// opções e adiciona novas.
+export async function updatePoll(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  const question = String(formData.get("question") || "").trim();
+  if (!id || !question) return;
+
+  const removeSet = new Set(formData.getAll("removeOption").map(String));
+  const optionIds = String(formData.get("optionIds") || "")
+    .split(",")
+    .filter(Boolean);
+  const novas = String(formData.get("newOptions") || "")
+    .split("\n")
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const ops: Prisma.PrismaPromise<unknown>[] = [
+    prisma.poll.update({ where: { id }, data: { question } }),
+  ];
+  for (const oid of optionIds) {
+    if (removeSet.has(oid)) {
+      ops.push(prisma.pollOption.delete({ where: { id: oid } }));
+    } else {
+      const t = String(formData.get(`opt_${oid}`) || "").trim();
+      if (t) ops.push(prisma.pollOption.update({ where: { id: oid }, data: { text: t } }));
+    }
+  }
+  if (novas.length > 0) {
+    ops.push(prisma.pollOption.createMany({ data: novas.map((text) => ({ pollId: id, text })) }));
+  }
+  await prisma.$transaction(ops);
+
+  revalidatePath("/");
+  revalidatePath("/enquetes");
+  revalidatePath("/admin/enquetes");
+  redirect("/admin/enquetes?enquete=salva");
 }
 
 export async function deletePoll(formData: FormData) {
