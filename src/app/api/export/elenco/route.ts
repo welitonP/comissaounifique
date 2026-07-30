@@ -4,9 +4,14 @@ import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-// Escapa um campo para CSV (aspas e ponto e vírgula, padrão Excel pt-BR).
+// Escapa um campo para CSV (padrão Excel pt-BR) e neutraliza injeção de
+// fórmula: se o texto (vindo de inscrição pública) começar com = + - @ ou
+// caracteres de controle, o Excel poderia executá-lo como fórmula. Prefixamos
+// com apóstrofo para forçar o Excel a tratar como texto.
 function cell(value: string | null | undefined): string {
-  const s = (value ?? "").replace(/"/g, '""');
+  let s = (value ?? "").toString();
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  s = s.replace(/"/g, '""');
   return `"${s}"`;
 }
 

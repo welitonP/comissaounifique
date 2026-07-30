@@ -475,6 +475,15 @@ export async function votePoll(formData: FormData) {
     redirect("/enquetes?erro=ja-votou");
   }
 
+  // A opção precisa pertencer mesmo a esta enquete (evita voto forjado).
+  const option = await prisma.pollOption.findUnique({
+    where: { id: optionId },
+    select: { pollId: true },
+  });
+  if (!option || option.pollId !== pollId) {
+    redirect("/enquetes");
+  }
+
   await prisma.pollOption.update({
     where: { id: optionId },
     data: { votes: { increment: 1 } },

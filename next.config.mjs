@@ -11,6 +11,11 @@ const nextConfig = {
       {
         source: "/(.*)",
         headers: [
+          // Força o navegador a sempre usar HTTPS (nunca a versão insegura)
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
           // Impede o site de ser embutido em iframes de terceiros (clickjacking)
           { key: "X-Frame-Options", value: "DENY" },
           // Impede o navegador de "adivinhar" tipos de conteúdo
