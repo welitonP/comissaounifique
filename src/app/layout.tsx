@@ -4,7 +4,7 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import AssistantWidget from "@/components/AssistantWidget";
 import { getCurrentUser } from "@/lib/auth";
-import { isGeminiConfigured } from "@/lib/gemini";
+import { isAIConfigured } from "@/lib/ai";
 import { isInscricoesAbertas } from "@/lib/settings";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -45,7 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NavBar user={user} inscricoesAbertas={inscricoesAbertas} />
         <main className="fade-in-up mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
         <Footer />
-        {user && <AssistantWidget configured={isGeminiConfigured()} />}
+        {user && <AssistantWidget configured={isAIConfigured()} />}
         {/* Contagem de acessos (Vercel Analytics, sem cookies) */}
         <Analytics />
       </body>

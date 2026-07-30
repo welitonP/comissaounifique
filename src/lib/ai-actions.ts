@@ -2,7 +2,7 @@
 
 import { prisma } from "./prisma";
 import { requireUser } from "./auth";
-import { askGemini } from "./gemini";
+import { askAI } from "./ai";
 import { fmtDataHora } from "./datas";
 
 // Monta um resumo textual dos dados da comissão para servir de contexto à IA.
@@ -90,7 +90,7 @@ export async function askAssistant(
   if (!question) return { question: "", answer: "" };
   try {
     const context = await buildContext();
-    const answer = await askGemini(
+    const answer = await askAI(
       BASE_SYSTEM,
       `Contexto atual da comissão:\n${context}\n\nPergunta do membro: ${question}`,
     );
@@ -109,7 +109,7 @@ export async function weeklySummary(
   await requireUser();
   try {
     const context = await buildContext();
-    const summary = await askGemini(
+    const summary = await askAI(
       BASE_SYSTEM,
       `Com base no contexto abaixo, faça um resumo curto para a comissão sobre a semana, cobrindo: ` +
         `próximos eventos/jogos, itens emprestados que ainda não voltaram e qualquer ponto de atenção. ` +
@@ -133,7 +133,7 @@ export async function generateAnnouncement(
   const topic = String(formData.get("topic") || "").trim();
   if (!topic) return { title: "", body: "" };
   try {
-    const raw = await askGemini(
+    const raw = await askAI(
       BASE_SYSTEM +
         "\n\nTAREFA: redigir um comunicado interno curto e completo para os atletas e a comissão. " +
         "Regras: título objetivo (máx. 8 palavras); corpo de 2 a 4 frases completas, tom claro e " +
@@ -163,7 +163,7 @@ export async function generateTournamentText(
   const topic = String(formData.get("topic") || "").trim();
   if (!topic) return { title: "", description: "" };
   try {
-    const raw = await askGemini(
+    const raw = await askAI(
       BASE_SYSTEM +
         "\n\nTAREFA: escrever a chamada de um torneio interno da comissão para os atletas. " +
         "Regras: título curto e animado (máx. 8 palavras); descrição de 2 a 4 frases com formato, " +

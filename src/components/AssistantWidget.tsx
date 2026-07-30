@@ -85,7 +85,7 @@ export default function AssistantWidget({ configured }: { configured: boolean })
                 </p>
                 {!configured && (
                   <p className="rounded bg-yellow-100 px-2 py-1 text-xs text-yellow-800">
-                    A IA ainda não foi ativada (falta a chave GEMINI_API_KEY).
+                    A IA ainda não foi ativada (falta a chave da IA nas configurações).
                   </p>
                 )}
                 <div className="flex flex-col gap-1.5">
