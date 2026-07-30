@@ -154,10 +154,21 @@ model EventRsvp {
 }
 
 model Poll {
-  id        String       @id @default(cuid())
-  question  String
-  createdAt DateTime     @default(now())
-  options   PollOption[]
+  id          String           @id @default(cuid())
+  question    String
+  createdAt   DateTime         @default(now())
+  options     PollOption[]
+  suggestions PollSuggestion[]
+}
+
+// Sugestão de modalidade escrita por um atleta numa enquete (campo "outra").
+// Visível só para a comissão.
+model PollSuggestion {
+  id        String   @id @default(cuid())
+  pollId    String
+  poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  text      String
+  createdAt DateTime @default(now())
 }
 
 model PollOption {

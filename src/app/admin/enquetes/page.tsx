@@ -1,12 +1,14 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createPoll, deletePoll } from "@/lib/actions";
+import { createPoll, deletePoll, deletePollSuggestion } from "@/lib/actions";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminEnquetesPage() {
   await requireUserPage();
   const polls = await prisma.poll.findMany({
     orderBy: { createdAt: "desc" },
-    include: { options: true },
+    include: { options: true, suggestions: { orderBy: { createdAt: "desc" } } },
   });
 
   return (
@@ -57,6 +59,33 @@ export default async function AdminEnquetesPage() {
                 ))}
               </ul>
               <p className="mt-1 text-xs text-gray-400">Total de votos: {total}</p>
+
+              {poll.suggestions.length > 0 && (
+                <div className="mt-3 rounded-lg bg-unifique-light/50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-unifique">
+                    Modalidades sugeridas pelos atletas ({poll.suggestions.length})
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {poll.suggestions.map((s) => (
+                      <li
+                        key={s.id}
+                        className="flex items-center justify-between gap-2 text-sm text-gray-700"
+                      >
+                        <span>• {s.text}</span>
+                        <form action={deletePollSuggestion}>
+                          <input type="hidden" name="id" value={s.id} />
+                          <button
+                            type="submit"
+                            className="text-xs text-red-600 hover:underline"
+                          >
+                            remover
+                          </button>
+                        </form>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           );
         })}

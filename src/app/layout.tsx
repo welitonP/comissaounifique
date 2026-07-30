@@ -6,6 +6,7 @@ import AssistantWidget from "@/components/AssistantWidget";
 import { getCurrentUser } from "@/lib/auth";
 import { isGeminiConfigured } from "@/lib/gemini";
 import { isInscricoesAbertas } from "@/lib/settings";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Comissão de Esportes Unifique",
@@ -45,6 +46,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main className="fade-in-up mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
         <Footer />
         {user && <AssistantWidget configured={isGeminiConfigured()} />}
+        {/* Contagem de acessos (Vercel Analytics, sem cookies) */}
+        <Analytics />
       </body>
     </html>
   );

@@ -384,6 +384,32 @@ export async function deletePoll(formData: FormData) {
   revalidatePath("/admin/enquetes");
 }
 
+// Pública: o atleta sugere uma modalidade que não está entre as opções.
+export async function suggestPollModality(formData: FormData) {
+  // honeypot anti-spam
+  if (String(formData.get("website") || "")) {
+    redirect("/enquetes?sugestao=ok");
+  }
+  const pollId = String(formData.get("pollId") || "");
+  const text = String(formData.get("text") || "").trim().slice(0, 80);
+  if (!pollId || text.length < 2) {
+    redirect("/enquetes?sugestao=curta");
+  }
+  const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { id: true } });
+  if (!poll) redirect("/enquetes");
+  await prisma.pollSuggestion.create({ data: { pollId, text } });
+  revalidatePath("/admin/enquetes");
+  redirect("/enquetes?sugestao=ok");
+}
+
+export async function deletePollSuggestion(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.pollSuggestion.delete({ where: { id } });
+  revalidatePath("/admin/enquetes");
+}
+
 export async function votePoll(formData: FormData) {
   const optionId = String(formData.get("optionId") || "");
   const pollId = String(formData.get("pollId") || "");

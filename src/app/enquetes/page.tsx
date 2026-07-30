@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { votePoll } from "@/lib/actions";
+import { votePoll, suggestPollModality } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +31,16 @@ export default async function EnquetesPage({
       {params.sucesso === "voto-registrado" && (
         <p className="rounded bg-green-100 px-4 py-2 text-sm text-green-800">
           Voto registrado, obrigado por participar!
+        </p>
+      )}
+      {params.sugestao === "ok" && (
+        <p className="rounded bg-green-100 px-4 py-2 text-sm text-green-800">
+          Modalidade sugerida! A comissão vai avaliar. Obrigado!
+        </p>
+      )}
+      {params.sugestao === "curta" && (
+        <p className="rounded bg-red-100 px-4 py-2 text-sm text-red-700">
+          Escreva o nome da modalidade que você quer sugerir.
         </p>
       )}
 
@@ -85,6 +95,40 @@ export default async function EnquetesPage({
               {alreadyVoted && (
                 <p className="mt-3 text-xs text-gray-400">Total de votos: {totalVotes}</p>
               )}
+
+              {/* Campo para sugerir uma modalidade que não está nas opções */}
+              <form
+                action={suggestPollModality}
+                className="mt-4 border-t border-gray-100 pt-3"
+              >
+                <input type="hidden" name="pollId" value={poll.id} />
+                {/* honeypot anti-spam */}
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  className="hidden"
+                  aria-hidden="true"
+                />
+                <label className="block text-sm font-medium text-gray-600">
+                  Quer uma modalidade que não está na lista? Sugira aqui:
+                </label>
+                <div className="mt-1 flex gap-2">
+                  <input
+                    name="text"
+                    maxLength={80}
+                    placeholder="Ex: Beach Tennis, Padel..."
+                    className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:border-unifique focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded bg-unifique px-4 py-2 text-sm font-medium text-white hover:bg-unifique-dark"
+                  >
+                    Sugerir
+                  </button>
+                </div>
+              </form>
             </div>
           );
         })}
