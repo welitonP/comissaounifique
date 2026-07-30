@@ -5,20 +5,26 @@
 // mais confiável. Se o Claude não estiver configurado, ou falhar por instabilidade,
 // cai automaticamente para o Gemini (plano gratuito) para o site nunca ficar sem IA.
 
-import { askClaude, isClaudeConfigured } from "./claude";
+import { askClaude, isClaudeConfigured, type AskClaudeOptions } from "./claude";
 import { askGemini, isGeminiConfigured } from "./gemini";
 
 export function isAIConfigured(): boolean {
   return isClaudeConfigured() || isGeminiConfigured();
 }
 
-export async function askAI(system: string, userPrompt: string): Promise<string> {
+// opts (ex: webSearch) só valem para o Claude. O Gemini de reserva ignora e
+// responde apenas com o que sabe, sem internet.
+export async function askAI(
+  system: string,
+  userPrompt: string,
+  opts: AskClaudeOptions = {},
+): Promise<string> {
   const temClaude = isClaudeConfigured();
   const temGemini = isGeminiConfigured();
 
   if (temClaude) {
     try {
-      return await askClaude(system, userPrompt);
+      return await askClaude(system, userPrompt, opts);
     } catch (e) {
       // Sem Gemini de reserva: repassa o erro do Claude como está.
       if (!temGemini) throw e;

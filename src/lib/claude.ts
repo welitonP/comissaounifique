@@ -11,11 +11,24 @@
 
 const DEFAULT_MODEL = "claude-haiku-4-5";
 
+// Ferramenta de busca na web (roda no servidor da Anthropic). Usamos a variante
+// básica, que funciona em todos os modelos, inclusive o Haiku. max_uses limita
+// quantas buscas o Claude pode fazer por pergunta (controle de custo).
+const WEB_SEARCH_TOOL = { type: "web_search_20250305", name: "web_search", max_uses: 4 };
+
+export type AskClaudeOptions = { webSearch?: boolean };
+
+type Msg = { role: "user" | "assistant"; content: unknown };
+
 export function isClaudeConfigured(): boolean {
   return !!process.env.ANTHROPIC_API_KEY;
 }
 
-export async function askClaude(system: string, userPrompt: string): Promise<string> {
+export async function askClaude(
+  system: string,
+  userPrompt: string,
+  opts: AskClaudeOptions = {},
+): Promise<string> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) {
     throw new Error("Claude não configurado (falta a variável ANTHROPIC_API_KEY).");
@@ -24,55 +37,72 @@ export async function askClaude(system: string, userPrompt: string): Promise<str
   const model = (process.env.ANTHROPIC_MODEL || DEFAULT_MODEL).trim();
   const baseUrl = (process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com").replace(/\/+$/, "");
 
-  const res = await fetch(`${baseUrl}/v1/messages`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 4096,
-      temperature: 0.5,
-      system,
-      messages: [{ role: "user", content: userPrompt }],
-    }),
-    cache: "no-store",
-  });
+  const body: Record<string, unknown> = {
+    model,
+    max_tokens: 4096,
+    temperature: 0.5,
+    system,
+  };
+  if (opts.webSearch) body.tools = [WEB_SEARCH_TOOL];
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    if (res.status === 401 || res.status === 403) {
-      throw new Error(
-        "A chave do Claude parece inválida ou sem permissão. Confira a ANTHROPIC_API_KEY nas configurações.",
-      );
+  const messages: Msg[] = [{ role: "user", content: userPrompt }];
+
+  // Com ferramentas de servidor (busca web), o Claude pode devolver "pause_turn"
+  // quando precisa de mais uma rodada; reenviamos a conversa para ele continuar.
+  // O limite baixo evita laço infinito.
+  for (let tentativa = 0; tentativa < 4; tentativa++) {
+    const res = await fetch(`${baseUrl}/v1/messages`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({ ...body, messages }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(
+          "A chave do Claude parece inválida ou sem permissão. Confira a ANTHROPIC_API_KEY nas configurações.",
+        );
+      }
+      if (res.status === 429 || res.status === 529) {
+        throw new Error(
+          "O Claude atingiu o limite de uso por enquanto. Tente novamente daqui a pouco.",
+        );
+      }
+      throw new Error(`Não consegui falar com o Claude agora (erro ${res.status}). ${detail.slice(0, 200)}`);
     }
-    if (res.status === 429 || res.status === 529) {
-      throw new Error(
-        "O Claude atingiu o limite de uso por enquanto. Tente novamente daqui a pouco.",
-      );
+
+    const data = await res.json();
+
+    // O Claude pode recusar pedidos que violem as políticas de uso.
+    if (data?.stop_reason === "refusal") {
+      throw new Error("O Claude preferiu não responder a esse pedido. Reformule o texto e tente de novo.");
     }
-    throw new Error(`Não consegui falar com o Claude agora (erro ${res.status}). ${detail.slice(0, 200)}`);
+
+    // Precisa continuar (busca web ainda rodando): devolve o turno e repete.
+    if (data?.stop_reason === "pause_turn" && Array.isArray(data?.content)) {
+      messages.push({ role: "assistant", content: data.content });
+      continue;
+    }
+
+    // A resposta vem como uma lista de blocos; juntamos só os de texto.
+    const blocks = Array.isArray(data?.content) ? data.content : [];
+    const text = blocks
+      .filter((b: { type?: string }) => b?.type === "text")
+      .map((b: { text?: string }) => b.text ?? "")
+      .join("")
+      .trim();
+
+    if (!text) {
+      throw new Error("O Claude não retornou texto agora. Tente novamente.");
+    }
+    return text;
   }
 
-  const data = await res.json();
-
-  // O Claude pode recusar pedidos que violem as políticas de uso.
-  if (data?.stop_reason === "refusal") {
-    throw new Error("O Claude preferiu não responder a esse pedido. Reformule o texto e tente de novo.");
-  }
-
-  // A resposta vem como uma lista de blocos; juntamos só os de texto.
-  const blocks = Array.isArray(data?.content) ? data.content : [];
-  const text = blocks
-    .filter((b: { type?: string }) => b?.type === "text")
-    .map((b: { text?: string }) => b.text ?? "")
-    .join("")
-    .trim();
-
-  if (!text) {
-    throw new Error("O Claude não retornou texto agora. Tente novamente.");
-  }
-  return text;
+  throw new Error("A busca demorou demais para o Claude concluir. Tente reformular a pergunta.");
 }

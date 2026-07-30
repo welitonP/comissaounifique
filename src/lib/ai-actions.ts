@@ -90,9 +90,25 @@ export async function askAssistant(
   if (!question) return { question: "", answer: "" };
   try {
     const context = await buildContext();
+    // Data de hoje (fuso do Brasil) para ancorar perguntas de "hoje/amanhã".
+    const hoje = new Date().toLocaleDateString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+    const sistema =
+      BASE_SYSTEM +
+      `\n\nHoje é ${hoje}. A comissão fica em Timbó, Santa Catarina (Brasil). ` +
+      "Você PODE pesquisar na internet quando a pergunta depender de informação atual " +
+      "que não está no contexto (previsão do tempo, notícias, datas de eventos externos, etc.). " +
+      "Nesse caso, pesquise e responda de forma direta, citando a fonte quando fizer sentido. " +
+      "Para perguntas sobre os dados internos da comissão, use o CONTEXTO e não pesquise.";
     const answer = await askAI(
-      BASE_SYSTEM,
+      sistema,
       `Contexto atual da comissão:\n${context}\n\nPergunta do membro: ${question}`,
+      { webSearch: true },
     );
     return { question, answer };
   } catch (e) {
