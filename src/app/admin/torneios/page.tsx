@@ -1,3 +1,4 @@
+import { Download } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toggleTournament, deleteTournament, deleteTournamentSignup } from "@/lib/actions";
@@ -107,9 +108,17 @@ export default async function AdminTorneiosPage({
             />
 
             <div className="mt-3 border-t border-gray-100 pt-3">
-              <p className="mb-2 text-sm font-medium text-unifique">
-                Inscritos ({t.signups.length})
-              </p>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-medium text-unifique">Inscritos ({t.signups.length})</p>
+                {t.signups.length > 0 && (
+                  <a
+                    href={`/api/export/torneio?id=${t.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-unifique px-3 py-1.5 text-xs font-semibold text-unifique hover:bg-unifique/10"
+                  >
+                    <Download size={14} /> Baixar Excel (nome e número)
+                  </a>
+                )}
+              </div>
               {t.signups.length === 0 ? (
                 <p className="text-sm text-gray-400">Ninguém inscrito ainda.</p>
               ) : (

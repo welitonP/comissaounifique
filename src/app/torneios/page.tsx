@@ -24,7 +24,18 @@ export default async function TorneiosPage({
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <SuccessCelebration active={params.ok === "1"} message="Inscrição feita! Bom jogo!" />
+      <SuccessCelebration active={params.ok === "1"} message="Inscrição finalizada! Bom jogo!" />
+
+      {params.ok === "1" && (
+        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+          ✅ Inscrição finalizada com sucesso! Você está confirmado. Nos vemos no jogo!
+        </p>
+      )}
+      {params.erro === "ja-inscrito" && (
+        <p className="rounded-xl bg-yellow-100 px-4 py-3 text-sm text-yellow-800">
+          Você já está inscrito neste torneio (mesmo nome ou telefone). Uma inscrição por pessoa.
+        </p>
+      )}
 
       <section className="rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-7 text-white shadow-md">
         <div className="flex items-center gap-3">

@@ -1248,10 +1248,22 @@ export async function createTournamentSignup(formData: FormData) {
   }
   const t = await prisma.tournament.findUnique({
     where: { id: tournamentId },
-    select: { open: true, questions: true },
+    select: { open: true, questions: true, signups: { select: { name: true, phone: true } } },
   });
   if (!t || !t.open) {
     redirect("/torneios?erro=fechado");
+  }
+
+  // Impede inscrição duplicada no mesmo torneio (mesmo nome ou mesmo telefone).
+  const normNome = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+  const soDigitos = (s: string) => s.replace(/\D/g, "");
+  const nomeAlvo = normNome(name);
+  const foneAlvo = soDigitos(phone);
+  const jaInscrito = t.signups.some(
+    (s) => normNome(s.name) === nomeAlvo || (foneAlvo && soDigitos(s.phone) === foneAlvo),
+  );
+  if (jaInscrito) {
+    redirect("/torneios?erro=ja-inscrito");
   }
 
   // Respostas às perguntas extras do torneio (todas opcionais).
