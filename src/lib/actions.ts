@@ -1289,3 +1289,29 @@ export async function deleteTournamentSignup(formData: FormData) {
   await prisma.tournamentSignup.delete({ where: { id } });
   revalidatePath("/admin/torneios");
 }
+
+// ===== Grade de treinos (recorrentes) =====
+
+export async function createTraining(formData: FormData) {
+  await requireUser();
+  const modality = String(formData.get("modality") || "").trim().slice(0, 60);
+  const weekday = Number(formData.get("weekday"));
+  const time = String(formData.get("time") || "").trim().slice(0, 5);
+  const location = String(formData.get("location") || "").trim().slice(0, 120);
+  const notes = String(formData.get("notes") || "").trim().slice(0, 200);
+  if (!modality || !time || !Number.isInteger(weekday) || weekday < 0 || weekday > 6) return;
+  await prisma.training.create({
+    data: { modality, weekday, time, location: location || null, notes: notes || null },
+  });
+  revalidatePath("/treinos");
+  revalidatePath("/admin/treinos");
+}
+
+export async function deleteTraining(formData: FormData) {
+  await requireUser();
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+  await prisma.training.delete({ where: { id } });
+  revalidatePath("/treinos");
+  revalidatePath("/admin/treinos");
+}

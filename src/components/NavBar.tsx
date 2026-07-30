@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Camera,
   ClipboardList,
+  Dumbbell,
   Home,
   Megaphone,
   Menu,
@@ -24,6 +25,7 @@ import { logoutAction } from "@/lib/actions";
 const PUBLIC_LINKS = [
   { href: "/", label: "Início", Icon: Home },
   { href: "/calendario", label: "Calendário", Icon: CalendarDays },
+  { href: "/treinos", label: "Treinos", Icon: Dumbbell },
   { href: "/comunicados", label: "Comunicados", Icon: Megaphone },
   { href: "/fotos", label: "Fotos", Icon: Camera },
   { href: "/entre-empresas", label: "Entre Empresas", Icon: Trophy },

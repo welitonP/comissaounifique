@@ -245,6 +245,18 @@ model GalleryPhoto {
   createdAt DateTime @default(now())
 }
 
+// Treino recorrente (grade semanal): ex "Terça 20h - Vôlei - Quadra 2".
+model Training {
+  id        String   @id @default(cuid())
+  modality  String // ex: "Vôlei", "Futsal"
+  weekday   Int // 0=domingo ... 6=sábado
+  time      String // "20:00"
+  location  String?
+  notes     String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
 // Torneio/campeonato interno da comissão (ex: Torneio de Truco, CS).
 // A galera se inscreve pela página pública.
 model Tournament {

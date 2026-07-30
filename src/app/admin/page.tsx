@@ -52,6 +52,7 @@ export default async function AdminDashboardPage() {
     { href: "/admin/entre-empresas", label: "Entre Empresas", description: "Modalidades e empresas inscritas." },
     { href: "/admin/torneios", label: "Torneios internos", description: "Criar torneios (truco, CS...) e ver os inscritos." },
     { href: "/admin/calendario", label: "Calendário", description: "Datas de jogos e eventos." },
+    { href: "/admin/treinos", label: "Grade de treinos", description: "Horários dos treinos da semana." },
     { href: "/admin/materiais", label: "Materiais", description: "Estoque de materiais." },
     { href: "/admin/uniformes", label: "Uniformes", description: "Itens controlados e quem está com eles." },
     { href: "/admin/saidas", label: "Saídas de equipamento", description: "Kits e checklist do que sai/volta nos jogos." },
