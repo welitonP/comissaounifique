@@ -1,3 +1,4 @@
+import { Download } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createTraining, deleteTraining, deleteTrainingSignup } from "@/lib/actions";
@@ -19,14 +20,25 @@ export default async function AdminTreinosPage() {
     if (!porDia.has(t.weekday)) porDia.set(t.weekday, []);
     porDia.get(t.weekday)!.push(t);
   }
+  const totalInscritos = treinos.reduce((n, t) => n + t.signups.length, 0);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-unifique">Grade de treinos</h1>
-        <p className="text-sm text-gray-500">
-          Cadastre os treinos da semana (dia, horário e local). Aparecem na aba pública Treinos.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-unifique">Grade de treinos</h1>
+          <p className="text-sm text-gray-500">
+            Cadastre os treinos da semana (dia, horário e local). Aparecem na aba pública Treinos.
+          </p>
+        </div>
+        {totalInscritos > 0 && (
+          <a
+            href="/api/export/treinos"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-unifique px-3 py-2 text-xs font-semibold text-unifique hover:bg-unifique/10"
+          >
+            <Download size={15} /> Exportar Excel
+          </a>
+        )}
       </div>
 
       {/* Novo treino */}

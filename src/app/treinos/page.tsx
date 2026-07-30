@@ -60,7 +60,7 @@ export default async function TreinosPage({
       )}
       {params.erro === "dados" && (
         <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-          Informe pelo menos o seu nome para participar.
+          Informe seu nome e WhatsApp para participar.
         </p>
       )}
 
@@ -146,9 +146,10 @@ export default async function TreinosPage({
                         <input
                           type="tel"
                           name="phone"
+                          required
                           inputMode="tel"
                           maxLength={30}
-                          placeholder="WhatsApp (opcional)"
+                          placeholder="WhatsApp"
                           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-unifique focus:outline-none"
                         />
                         <button

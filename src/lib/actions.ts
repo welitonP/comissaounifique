@@ -1325,7 +1325,7 @@ export async function createTrainingSignup(formData: FormData) {
   const trainingId = String(formData.get("trainingId") || "");
   const name = String(formData.get("name") || "").trim().slice(0, 100);
   const phone = String(formData.get("phone") || "").trim().slice(0, 30);
-  if (!trainingId || !name) {
+  if (!trainingId || !name || !phone) {
     redirect("/treinos?erro=dados");
   }
   const treino = await prisma.training.findUnique({
@@ -1349,7 +1349,7 @@ export async function createTrainingSignup(formData: FormData) {
   }
 
   await prisma.trainingSignup.create({
-    data: { trainingId, name, phone: phone || null },
+    data: { trainingId, name, phone },
   });
   revalidatePath("/treinos");
   revalidatePath("/admin/treinos");
