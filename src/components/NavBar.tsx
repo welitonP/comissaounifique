@@ -10,6 +10,7 @@ import {
   Home,
   Megaphone,
   Menu,
+  Swords,
   Trophy,
   Users,
   Lightbulb,
@@ -26,6 +27,7 @@ const PUBLIC_LINKS = [
   { href: "/comunicados", label: "Comunicados", Icon: Megaphone },
   { href: "/fotos", label: "Fotos", Icon: Camera },
   { href: "/entre-empresas", label: "Entre Empresas", Icon: Trophy },
+  { href: "/torneios", label: "Torneios", Icon: Swords },
   { href: "/comissao", label: "A Comissão", Icon: Users },
   { href: "/sugestoes", label: "Sugestões", Icon: Lightbulb },
 ];

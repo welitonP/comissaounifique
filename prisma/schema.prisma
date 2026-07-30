@@ -245,6 +245,30 @@ model GalleryPhoto {
   createdAt DateTime @default(now())
 }
 
+// Torneio/campeonato interno da comissão (ex: Torneio de Truco, CS).
+// A galera se inscreve pela página pública.
+model Tournament {
+  id          String            @id @default(cuid())
+  title       String // ex: "Torneio de Truco"
+  description String? // detalhes, formato, premiação...
+  location    String? // onde vai ser
+  date        DateTime? // quando (opcional)
+  open        Boolean           @default(true) // inscrições abertas?
+  createdAt   DateTime          @default(now())
+  signups     TournamentSignup[]
+}
+
+// Inscrição de um atleta num torneio interno.
+model TournamentSignup {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name         String
+  phone        String
+  note         String? // observação, ex: "jogo em dupla com o Fulano"
+  createdAt    DateTime   @default(now())
+}
+
 // Item individual controlado (ex: bolsa de uniforme) e quem está com ele
 model TrackedItem {
   id         String    @id @default(cuid())
