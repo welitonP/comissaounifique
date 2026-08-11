@@ -1182,6 +1182,7 @@ export async function createTournament(formData: FormData) {
   });
   revalidatePath("/torneios");
   revalidatePath("/admin/torneios");
+  revalidatePath("/calendario");
   revalidatePath("/");
 }
 
@@ -1207,6 +1208,7 @@ export async function updateTournament(formData: FormData) {
   });
   revalidatePath("/torneios");
   revalidatePath("/admin/torneios");
+  revalidatePath("/calendario");
   revalidatePath("/");
   redirect("/admin/torneios?ok=editado");
 }
@@ -1220,6 +1222,7 @@ export async function toggleTournament(formData: FormData) {
   await prisma.tournament.update({ where: { id }, data: { open: !t.open } });
   revalidatePath("/torneios");
   revalidatePath("/admin/torneios");
+  revalidatePath("/calendario");
   revalidatePath("/");
 }
 
@@ -1230,6 +1233,7 @@ export async function deleteTournament(formData: FormData) {
   await prisma.tournament.delete({ where: { id } });
   revalidatePath("/torneios");
   revalidatePath("/admin/torneios");
+  revalidatePath("/calendario");
   revalidatePath("/");
 }
 

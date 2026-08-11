@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, ChevronRight, MapPin, Users } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, MapPin, Users, Swords } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createCalendarEvent, createRsvp } from "@/lib/actions";
@@ -34,8 +34,10 @@ export default async function CalendarioPage({
   const mes = typeof params.mes === "string" && params.mes ? Number(params.mes) : hMes;
   const ano = typeof params.ano === "string" && params.ano ? Number(params.ano) : hAno;
 
-  // Só eventos de hoje em diante: o que já passou sai do calendário.
-  const [upcoming, modalities, user] = await Promise.all([
+  // Só de hoje em diante: o que já passou sai do calendário. Buscamos eventos
+  // do calendário E torneios com data marcada, para o torneio aparecer aqui
+  // automaticamente (sem duplicar dado: o torneio continua sendo a única fonte).
+  const [eventos, torneios, modalities, user] = await Promise.all([
     prisma.calendarEvent.findMany({
       where: { date: { gte: inicioHoje } },
       orderBy: { date: "asc" },
@@ -44,12 +46,54 @@ export default async function CalendarioPage({
         _count: { select: { rsvps: { where: { going: true } } } },
       },
     }),
+    prisma.tournament.findMany({
+      where: { date: { gte: inicioHoje } },
+      orderBy: { date: "asc" },
+    }),
     prisma.modality.findMany({ orderBy: { name: "asc" } }),
     getCurrentUser(),
   ]);
 
+  // Formato único para exibir eventos e torneios lado a lado.
+  type Ev = {
+    id: string;
+    kind: "event" | "torneio";
+    title: string;
+    date: Date;
+    location: string | null;
+    description: string | null;
+    modalityName: string | null;
+    rsvpCount: number;
+  };
+
+  const upcoming: Ev[] = [
+    ...eventos.map(
+      (e): Ev => ({
+        id: e.id,
+        kind: "event",
+        title: e.title,
+        date: e.date,
+        location: e.location,
+        description: e.description,
+        modalityName: e.modality?.name ?? null,
+        rsvpCount: e._count.rsvps,
+      }),
+    ),
+    ...torneios.map(
+      (t): Ev => ({
+        id: t.id,
+        kind: "torneio",
+        title: t.title,
+        date: t.date as Date, // garantido não-nulo pelo filtro acima
+        location: t.location,
+        description: t.description,
+        modalityName: null,
+        rsvpCount: 0,
+      }),
+    ),
+  ].sort((a, b) => a.date.getTime() - b.date.getTime());
+
   // Agrupa por dia (fuso de Brasília), já em ordem cronológica
-  type Ev = (typeof upcoming)[number];
   const grupos: { ano: number; mes: number; dia: number; eventos: Ev[] }[] = [];
   for (const ev of upcoming) {
     const p = partesDataBrasil(ev.date);
@@ -336,9 +380,14 @@ export default async function CalendarioPage({
                           <div className="min-w-0 flex-1">
                             <p className="font-semibold text-gray-800">{ev.title}</p>
                             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
-                              {ev.modality && (
+                              {ev.kind === "torneio" && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-unifique-yellow/25 px-2 py-0.5 text-xs font-semibold text-unifique-dark">
+                                  <Swords size={12} /> Torneio
+                                </span>
+                              )}
+                              {ev.modalityName && (
                                 <span className="rounded-full bg-unifique/10 px-2 py-0.5 text-xs font-semibold text-unifique">
-                                  {ev.modality.name}
+                                  {ev.modalityName}
                                 </span>
                               )}
                               {ev.location && (
@@ -346,9 +395,9 @@ export default async function CalendarioPage({
                                   <MapPin size={14} className="text-unifique-blue" /> {ev.location}
                                 </span>
                               )}
-                              {ev._count.rsvps > 0 && (
+                              {ev.rsvpCount > 0 && (
                                 <span className="flex items-center gap-1 font-medium text-green-700">
-                                  <Users size={14} /> {ev._count.rsvps} confirmado(s)
+                                  <Users size={14} /> {ev.rsvpCount} confirmado(s)
                                 </span>
                               )}
                             </div>
@@ -359,45 +408,55 @@ export default async function CalendarioPage({
                         </div>
 
                         <div className="mt-2 flex flex-wrap items-center gap-3">
-                          <details>
-                            <summary className="cursor-pointer text-xs font-semibold text-unifique-blue">
-                              ✅ Confirmar presença
-                            </summary>
-                            <form action={createRsvp} className="mt-2 flex flex-wrap items-center gap-2">
-                              <input type="hidden" name="eventId" value={ev.id} />
-                              {/* honeypot anti-spam (invisível) */}
-                              <input
-                                type="text"
-                                name="website"
-                                tabIndex={-1}
-                                autoComplete="off"
-                                className="hidden"
-                                aria-hidden="true"
-                              />
-                              <input
-                                name="name"
-                                required
-                                placeholder="Seu nome"
-                                className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
-                              />
-                              <button
-                                type="submit"
-                                name="going"
-                                value="1"
-                                className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
-                              >
-                                Vou
-                              </button>
-                              <button
-                                type="submit"
-                                name="going"
-                                value="0"
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
-                              >
-                                Não vou
-                              </button>
-                            </form>
-                          </details>
+                          {ev.kind === "event" && (
+                            <details>
+                              <summary className="cursor-pointer text-xs font-semibold text-unifique-blue">
+                                ✅ Confirmar presença
+                              </summary>
+                              <form action={createRsvp} className="mt-2 flex flex-wrap items-center gap-2">
+                                <input type="hidden" name="eventId" value={ev.id} />
+                                {/* honeypot anti-spam (invisível) */}
+                                <input
+                                  type="text"
+                                  name="website"
+                                  tabIndex={-1}
+                                  autoComplete="off"
+                                  className="hidden"
+                                  aria-hidden="true"
+                                />
+                                <input
+                                  name="name"
+                                  required
+                                  placeholder="Seu nome"
+                                  className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+                                />
+                                <button
+                                  type="submit"
+                                  name="going"
+                                  value="1"
+                                  className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+                                >
+                                  Vou
+                                </button>
+                                <button
+                                  type="submit"
+                                  name="going"
+                                  value="0"
+                                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+                                >
+                                  Não vou
+                                </button>
+                              </form>
+                            </details>
+                          )}
+                          {ev.kind === "torneio" && (
+                            <Link
+                              href="/torneios"
+                              className="inline-flex items-center gap-1 rounded-lg bg-unifique px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-unifique-dark"
+                            >
+                              <Swords size={13} /> Inscreva-se
+                            </Link>
+                          )}
                           <ShareWhatsApp
                             text={`🏆 ${ev.title}\n📅 ${fmtDataHora(ev.date)}${
                               ev.location ? `\n📍 ${ev.location}` : ""
