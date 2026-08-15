@@ -15,8 +15,9 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       "Content-Type": safe ? img.mime : "application/octet-stream",
       ...(safe ? {} : { "Content-Disposition": "attachment" }),
       "X-Content-Type-Options": "nosniff",
-      // Imutável: a foto nunca muda depois de publicada
-      "Cache-Control": "public, max-age=31536000, immutable",
+      // Imutável: a foto nunca muda depois de publicada. s-maxage faz a CDN do
+      // Vercel guardar a mesma imagem (sem reprocessar no servidor a cada acesso).
+      "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
     },
   });
 }

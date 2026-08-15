@@ -14,7 +14,10 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       "Content-Type": safe ? member.photoMime : "application/octet-stream",
       ...(safe ? {} : { "Content-Disposition": "attachment" }),
       "X-Content-Type-Options": "nosniff",
-      "Cache-Control": "public, max-age=86400",
+      // 1 dia: a foto de um membro pode ser trocada (mesmo id). s-maxage deixa a
+      // CDN do Vercel guardar dentro desse dia; stale-while-revalidate evita
+      // buscar no banco no exato momento que expira.
+      "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400",
     },
   });
 }
