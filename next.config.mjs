@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // A logo passava pelo otimizador de imagem do Next (/_next/image), que tem
+  // cota própria na Vercel. Quando a cota estoura, a imagem some (fica só o
+  // círculo branco). Servindo direto da CDN: conserta a logo, mantém a
+  // qualidade original e ainda tira esse gasto do Vercel.
+  images: { unoptimized: true },
   experimental: {
     serverActions: {
       // Upload de fotos nos comunicados (limite da Vercel é ~4.5MB por request)
