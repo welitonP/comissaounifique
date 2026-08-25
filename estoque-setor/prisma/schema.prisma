@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Um modelo de equipamento (ex: "Mikrotik hEX GR3"). Criado automaticamente na
+// primeira entrada — ninguém precisa cadastrar catálogo antes de usar.
+model Produto {
+  id        String    @id @default(cuid())
+  nome      String
+  // Nome normalizado (minúsculo, sem acento). É o que garante que "GR3", "gr3"
+  // e "Gr3 " sejam o mesmo produto e a contagem do estoque não se divida.
+  nomeChave String    @unique
+  categoria String?
+  criadoEm  DateTime  @default(now())
+  unidades  Unidade[]
+
+  @@map("estoque_produto")
+}
+
+// Uma peça física. Enquanto `saidaEm` for nulo, ela está no estoque.
+model Unidade {
+  id            String    @id @default(cuid())
+  produtoId     String
+  produto       Produto   @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  serial        String?
+  observacao    String?
+  entradaEm     DateTime  @default(now())
+  registradoPor String?
+  saidaEm       DateTime?
+  destino       String?
+  retiradoPor   String?
+
+  @@index([produtoId])
+  @@index([saidaEm])
+  @@map("estoque_unidade")
+}

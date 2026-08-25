@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #f4f6fb;
+  color: #1a1c2e;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid #00a2ff;
+  outline-offset: 2px;
+}
+
+button {
+  transition: transform 0.12s ease;
+}
+button:active {
+  transform: scale(0.97);
+}
+
+/* Esconde a setinha padrão do <details> para usar a nossa */
+summary::-webkit-details-marker {
+  display: none;
+}
+summary {
+  list-style: none;
+}
