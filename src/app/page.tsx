@@ -38,7 +38,7 @@ export default async function HomePage({
   const now = new Date();
   const hoje = new Date(now.toDateString());
 
-  const [user, nextEvent, latestAnnouncements, modalityCount, atletasDistintos, upcomingCount, latestPoll, galleryPhotos] =
+  const [user, nextCalEvent, latestAnnouncements, modalityCount, atletasDistintos, upcomingEventCount, nextTournament, upcomingTournamentCount, latestPoll, galleryPhotos] =
     await Promise.all([
       getCurrentUser(),
       prisma.calendarEvent.findFirst({
@@ -55,6 +55,13 @@ export default async function HomePage({
       // Conta atletas distintos (uma pessoa pode estar em várias modalidades).
       prisma.registration.findMany({ distinct: ["companyName"], select: { companyName: true } }),
       prisma.calendarEvent.count({ where: { date: { gte: hoje } } }),
+      // Torneios com data marcada também contam como evento futuro.
+      prisma.tournament.findFirst({
+        where: { date: { gte: hoje } },
+        orderBy: { date: "asc" },
+        select: { title: true, date: true, location: true },
+      }),
+      prisma.tournament.count({ where: { date: { gte: hoje } } }),
       prisma.poll.findFirst({
         orderBy: { createdAt: "desc" },
         include: { options: true },
@@ -66,6 +73,21 @@ export default async function HomePage({
       }),
     ]);
   const athleteCount = atletasDistintos.length;
+
+  // "Eventos por vir" = eventos do calendário + torneios com data.
+  const upcomingCount = upcomingEventCount + upcomingTournamentCount;
+
+  // "Próximo jogo": o que vier primeiro entre o próximo evento e o próximo torneio.
+  type ProximoItem = { title: string; date: Date; location: string | null; kind: "jogo" | "torneio" };
+  const candidatos: ProximoItem[] = [];
+  if (nextCalEvent) {
+    candidatos.push({ title: nextCalEvent.title, date: nextCalEvent.date, location: nextCalEvent.location, kind: "jogo" });
+  }
+  if (nextTournament?.date) {
+    candidatos.push({ title: nextTournament.title, date: nextTournament.date, location: nextTournament.location, kind: "torneio" });
+  }
+  candidatos.sort((a, b) => a.date.getTime() - b.date.getTime());
+  const nextEvent = candidatos[0] ?? null;
 
   const fotosSlide = galleryPhotos.map((f) => ({
     id: f.id,
@@ -120,7 +142,7 @@ export default async function HomePage({
           <div className="relative mt-7 flex flex-col gap-4 rounded-2xl bg-black/20 p-5 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-unifique-yellow">
-                Próximo jogo
+                {nextEvent.kind === "torneio" ? "Próximo torneio" : "Próximo jogo"}
               </p>
               <p className="mt-1 font-display text-xl font-bold">{nextEvent.title}</p>
               <p className="text-sm text-white/80">
