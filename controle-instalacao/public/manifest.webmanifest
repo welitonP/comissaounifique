@@ -1,0 +1,12 @@
+{
+  "name": "Controle de instalação",
+  "short_name": "Instalação",
+  "description": "Pontos, equipamentos e cabos sobre a planta de cada evento.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fb",
+  "theme_color": "#2f5fd0",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
