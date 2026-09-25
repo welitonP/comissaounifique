@@ -22,7 +22,14 @@ export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id") || "";
   const torneio = await prisma.tournament.findUnique({
     where: { id },
-    include: { signups: { orderBy: { createdAt: "asc" } } },
+    select: {
+      title: true,
+      questions: true,
+      signups: {
+        orderBy: { createdAt: "asc" },
+        select: { name: true, phone: true, note: true, answers: true, createdAt: true },
+      },
+    },
   });
   if (!torneio) {
     return NextResponse.json({ error: "Torneio não encontrado." }, { status: 404 });

@@ -38,10 +38,23 @@ async function resizeImage(file: File, maxDim = 1600, quality = 0.82): Promise<F
   }
 }
 
-export default function PhotoField() {
+export default function PhotoField({
+  name = "photos",
+  multiple = true,
+  max = 4,
+  label,
+  help,
+}: {
+  name?: string;
+  multiple?: boolean;
+  max?: number;
+  label?: string;
+  help?: string;
+} = {}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [previews, setPreviews] = useState<string[]>([]);
+  const limite = multiple ? max : 1;
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const original = Array.from(e.target.files ?? []);
@@ -50,7 +63,7 @@ export default function PhotoField() {
       return;
     }
     setBusy(true);
-    const limitadas = original.slice(0, 4); // no máximo 4
+    const limitadas = original.slice(0, limite);
     const otimizadas = await Promise.all(limitadas.map((f) => resizeImage(f)));
 
     // Substitui os arquivos do input pelos já redimensionados.
@@ -62,21 +75,26 @@ export default function PhotoField() {
     setBusy(false);
   }
 
+  const rotulo =
+    label ?? (
+      <>
+        Fotos <span className="font-normal text-gray-400">(opcional · até {max})</span>
+      </>
+    );
+
   return (
     <div>
-      <label className="block text-sm font-semibold text-gray-700">
-        Fotos <span className="font-normal text-gray-400">(opcional · até 4)</span>
-      </label>
+      <label className="block text-sm font-semibold text-gray-700">{rotulo}</label>
       <input
         ref={inputRef}
         type="file"
-        name="photos"
+        name={name}
         accept="image/*"
-        multiple
+        multiple={multiple}
         onChange={handleChange}
         className="mt-1 w-full rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-unifique file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
       />
-      {busy && <p className="mt-1 text-xs text-unifique-blue">Otimizando as fotos…</p>}
+      {busy && <p className="mt-1 text-xs text-unifique-blue">Otimizando…</p>}
       {previews.length > 0 && !busy && (
         <div className="mt-2 flex flex-wrap gap-2">
           {previews.map((src) => (
@@ -86,8 +104,8 @@ export default function PhotoField() {
         </div>
       )}
       <p className="mt-1 text-xs text-gray-400">
-        As fotos são reduzidas automaticamente antes do envio. LGPD: publique apenas fotos de
-        pessoas que autorizaram o uso de imagem.
+        {help ??
+          "As fotos são reduzidas automaticamente antes do envio. LGPD: publique apenas fotos de pessoas que autorizaram o uso de imagem."}
       </p>
     </div>
   );

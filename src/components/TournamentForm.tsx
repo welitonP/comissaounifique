@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { createTournament, updateTournament } from "@/lib/actions";
 import { generateTournamentText, type TournamentComposeState } from "@/lib/ai-actions";
+import PhotoField from "@/components/PhotoField";
 
 type TournamentData = {
   id: string;
@@ -12,6 +13,7 @@ type TournamentData = {
   location: string;
   questions: string;
   dateLocal: string;
+  hasPhoto: boolean;
 };
 
 export default function TournamentForm({ tournament }: { tournament?: TournamentData }) {
@@ -136,6 +138,34 @@ export default function TournamentForm({ tournament }: { tournament?: Tournament
             Essas perguntas aparecem no formulário de inscrição (o atleta responde se quiser).
           </p>
         </div>
+
+        {/* Cartaz/foto do torneio */}
+        <div className="rounded-lg border border-gray-200 p-3">
+          {editando && tournament!.hasPhoto && (
+            <div className="mb-2 flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/torneio-foto/${tournament!.id}`}
+                alt="Cartaz atual"
+                className="h-16 w-16 rounded-lg object-cover"
+              />
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input type="checkbox" name="removePhoto" value="1" /> Remover foto atual
+              </label>
+            </div>
+          )}
+          <PhotoField
+            name="photo"
+            multiple={false}
+            label={
+              editando && tournament!.hasPhoto
+                ? "Trocar o cartaz (deixe em branco para manter o atual)"
+                : "Cartaz do torneio (opcional)"
+            }
+            help="Aparece no topo do torneio na página pública. É reduzido automaticamente antes do envio."
+          />
+        </div>
+
         <div className="flex gap-2">
           <button
             type="submit"

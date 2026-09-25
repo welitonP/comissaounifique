@@ -1169,6 +1169,19 @@ export async function createTournament(formData: FormData) {
   const dateRaw = String(formData.get("date") || "");
   const questions = limparPerguntas(String(formData.get("questions") || ""));
   if (!title) return;
+
+  // Cartaz/foto do torneio (opcional). Chega já reduzida pelo PhotoField.
+  const photo = formData.get("photo");
+  let photoData: Buffer | null = null;
+  let photoMime: string | null = null;
+  if (photo instanceof File && photo.size > 0) {
+    if (!ALLOWED_IMAGE_MIMES.has(photo.type) || photo.size > 2 * 1024 * 1024) {
+      redirect("/admin/torneios?erro=foto");
+    }
+    photoData = Buffer.from(await photo.arrayBuffer());
+    photoMime = photo.type;
+  }
+
   const { parseDataLocal } = await import("./datas");
   await prisma.tournament.create({
     data: {
@@ -1178,6 +1191,8 @@ export async function createTournament(formData: FormData) {
       date: dateRaw ? parseDataLocal(dateRaw) : null,
       questions,
       open: true,
+      photoData,
+      photoMime,
     },
   });
   revalidatePath("/torneios");
@@ -1196,16 +1211,39 @@ export async function updateTournament(formData: FormData) {
   const dateRaw = String(formData.get("date") || "");
   const questions = limparPerguntas(String(formData.get("questions") || ""));
   const { parseDataLocal } = await import("./datas");
-  await prisma.tournament.update({
-    where: { id },
-    data: {
-      title,
-      description: description || null,
-      location: location || null,
-      date: dateRaw ? parseDataLocal(dateRaw) : null,
-      questions,
-    },
-  });
+
+  const data: {
+    title: string;
+    description: string | null;
+    location: string | null;
+    date: Date | null;
+    questions: string | null;
+    photoData?: Buffer | null;
+    photoMime?: string | null;
+  } = {
+    title,
+    description: description || null,
+    location: location || null,
+    date: dateRaw ? parseDataLocal(dateRaw) : null,
+    questions,
+  };
+
+  // Foto: troca só se enviarem uma nova; remove se marcaram "remover".
+  if (String(formData.get("removePhoto") || "")) {
+    data.photoData = null;
+    data.photoMime = null;
+  } else {
+    const photo = formData.get("photo");
+    if (photo instanceof File && photo.size > 0) {
+      if (!ALLOWED_IMAGE_MIMES.has(photo.type) || photo.size > 2 * 1024 * 1024) {
+        redirect("/admin/torneios?erro=foto");
+      }
+      data.photoData = Buffer.from(await photo.arrayBuffer());
+      data.photoMime = photo.type;
+    }
+  }
+
+  await prisma.tournament.update({ where: { id }, data });
   revalidatePath("/torneios");
   revalidatePath("/admin/torneios");
   revalidatePath("/calendario");

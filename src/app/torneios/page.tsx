@@ -15,7 +15,18 @@ export default async function TorneiosPage({
     searchParams,
     prisma.tournament.findMany({
       orderBy: [{ open: "desc" }, { createdAt: "desc" }],
-      include: { _count: { select: { signups: true } } },
+      // select explícito: NÃO trazemos photoData (o blob) para a lista.
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        date: true,
+        open: true,
+        questions: true,
+        photoMime: true,
+        _count: { select: { signups: true } },
+      },
     }),
   ]);
 
@@ -72,6 +83,14 @@ export default async function TorneiosPage({
       <div className="space-y-5">
         {torneios.map((t) => (
           <section key={t.id} className="overflow-hidden rounded-2xl bg-white shadow-sm">
+            {t.photoMime && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={`/api/torneio-foto/${t.id}`}
+                alt={`Cartaz do ${t.title}`}
+                className="max-h-72 w-full object-cover"
+              />
+            )}
             <div className="border-b border-gray-100 p-5">
               <div className="flex items-start justify-between gap-3">
                 <h2 className="font-display text-lg font-bold text-unifique">{t.title}</h2>

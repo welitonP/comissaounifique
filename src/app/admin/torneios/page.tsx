@@ -28,7 +28,21 @@ export default async function AdminTorneiosPage({
     searchParams,
     prisma.tournament.findMany({
       orderBy: [{ open: "desc" }, { createdAt: "desc" }],
-      include: { signups: { orderBy: { createdAt: "asc" } } },
+      // select explícito: a lista NÃO carrega photoData (o blob).
+      select: {
+        id: true,
+        title: true,
+        open: true,
+        date: true,
+        location: true,
+        description: true,
+        questions: true,
+        photoMime: true,
+        signups: {
+          orderBy: { createdAt: "asc" },
+          select: { id: true, name: true, phone: true, note: true, answers: true },
+        },
+      },
     }),
   ]);
 
@@ -104,6 +118,7 @@ export default async function AdminTorneiosPage({
                 location: t.location ?? "",
                 questions: t.questions ?? "",
                 dateLocal: toInputLocal(t.date),
+                hasPhoto: !!t.photoMime,
               }}
             />
 
