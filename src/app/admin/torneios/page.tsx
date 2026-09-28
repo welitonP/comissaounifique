@@ -5,6 +5,7 @@ import { toggleTournament, deleteTournament, deleteTournamentSignup } from "@/li
 import { fmtDataHora, toInputLocal } from "@/lib/datas";
 import ConfirmButton from "@/components/ConfirmButton";
 import TournamentForm from "@/components/TournamentForm";
+import ShareLink from "@/components/ShareLink";
 
 export const dynamic = "force-dynamic";
 
@@ -107,6 +108,14 @@ export default async function AdminTorneiosPage({
                   </ConfirmButton>
                 </form>
               </div>
+            </div>
+
+            {/* Compartilhar o link direto deste torneio */}
+            <div className="mt-3">
+              <ShareLink
+                path={`/torneios/${t.id}`}
+                message={`🏆 ${t.title} · Comissão de Esportes Unifique`}
+              />
             </div>
 
             {/* Editar torneio (título, texto, data, local, perguntas) */}

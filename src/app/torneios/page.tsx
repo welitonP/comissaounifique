@@ -1,53 +1,27 @@
-import { Swords, MapPin, CalendarClock, Lock } from "lucide-react";
+import Link from "next/link";
+import { Swords, MapPin, CalendarClock, ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { createTournamentSignup } from "@/lib/actions";
 import { fmtDataHora } from "@/lib/datas";
-import SuccessCelebration from "@/components/SuccessCelebration";
 
 export const dynamic = "force-dynamic";
 
-export default async function TorneiosPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const [params, torneios] = await Promise.all([
-    searchParams,
-    prisma.tournament.findMany({
-      orderBy: [{ open: "desc" }, { createdAt: "desc" }],
-      // select explícito: NÃO trazemos photoData (o blob) para a lista.
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        location: true,
-        date: true,
-        open: true,
-        questions: true,
-        photoMime: true,
-        _count: { select: { signups: true } },
-      },
-    }),
-  ]);
-
-  const perguntasDe = (q: string | null) =>
-    (q || "").split("\n").map((p) => p.trim()).filter(Boolean);
+export default async function TorneiosPage() {
+  const torneios = await prisma.tournament.findMany({
+    orderBy: [{ open: "desc" }, { createdAt: "desc" }],
+    // Lista enxuta: NÃO carrega o blob da foto.
+    select: {
+      id: true,
+      title: true,
+      location: true,
+      date: true,
+      open: true,
+      photoMime: true,
+      _count: { select: { signups: true } },
+    },
+  });
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <SuccessCelebration active={params.ok === "1"} message="Inscrição finalizada! Bom jogo!" />
-
-      {params.ok === "1" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
-          ✅ Inscrição finalizada com sucesso! Você está confirmado. Nos vemos no jogo!
-        </p>
-      )}
-      {params.erro === "ja-inscrito" && (
-        <p className="rounded-xl bg-yellow-100 px-4 py-3 text-sm text-yellow-800">
-          Você já está inscrito neste torneio (mesmo nome ou telefone). Uma inscrição por pessoa.
-        </p>
-      )}
-
       <section className="rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-7 text-white shadow-md">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
@@ -59,20 +33,9 @@ export default async function TorneiosPage({
           </div>
         </div>
         <p className="mt-4 text-sm text-white/85">
-          Bora jogar? Escolha um torneio aberto e faça sua inscrição.
+          Toque em um torneio para ver os detalhes e se inscrever.
         </p>
       </section>
-
-      {params.erro === "dados" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-          Preencha seu nome e telefone (WhatsApp) para se inscrever.
-        </p>
-      )}
-      {params.erro === "fechado" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-          As inscrições deste torneio foram encerradas.
-        </p>
-      )}
 
       {torneios.length === 0 && (
         <p className="rounded-2xl bg-white p-6 text-center text-gray-500 shadow-sm">
@@ -80,122 +43,54 @@ export default async function TorneiosPage({
         </p>
       )}
 
-      <div className="space-y-5">
+      <div className="space-y-3">
         {torneios.map((t) => (
-          <section key={t.id} className="overflow-hidden rounded-2xl bg-white shadow-sm">
-            {t.photoMime && (
+          <Link
+            key={t.id}
+            href={`/torneios/${t.id}`}
+            className="flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            {t.photoMime ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={`/api/torneio-foto/${t.id}`}
-                alt={`Cartaz do ${t.title}`}
-                className="max-h-72 w-full object-cover"
+                alt=""
+                className="h-20 w-20 flex-none rounded-xl object-cover"
               />
+            ) : (
+              <span className="flex h-20 w-20 flex-none items-center justify-center rounded-xl bg-unifique-light">
+                <Swords size={26} className="text-unifique" />
+              </span>
             )}
-            <div className="border-b border-gray-100 p-5">
-              <div className="flex items-start justify-between gap-3">
-                <h2 className="font-display text-lg font-bold text-unifique">{t.title}</h2>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h2 className="truncate font-display text-lg font-bold text-unifique">{t.title}</h2>
                 {t.open ? (
-                  <span className="whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                    Inscrições abertas
+                  <span className="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
+                    Abertas
                   </span>
                 ) : (
-                  <span className="whitespace-nowrap rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">
+                  <span className="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-500">
                     Encerrado
                   </span>
                 )}
               </div>
-              {t.description && (
-                <p className="mt-2 whitespace-pre-wrap text-sm text-gray-600">{t.description}</p>
-              )}
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
+              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
                 {t.date && (
                   <span className="inline-flex items-center gap-1.5">
-                    <CalendarClock size={16} className="text-unifique-blue" /> {fmtDataHora(t.date)}
+                    <CalendarClock size={15} className="text-unifique-blue" /> {fmtDataHora(t.date)}
                   </span>
                 )}
                 {t.location && (
                   <span className="inline-flex items-center gap-1.5">
-                    <MapPin size={16} className="text-unifique-blue" /> {t.location}
+                    <MapPin size={15} className="text-unifique-blue" /> {t.location}
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1.5 font-medium text-unifique">
-                  {t._count.signups} inscrito(s)
-                </span>
+                <span className="font-medium text-unifique">{t._count.signups} inscrito(s)</span>
               </div>
             </div>
-
-            {t.open ? (
-              <form action={createTournamentSignup} className="space-y-3 p-5">
-                <input type="hidden" name="tournamentId" value={t.id} />
-                {/* honeypot */}
-                <input
-                  type="text"
-                  name="website"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  className="hidden"
-                  aria-hidden="true"
-                />
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700">
-                      Nome <span className="text-unifique-blue">*</span>
-                    </label>
-                    <input
-                      name="name"
-                      required
-                      className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700">
-                      Telefone (WhatsApp) <span className="text-unifique-blue">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      required
-                      inputMode="tel"
-                      placeholder="(47) 90000-0000"
-                      className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-                    />
-                  </div>
-                </div>
-                {perguntasDe(t.questions).map((pergunta, i) => (
-                  <div key={i}>
-                    <label className="block text-sm font-semibold text-gray-700">
-                      {pergunta} <span className="font-normal text-gray-400">(opcional)</span>
-                    </label>
-                    <input
-                      name={`q_${i}`}
-                      maxLength={200}
-                      className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-                    />
-                  </div>
-                ))}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Observação <span className="font-normal text-gray-400">(opcional)</span>
-                  </label>
-                  <input
-                    name="note"
-                    placeholder="Algo que a comissão precise saber"
-                    className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full rounded-xl bg-unifique py-3 font-display font-semibold text-white shadow transition hover:bg-unifique-dark"
-                >
-                  Quero participar
-                </button>
-              </form>
-            ) : (
-              <div className="flex items-center gap-2 p-5 text-sm text-gray-500">
-                <Lock size={16} /> Inscrições encerradas para este torneio.
-              </div>
-            )}
-          </section>
+            <ChevronRight size={20} className="flex-none text-gray-300" />
+          </Link>
         ))}
       </div>
     </div>

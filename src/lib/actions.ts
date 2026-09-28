@@ -1277,23 +1277,25 @@ export async function deleteTournament(formData: FormData) {
 
 // Pública: o atleta se inscreve num torneio interno (nome + WhatsApp).
 export async function createTournamentSignup(formData: FormData) {
+  const tournamentId = String(formData.get("tournamentId") || "");
+  // Volta sempre para a página do próprio torneio (link compartilhável).
+  const back = tournamentId ? `/torneios/${tournamentId}` : "/torneios";
   // honeypot anti-spam
   if (String(formData.get("website") || "")) {
-    redirect("/torneios?ok=1");
+    redirect(`${back}?ok=1`);
   }
-  const tournamentId = String(formData.get("tournamentId") || "");
   const name = String(formData.get("name") || "").trim().slice(0, 100);
   const phone = String(formData.get("phone") || "").trim().slice(0, 30);
   const note = String(formData.get("note") || "").trim().slice(0, 200);
   if (!tournamentId || !name || !phone) {
-    redirect("/torneios?erro=dados");
+    redirect(`${back}?erro=dados`);
   }
   const t = await prisma.tournament.findUnique({
     where: { id: tournamentId },
     select: { open: true, questions: true, signups: { select: { name: true, phone: true } } },
   });
   if (!t || !t.open) {
-    redirect("/torneios?erro=fechado");
+    redirect(`${back}?erro=fechado`);
   }
 
   // Impede inscrição duplicada no mesmo torneio (mesmo nome ou mesmo telefone).
@@ -1305,7 +1307,7 @@ export async function createTournamentSignup(formData: FormData) {
     (s) => normNome(s.name) === nomeAlvo || (foneAlvo && soDigitos(s.phone) === foneAlvo),
   );
   if (jaInscrito) {
-    redirect("/torneios?erro=ja-inscrito");
+    redirect(`${back}?erro=ja-inscrito`);
   }
 
   // Respostas às perguntas extras do torneio (todas opcionais).
@@ -1321,7 +1323,7 @@ export async function createTournamentSignup(formData: FormData) {
     data: { tournamentId, name, phone, note: note || null, answers },
   });
   revalidatePath("/admin/torneios");
-  redirect("/torneios?ok=1");
+  redirect(`${back}?ok=1`);
 }
 
 export async function deleteTournamentSignup(formData: FormData) {
