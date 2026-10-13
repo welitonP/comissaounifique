@@ -1161,6 +1161,32 @@ function limparPerguntas(raw: string): string | null {
   return linhas.length > 0 ? linhas.join("\n") : null;
 }
 
+// Gera o "apelido" da URL a partir do título (sem acento, só letras/números/hífen).
+function slugify(s: string): string {
+  const base = s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60)
+    .replace(/-+$/g, "");
+  return base || "torneio";
+}
+
+// Garante que o slug seja único (se já existir, vira "nome-2", "nome-3"...).
+async function slugUnico(base: string, excluirId?: string): Promise<string> {
+  let slug = base;
+  for (let n = 2; ; n++) {
+    const existe = await prisma.tournament.findFirst({
+      where: { slug, ...(excluirId ? { NOT: { id: excluirId } } : {}) },
+      select: { id: true },
+    });
+    if (!existe) return slug;
+    slug = `${base}-${n}`;
+  }
+}
+
 export async function createTournament(formData: FormData) {
   await requireUser();
   const title = String(formData.get("title") || "").trim();
@@ -1183,9 +1209,11 @@ export async function createTournament(formData: FormData) {
   }
 
   const { parseDataLocal } = await import("./datas");
+  const slug = await slugUnico(slugify(title));
   await prisma.tournament.create({
     data: {
       title,
+      slug,
       description: description || null,
       location: location || null,
       date: dateRaw ? parseDataLocal(dateRaw) : null,
@@ -1218,6 +1246,7 @@ export async function updateTournament(formData: FormData) {
     location: string | null;
     date: Date | null;
     questions: string | null;
+    slug?: string;
     photoData?: Buffer | null;
     photoMime?: string | null;
   } = {
@@ -1227,6 +1256,13 @@ export async function updateTournament(formData: FormData) {
     date: dateRaw ? parseDataLocal(dateRaw) : null,
     questions,
   };
+
+  // Slug: mantém estável (não muda ao editar o título, pra não quebrar links já
+  // divulgados). Só gera se o torneio ainda não tiver um (caso legado).
+  const atual = await prisma.tournament.findUnique({ where: { id }, select: { slug: true } });
+  if (atual && !atual.slug) {
+    data.slug = await slugUnico(slugify(title), id);
+  }
 
   // Foto: troca só se enviarem uma nova; remove se marcaram "remover".
   if (String(formData.get("removePhoto") || "")) {
@@ -1279,7 +1315,7 @@ export async function deleteTournament(formData: FormData) {
 export async function createTournamentSignup(formData: FormData) {
   const tournamentId = String(formData.get("tournamentId") || "");
   // Volta sempre para a página do próprio torneio (link compartilhável).
-  const back = tournamentId ? `/torneios/${tournamentId}` : "/torneios";
+  let back = tournamentId ? `/torneios/${tournamentId}` : "/torneios";
   // honeypot anti-spam
   if (String(formData.get("website") || "")) {
     redirect(`${back}?ok=1`);
@@ -1292,8 +1328,10 @@ export async function createTournamentSignup(formData: FormData) {
   }
   const t = await prisma.tournament.findUnique({
     where: { id: tournamentId },
-    select: { open: true, questions: true, signups: { select: { name: true, phone: true } } },
+    select: { slug: true, open: true, questions: true, signups: { select: { name: true, phone: true } } },
   });
+  // Prefere a URL bonita (slug) para o retorno.
+  if (t?.slug) back = `/torneios/${t.slug}`;
   if (!t || !t.open) {
     redirect(`${back}?erro=fechado`);
   }

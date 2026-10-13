@@ -32,6 +32,7 @@ export default async function AdminTorneiosPage({
       // select explícito: a lista NÃO carrega photoData (o blob).
       select: {
         id: true,
+        slug: true,
         title: true,
         open: true,
         date: true,
@@ -113,7 +114,7 @@ export default async function AdminTorneiosPage({
             {/* Compartilhar o link direto deste torneio */}
             <div className="mt-3">
               <ShareLink
-                path={`/torneios/${t.id}`}
+                path={`/torneios/${t.slug ?? t.id}`}
                 message={`🏆 ${t.title} · Comissão de Esportes Unifique`}
               />
             </div>

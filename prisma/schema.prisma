@@ -272,6 +272,7 @@ model TrainingSignup {
 // A galera se inscreve pela página pública.
 model Tournament {
   id          String            @id @default(cuid())
+  slug        String?           @unique // apelido na URL, ex: "volei-de-areia"
   title       String // ex: "Torneio de Truco"
   description String? // detalhes, formato, premiação...
   location    String? // onde vai ser

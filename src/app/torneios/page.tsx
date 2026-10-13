@@ -11,6 +11,7 @@ export default async function TorneiosPage() {
     // Lista enxuta: NÃO carrega o blob da foto.
     select: {
       id: true,
+      slug: true,
       title: true,
       location: true,
       date: true,
@@ -47,7 +48,7 @@ export default async function TorneiosPage() {
         {torneios.map((t) => (
           <Link
             key={t.id}
-            href={`/torneios/${t.id}`}
+            href={`/torneios/${t.slug ?? t.id}`}
             className="flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             {t.photoMime ? (

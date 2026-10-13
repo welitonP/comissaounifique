@@ -14,9 +14,9 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const t = await prisma.tournament.findUnique({
-    where: { id },
+  const { id: ref } = await params;
+  const t = await prisma.tournament.findFirst({
+    where: { OR: [{ slug: ref }, { id: ref }] },
     select: { title: true, description: true },
   });
   if (!t) return { title: "Torneio" };
@@ -33,11 +33,12 @@ export default async function TorneioDetalhePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ id }, sp] = await Promise.all([params, searchParams]);
-  const t = await prisma.tournament.findUnique({
-    where: { id },
+  const [{ id: ref }, sp] = await Promise.all([params, searchParams]);
+  const t = await prisma.tournament.findFirst({
+    where: { OR: [{ slug: ref }, { id: ref }] },
     select: {
       id: true,
+      slug: true,
       title: true,
       description: true,
       location: true,
@@ -152,7 +153,7 @@ export default async function TorneioDetalhePage({
             <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
               <Share2 size={13} /> Compartilhar este torneio
             </p>
-            <ShareLink path={`/torneios/${t.id}`} message={`🏆 ${t.title} · Comissão de Esportes Unifique`} />
+            <ShareLink path={`/torneios/${t.slug ?? t.id}`} message={`🏆 ${t.title} · Comissão de Esportes Unifique`} />
           </div>
         </div>
 
