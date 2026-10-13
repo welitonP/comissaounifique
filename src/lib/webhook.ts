@@ -13,13 +13,16 @@ export async function notifyWebhook(
   event: string,
   data: Record<string, unknown>,
 ): Promise<void> {
-  const url = process.env.N8N_WEBHOOK_URL;
-  if (!url) return;
-  const secret = process.env.N8N_WEBHOOK_SECRET;
-
   try {
+    const url = process.env.N8N_WEBHOOK_URL;
+    // Só dispara se houver uma URL http(s) válida configurada. Qualquer coisa
+    // diferente (vazio, URL sem esquema, valor estranho) é ignorada de propósito:
+    // a automação é opcional e NUNCA pode atrapalhar a inscrição.
+    if (!url || !/^https?:\/\//i.test(url)) return;
+    const secret = process.env.N8N_WEBHOOK_SECRET;
+
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 3000);
+    const timer = setTimeout(() => ctrl.abort(), 2500);
     await fetch(url, {
       method: "POST",
       headers: {
@@ -31,6 +34,6 @@ export async function notifyWebhook(
       signal: ctrl.signal,
     }).finally(() => clearTimeout(timer));
   } catch {
-    // silencioso de propósito
+    // silencioso de propósito: um webhook com problema nunca derruba o fluxo.
   }
 }

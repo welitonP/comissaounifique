@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
@@ -1361,14 +1362,18 @@ export async function createTournamentSignup(formData: FormData) {
   await prisma.tournamentSignup.create({
     data: { tournamentId, name, phone, note: note || null, answers },
   });
-  // Avisa automações externas (n8n), se configurado. Não trava a inscrição.
-  await notifyWebhook("torneio.inscricao", {
-    torneio: t.title,
-    slug: t.slug,
-    nome: name,
-    telefone: phone,
-    observacao: note || null,
-  });
+  // Avisa automações externas (n8n), se configurado. Roda DEPOIS da resposta
+  // (after) e é best-effort: se o n8n estiver fora ou com URL errada, a
+  // inscrição acontece normalmente mesmo assim.
+  after(() =>
+    notifyWebhook("torneio.inscricao", {
+      torneio: t.title,
+      slug: t.slug,
+      nome: name,
+      telefone: phone,
+      observacao: note || null,
+    }),
+  );
   revalidatePath("/admin/torneios");
   redirect(`${back}?ok=1`);
 }
@@ -1448,14 +1453,17 @@ export async function createTrainingSignup(formData: FormData) {
   await prisma.trainingSignup.create({
     data: { trainingId, name, phone },
   });
-  // Avisa automações externas (n8n), se configurado.
-  await notifyWebhook("treino.inscricao", {
-    treino: treino.modality,
-    diaSemana: treino.weekday,
-    horario: treino.time,
-    nome: name,
-    telefone: phone,
-  });
+  // Avisa automações externas (n8n), se configurado. Roda DEPOIS da resposta
+  // (after) e é best-effort: nunca trava a inscrição.
+  after(() =>
+    notifyWebhook("treino.inscricao", {
+      treino: treino.modality,
+      diaSemana: treino.weekday,
+      horario: treino.time,
+      nome: name,
+      telefone: phone,
+    }),
+  );
   revalidatePath("/treinos");
   revalidatePath("/admin/treinos");
   redirect("/treinos?ok=1");
