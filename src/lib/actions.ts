@@ -12,6 +12,7 @@ import {
   verifyPassword,
 } from "./auth";
 import { SESSION_COOKIE, createSessionToken } from "./session";
+import { notifyWebhook } from "./webhook";
 
 export async function loginAction(formData: FormData) {
   const username = String(formData.get("username") || "")
@@ -1328,7 +1329,7 @@ export async function createTournamentSignup(formData: FormData) {
   }
   const t = await prisma.tournament.findUnique({
     where: { id: tournamentId },
-    select: { slug: true, open: true, questions: true, signups: { select: { name: true, phone: true } } },
+    select: { slug: true, title: true, open: true, questions: true, signups: { select: { name: true, phone: true } } },
   });
   // Prefere a URL bonita (slug) para o retorno.
   if (t?.slug) back = `/torneios/${t.slug}`;
@@ -1359,6 +1360,14 @@ export async function createTournamentSignup(formData: FormData) {
 
   await prisma.tournamentSignup.create({
     data: { tournamentId, name, phone, note: note || null, answers },
+  });
+  // Avisa automações externas (n8n), se configurado. Não trava a inscrição.
+  await notifyWebhook("torneio.inscricao", {
+    torneio: t.title,
+    slug: t.slug,
+    nome: name,
+    telefone: phone,
+    observacao: note || null,
   });
   revalidatePath("/admin/torneios");
   redirect(`${back}?ok=1`);
@@ -1412,7 +1421,13 @@ export async function createTrainingSignup(formData: FormData) {
   }
   const treino = await prisma.training.findUnique({
     where: { id: trainingId },
-    select: { id: true, signups: { select: { name: true, phone: true } } },
+    select: {
+      id: true,
+      modality: true,
+      weekday: true,
+      time: true,
+      signups: { select: { name: true, phone: true } },
+    },
   });
   if (!treino) {
     redirect("/treinos?erro=dados");
@@ -1432,6 +1447,14 @@ export async function createTrainingSignup(formData: FormData) {
 
   await prisma.trainingSignup.create({
     data: { trainingId, name, phone },
+  });
+  // Avisa automações externas (n8n), se configurado.
+  await notifyWebhook("treino.inscricao", {
+    treino: treino.modality,
+    diaSemana: treino.weekday,
+    horario: treino.time,
+    nome: name,
+    telefone: phone,
   });
   revalidatePath("/treinos");
   revalidatePath("/admin/treinos");
