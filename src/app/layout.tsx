@@ -8,8 +8,16 @@ import { isAIConfigured } from "@/lib/ai";
 import { isInscricoesAbertas } from "@/lib/settings";
 import { Analytics } from "@vercel/analytics/next";
 
+// URL pública do site (usada para montar links absolutos no preview de
+// compartilhamento). Pode ser sobrescrita por NEXT_PUBLIC_SITE_URL na Vercel.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.unifiqueesportes.com.br";
+
 export const metadata: Metadata = {
-  title: "Comissão de Esportes Unifique",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Comissão de Esportes Unifique",
+    template: "%s · Comissão de Esportes Unifique",
+  },
   description:
     "Calendário de jogos, comunicados, Entre Empresas e tudo do esporte na Unifique.",
   manifest: "/manifest.webmanifest",
@@ -19,8 +27,29 @@ export const metadata: Metadata = {
     title: "Comissão Esportes",
   },
   icons: {
-    icon: "/logo-comissao.jpg",
-    apple: "/logo-comissao.jpg",
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  // Preview padrão ao compartilhar (WhatsApp, redes). Páginas específicas
+  // (ex: torneio) sobrescrevem com a própria imagem/cartaz.
+  openGraph: {
+    type: "website",
+    siteName: "Comissão de Esportes Unifique",
+    locale: "pt_BR",
+    title: "Comissão de Esportes Unifique",
+    description:
+      "Calendário de jogos, comunicados, Entre Empresas e tudo do esporte na Unifique.",
+    images: [{ url: "/logo-comissao.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Comissão de Esportes Unifique",
+    description:
+      "Calendário de jogos, comunicados, Entre Empresas e tudo do esporte na Unifique.",
+    images: ["/logo-comissao.jpg"],
   },
 };
 

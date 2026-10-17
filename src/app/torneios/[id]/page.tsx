@@ -6,6 +6,7 @@ import { createTournamentSignup } from "@/lib/actions";
 import { fmtDataHora } from "@/lib/datas";
 import SuccessCelebration from "@/components/SuccessCelebration";
 import ShareLink from "@/components/ShareLink";
+import AddToCalendar from "@/components/AddToCalendar";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,39 @@ export async function generateMetadata({
   const { id: ref } = await params;
   const t = await prisma.tournament.findFirst({
     where: { OR: [{ slug: ref }, { id: ref }] },
-    select: { title: true, description: true },
+    select: { id: true, slug: true, title: true, description: true, date: true, location: true, photoMime: true },
   });
   if (!t) return { title: "Torneio" };
+
+  const quando = t.date ? fmtDataHora(t.date) : null;
+  const descricao =
+    t.description?.trim() ||
+    [quando ? `Quando: ${quando}` : null, t.location ? `Local: ${t.location}` : null]
+      .filter(Boolean)
+      .join(" · ") ||
+    "Torneio interno da Comissão de Esportes Unifique. Inscreva-se!";
+
+  // Se o torneio tem cartaz, usa ele no preview; senão, o preview padrão do site.
+  const imagem = t.photoMime ? `/api/torneio-foto/${t.id}` : undefined;
+  const url = `/torneios/${t.slug ?? t.id}`;
+
   return {
-    title: `${t.title} · Torneios Unifique`,
-    description: t.description ?? "Torneio interno da Comissão de Esportes Unifique.",
+    title: t.title,
+    description: descricao,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      title: t.title,
+      description: descricao,
+      url,
+      ...(imagem ? { images: [{ url: imagem, alt: `Cartaz do ${t.title}` }] } : {}),
+    },
+    twitter: {
+      card: imagem ? "summary_large_image" : "summary",
+      title: t.title,
+      description: descricao,
+      ...(imagem ? { images: [imagem] } : {}),
+    },
   };
 }
 
@@ -75,6 +103,24 @@ export default async function TorneioDetalhePage({
   }
 
   const perguntas = (t.questions || "").split("\n").map((p) => p.trim()).filter(Boolean);
+
+  // Links de "adicionar à agenda" (só quando o torneio tem data).
+  let icsHref: string | null = null;
+  let googleHref: string | null = null;
+  if (t.date) {
+    const inicio = new Date(t.date);
+    const fim = new Date(inicio.getTime() + 2 * 60 * 60 * 1000);
+    const fmtUTC = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+    icsHref = `/api/ics/torneio/${t.slug ?? t.id}`;
+    const g = new URLSearchParams({
+      action: "TEMPLATE",
+      text: t.title,
+      dates: `${fmtUTC(inicio)}/${fmtUTC(fim)}`,
+      details: t.description?.trim() || "Torneio da Comissão de Esportes Unifique.",
+      ...(t.location ? { location: t.location } : {}),
+    });
+    googleHref = `https://calendar.google.com/calendar/render?${g.toString()}`;
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
@@ -155,6 +201,13 @@ export default async function TorneioDetalhePage({
             </p>
             <ShareLink path={`/torneios/${t.slug ?? t.id}`} message={`🏆 ${t.title} · Comissão de Esportes Unifique`} />
           </div>
+
+          {/* Adicionar à agenda (só quando tem data) */}
+          {icsHref && googleHref && (
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <AddToCalendar icsHref={icsHref} googleHref={googleHref} />
+            </div>
+          )}
         </div>
 
         {t.open ? (
