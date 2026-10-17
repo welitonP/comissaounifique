@@ -30,7 +30,7 @@ export default async function MembersMarquee() {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-unifique">Nossa comissão</h2>
+        <h2 className="text-xl font-bold text-unifique dark:text-white">Nossa comissão</h2>
         <Link
           href="/comissao"
           className="text-sm font-semibold text-unifique-blue hover:underline"
@@ -39,7 +39,7 @@ export default async function MembersMarquee() {
         </Link>
       </div>
 
-      <div className="marquee-container overflow-hidden rounded-2xl bg-white py-6 shadow-sm">
+      <div className="marquee-container overflow-hidden rounded-2xl bg-white py-6 shadow-sm dark:bg-gray-900">
         <div className="animate-marquee flex w-max gap-8">
           {loop.map((m, i) => (
             <div key={`${m.id}-${i}`} className="flex w-20 flex-shrink-0 flex-col items-center">
@@ -55,7 +55,7 @@ export default async function MembersMarquee() {
                   {iniciais(m.name)}
                 </div>
               )}
-              <span className="mt-2 line-clamp-2 text-center text-xs font-medium text-gray-600">
+              <span className="mt-2 line-clamp-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">
                 {m.name}
               </span>
             </div>

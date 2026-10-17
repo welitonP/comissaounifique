@@ -10,9 +10,9 @@ export default function WeeklySummary() {
   );
 
   return (
-    <section className="rounded-lg border-t-4 border-unifique-green bg-white p-5 shadow-sm">
+    <section className="rounded-lg border-t-4 border-unifique-green bg-white p-5 shadow-sm dark:bg-gray-900">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-semibold text-unifique">Resumo da semana (IA)</h2>
+        <h2 className="font-semibold text-unifique dark:text-white">Resumo da semana (IA)</h2>
         <form action={formAction}>
           <button
             type="submit"
@@ -27,10 +27,10 @@ export default function WeeklySummary() {
       {state?.error && <p className="mt-3 text-sm text-red-600">{state.error}</p>}
 
       {state?.summary ? (
-        <p className="mt-3 whitespace-pre-wrap text-sm text-gray-700">{state.summary}</p>
+        <p className="mt-3 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">{state.summary}</p>
       ) : (
         !state?.error && (
-          <p className="mt-3 text-sm text-gray-400">
+          <p className="mt-3 text-sm text-gray-400 dark:text-gray-500">
             Clique em “Gerar resumo” para a IA montar um apanhado dos próximos eventos e pendências.
           </p>
         )

@@ -61,8 +61,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [user, inscricoesAbertas] = await Promise.all([getCurrentUser(), isInscricoesAbertas()]);
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
+        {/* Aplica o tema escuro antes da primeira pintura, evitando "piscada".
+            Padrão: claro. Só fica escuro se a pessoa tiver escolhido. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(localStorage.getItem('tema')==='escuro'){document.documentElement.classList.add('dark')}}catch(e){}})();",
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

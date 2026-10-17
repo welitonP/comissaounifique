@@ -185,11 +185,11 @@ export default async function HomePage({
             { valor: athleteCount, rotulo: "atletas" },
             { valor: upcomingCount, rotulo: "eventos por vir" },
           ].map((s) => (
-            <div key={s.rotulo} className="rounded-2xl bg-white p-4 text-center shadow-sm">
-              <p className="font-display text-3xl font-extrabold text-unifique">
+            <div key={s.rotulo} className="rounded-2xl bg-white p-4 text-center shadow-sm dark:bg-gray-900">
+              <p className="font-display text-3xl font-extrabold text-unifique dark:text-unifique-blue">
                 <CountUp value={s.valor} />
               </p>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
                 {s.rotulo}
               </p>
             </div>
@@ -206,7 +206,7 @@ export default async function HomePage({
       <Reveal>
         <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-xl font-bold text-unifique">
+          <h2 className="flex items-center gap-2 text-xl font-bold text-unifique dark:text-white">
             <Megaphone size={22} className="text-unifique-blue" /> Últimos comunicados
           </h2>
           <Link
@@ -217,7 +217,7 @@ export default async function HomePage({
           </Link>
         </div>
         {latestAnnouncements.length === 0 ? (
-          <p className="rounded-2xl bg-white p-6 text-center text-gray-500 shadow-sm">
+          <p className="rounded-2xl bg-white p-6 text-center text-gray-500 shadow-sm dark:bg-gray-900 dark:text-gray-400">
             Nenhum comunicado ainda.
           </p>
         ) : (
@@ -226,7 +226,7 @@ export default async function HomePage({
               <Link
                 key={a.id}
                 href="/comunicados"
-                className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-900"
               >
                 {a.images[0] ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
@@ -241,10 +241,10 @@ export default async function HomePage({
                   </div>
                 )}
                 <div className="p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
                     {new Date(a.createdAt).toLocaleDateString("pt-BR")}
                   </p>
-                  <h3 className="mt-1 line-clamp-2 font-semibold text-gray-800 group-hover:text-unifique">
+                  <h3 className="mt-1 line-clamp-2 font-semibold text-gray-800 group-hover:text-unifique dark:text-gray-100 dark:group-hover:text-unifique-blue">
                     {a.title}
                   </h3>
                 </div>
@@ -260,7 +260,7 @@ export default async function HomePage({
         <Reveal>
           <section>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-xl font-bold text-unifique">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-unifique dark:text-white">
                 <Camera size={22} className="text-unifique-blue" /> Momentos
               </h2>
               <Link
@@ -278,7 +278,7 @@ export default async function HomePage({
       {/* Acesso rápido */}
       <Reveal>
         <section>
-        <h2 className="mb-4 text-xl font-bold text-unifique">Acesso rápido</h2>
+        <h2 className="mb-4 text-xl font-bold text-unifique dark:text-white">Acesso rápido</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <Atalho href="/calendario" titulo="Calendário" desc="Jogos e eventos" Icon={CalendarDays} />
           <Atalho href="/fotos" titulo="Fotos" desc="Momentos dos jogos" Icon={Camera} />
@@ -302,7 +302,7 @@ export default async function HomePage({
         <Reveal>
           <section>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-xl font-bold text-unifique">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-unifique dark:text-white">
                 <Vote size={22} className="text-unifique-blue" /> Enquete
               </h2>
               <Link
@@ -312,8 +312,8 @@ export default async function HomePage({
                 Ver todas <ChevronRight size={16} />
               </Link>
             </div>
-            <div className="rounded-2xl bg-white p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-800">{latestPoll.question}</h3>
+            <div className="rounded-2xl bg-white p-5 shadow-sm dark:bg-gray-900">
+              <h3 className="font-semibold text-gray-800 dark:text-gray-100">{latestPoll.question}</h3>
               <div className="mt-4 space-y-2">
                 {latestPoll.options.map((option) => {
                   const pct = totalVotos > 0 ? Math.round((option.votes / totalVotos) * 100) : 0;
@@ -321,12 +321,12 @@ export default async function HomePage({
                     <div key={option.id}>
                       <div className="flex justify-between text-sm">
                         <span>{option.text}</span>
-                        <span className="text-gray-500">
+                        <span className="text-gray-500 dark:text-gray-400">
                           {option.votes} voto(s) · {pct}%
                         </span>
                       </div>
-                      <div className="mt-1 h-2 w-full rounded bg-gray-100">
-                        <div className="h-2 rounded bg-unifique" style={{ width: `${pct}%` }} />
+                      <div className="mt-1 h-2 w-full rounded bg-gray-100 dark:bg-white/10">
+                        <div className="h-2 rounded bg-unifique dark:bg-unifique-blue" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   ) : (
@@ -335,7 +335,7 @@ export default async function HomePage({
                       <input type="hidden" name="optionId" value={option.id} />
                       <button
                         type="submit"
-                        className="w-full rounded border border-unifique px-3 py-2 text-left text-sm text-unifique-dark hover:bg-unifique/10"
+                        className="w-full rounded border border-unifique px-3 py-2 text-left text-sm text-unifique-dark hover:bg-unifique/10 dark:border-unifique-blue/50 dark:text-unifique-blue dark:hover:bg-unifique-blue/10"
                       >
                         {option.text}
                       </button>
@@ -344,13 +344,13 @@ export default async function HomePage({
                 })}
               </div>
               {!jaVotou && (
-                <p className="mt-3 text-xs text-gray-400">Toque em uma opção para votar.</p>
+                <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">Toque em uma opção para votar.</p>
               )}
 
               {/* Sugerir uma modalidade que não está nas opções */}
               <form
                 action={suggestPollModality}
-                className="mt-4 border-t border-gray-100 pt-3"
+                className="mt-4 border-t border-gray-100 pt-3 dark:border-white/10"
               >
                 <input type="hidden" name="pollId" value={latestPoll.id} />
                 <input type="hidden" name="from" value="/" />
@@ -362,7 +362,7 @@ export default async function HomePage({
                   className="hidden"
                   aria-hidden="true"
                 />
-                <label className="block text-sm font-medium text-gray-600">
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-300">
                   Quer uma modalidade que não está na lista? Sugira aqui:
                 </label>
                 <div className="mt-1 flex gap-2">
@@ -370,7 +370,7 @@ export default async function HomePage({
                     name="text"
                     maxLength={80}
                     placeholder="Ex: Beach Tennis, Padel..."
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-unifique focus:outline-none"
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-unifique focus:outline-none dark:border-white/15 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
                   />
                   <button
                     type="submit"
@@ -402,13 +402,13 @@ function Atalho({
   return (
     <Link
       href={href}
-      className="group rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="group rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-900"
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-unifique-light text-unifique transition group-hover:bg-unifique group-hover:text-white">
+      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-unifique-light text-unifique transition group-hover:bg-unifique group-hover:text-white dark:bg-white/10 dark:text-unifique-blue dark:group-hover:bg-unifique-blue dark:group-hover:text-white">
         <Icon size={22} />
       </span>
-      <h3 className="mt-3 font-display font-semibold text-gray-800">{titulo}</h3>
-      <p className="text-xs text-gray-400">{desc}</p>
+      <h3 className="mt-3 font-display font-semibold text-gray-800 dark:text-gray-100">{titulo}</h3>
+      <p className="text-xs text-gray-400 dark:text-gray-500">{desc}</p>
     </Link>
   );
 }

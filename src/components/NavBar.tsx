@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import type { SessionUser } from "@/lib/auth";
 import { logoutAction } from "@/lib/actions";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const PUBLIC_LINKS = [
   { href: "/", label: "Início", Icon: Home },
@@ -77,6 +78,7 @@ export default function NavBar({
 
         {/* Desktop */}
         <nav className="hidden shrink-0 items-center gap-0.5 xl:flex">
+          <ThemeToggle className="mr-0.5" />
           {PUBLIC_LINKS.map(({ href, label }) => (
             <Link
               key={href}
@@ -121,14 +123,17 @@ export default function NavBar({
           )}
         </nav>
 
-        {/* Mobile: hambúrguer */}
-        <button
-          onClick={() => setOpen((o) => !o)}
-          aria-label={open ? "Fechar menu" : "Abrir menu"}
-          className="rounded-lg p-2 hover:bg-white/10 xl:hidden"
-        >
-          {open ? <X size={26} /> : <Menu size={26} />}
-        </button>
+        {/* Mobile: tema + hambúrguer */}
+        <div className="flex items-center gap-1 xl:hidden">
+          <ThemeToggle />
+          <button
+            onClick={() => setOpen((o) => !o)}
+            aria-label={open ? "Fechar menu" : "Abrir menu"}
+            className="rounded-lg p-2 hover:bg-white/10"
+          >
+            {open ? <X size={26} /> : <Menu size={26} />}
+          </button>
+        </div>
       </div>
 
       {/* Painel mobile */}
