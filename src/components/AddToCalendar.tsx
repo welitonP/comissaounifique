@@ -4,11 +4,9 @@ import { CalendarPlus } from "lucide-react";
 //   - Baixar .ics  -> funciona no Apple Agenda, Outlook, etc.
 //   - Google Agenda -> abre o Google Calendar já preenchido.
 export default function AddToCalendar({
-  icsHref,
   googleHref,
   outlookHref,
 }: {
-  icsHref: string;
   googleHref: string;
   outlookHref: string;
 }) {
@@ -33,12 +31,6 @@ export default function AddToCalendar({
           className="inline-flex items-center gap-1.5 rounded-lg border border-unifique px-3 py-1.5 text-sm font-semibold text-unifique transition hover:bg-unifique/10 dark:border-unifique-blue/60 dark:text-unifique-blue dark:hover:bg-unifique-blue/10"
         >
           Google Agenda
-        </a>
-        <a
-          href={icsHref}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-white/15 dark:text-gray-300 dark:hover:bg-white/5"
-        >
-          Apple / outros (.ics)
         </a>
       </div>
     </div>

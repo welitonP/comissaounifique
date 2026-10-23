@@ -105,7 +105,6 @@ export default async function TorneioDetalhePage({
   const perguntas = (t.questions || "").split("\n").map((p) => p.trim()).filter(Boolean);
 
   // Links de "adicionar à agenda" (só quando o torneio tem data).
-  let icsHref: string | null = null;
   let googleHref: string | null = null;
   let outlookHref: string | null = null;
   if (t.date) {
@@ -113,7 +112,6 @@ export default async function TorneioDetalhePage({
     const fim = new Date(inicio.getTime() + 2 * 60 * 60 * 1000);
     const fmtUTC = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
     const detalhes = t.description?.trim() || "Torneio da Comissão de Esportes Unifique.";
-    icsHref = `/api/ics/torneio/${t.slug ?? t.id}`;
 
     // Google Agenda (abre o Google Calendar já preenchido)
     const g = new URLSearchParams({
@@ -219,9 +217,9 @@ export default async function TorneioDetalhePage({
           </div>
 
           {/* Adicionar à agenda (só quando tem data) */}
-          {icsHref && googleHref && outlookHref && (
+          {googleHref && outlookHref && (
             <div className="mt-4 border-t border-gray-100 pt-4 dark:border-white/10">
-              <AddToCalendar icsHref={icsHref} googleHref={googleHref} outlookHref={outlookHref} />
+              <AddToCalendar googleHref={googleHref} outlookHref={outlookHref} />
             </div>
           )}
         </div>
