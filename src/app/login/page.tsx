@@ -16,7 +16,7 @@ export default async function LoginPage({
       <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-sm">
         <div className="mb-6 flex flex-col items-center text-center">
           <Image
-            src="/logo-comissao.jpg"
+            src="/logo-comissao.png"
             alt="Comissão de Esportes Unifique"
             width={90}
             height={90}

@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3">
         <div className="flex items-start gap-3">
           <Image
-            src="/logo-comissao.jpg"
+            src="/logo-comissao.png"
             alt="Comissão de Esportes Unifique"
             width={52}
             height={52}

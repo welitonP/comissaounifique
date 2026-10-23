@@ -56,7 +56,7 @@ export default function AssistantWidget({ configured }: { configured: boolean })
           <div className="flex items-center justify-between bg-unifique px-4 py-3 text-white">
             <div className="flex items-center gap-2">
               <Image
-                src="/logo-comissao.jpg"
+                src="/logo-comissao.png"
                 alt="Pablinho"
                 width={32}
                 height={32}
@@ -166,7 +166,7 @@ export default function AssistantWidget({ configured }: { configured: boolean })
             </span>
           ) : (
             <Image
-              src="/logo-comissao.jpg"
+              src="/logo-comissao.png"
               alt="Pablinho"
               width={56}
               height={56}

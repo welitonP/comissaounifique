@@ -59,7 +59,7 @@ export default function NavBar({
           onClick={() => setOpen(false)}
         >
           <Image
-            src="/logo-comissao.jpg"
+            src="/logo-comissao.png"
             alt="Comissão de Esportes Unifique"
             width={46}
             height={46}

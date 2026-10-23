@@ -118,7 +118,7 @@ export default async function HomePage({
 
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
           <Image
-            src="/logo-comissao.jpg"
+            src="/logo-comissao.png"
             alt="Comissão de Esportes Unifique"
             width={120}
             height={120}
