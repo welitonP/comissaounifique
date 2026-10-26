@@ -12,6 +12,7 @@ type TournamentData = {
   description: string;
   location: string;
   questions: string;
+  categories: string;
   dateLocal: string;
   hasPhoto: boolean;
 };
@@ -136,6 +137,24 @@ export default function TournamentForm({ tournament }: { tournament?: Tournament
           />
           <p className="mt-1 text-xs text-gray-400">
             Essas perguntas aparecem no formulário de inscrição (o atleta responde se quiser).
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-500">
+            Categorias{" "}
+            <span className="font-normal text-gray-400">(uma por linha, opcional)</span>
+          </label>
+          <textarea
+            name="categories"
+            defaultValue={tournament?.categories ?? ""}
+            rows={2}
+            placeholder={"Ex:\nFeminino\nMasculino"}
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Se preencher, o atleta escolhe a categoria na inscrição e a lista fica separada
+            por categoria. Deixe em branco para não usar.
           </p>
         </div>
 

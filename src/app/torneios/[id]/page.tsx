@@ -73,6 +73,7 @@ export default async function TorneioDetalhePage({
       date: true,
       open: true,
       questions: true,
+      categories: true,
       photoMime: true,
       _count: { select: { signups: true } },
     },
@@ -103,6 +104,7 @@ export default async function TorneioDetalhePage({
   }
 
   const perguntas = (t.questions || "").split("\n").map((p) => p.trim()).filter(Boolean);
+  const categorias = (t.categories || "").split("\n").map((c) => c.trim()).filter(Boolean);
 
   // Links de "adicionar à agenda" (só quando o torneio tem data).
   let googleHref: string | null = null;
@@ -164,6 +166,11 @@ export default async function TorneioDetalhePage({
       {sp.erro === "fechado" && (
         <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
           As inscrições deste torneio foram encerradas.
+        </p>
+      )}
+      {sp.erro === "categoria" && (
+        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+          Escolha a categoria para se inscrever.
         </p>
       )}
 
@@ -262,6 +269,28 @@ export default async function TorneioDetalhePage({
                 />
               </div>
             </div>
+            {categorias.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Categoria <span className="text-unifique-blue">*</span>
+                </label>
+                <select
+                  name="category"
+                  required
+                  defaultValue=""
+                  className="mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:border-unifique focus:outline-none"
+                >
+                  <option value="" disabled>
+                    Selecione...
+                  </option>
+                  {categorias.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             {perguntas.map((pergunta, i) => (
               <div key={i}>
                 <label className="block text-sm font-semibold text-gray-700">

@@ -279,6 +279,7 @@ model Tournament {
   date        DateTime? // quando (opcional)
   open        Boolean           @default(true) // inscrições abertas?
   questions   String? // perguntas extras da comissão, uma por linha (ex: "Nome da sua dupla")
+  categories  String? // categorias para separar (uma por linha, ex: "Feminino\nMasculino"); vazio = sem categoria
   photoData   Bytes? // cartaz/foto do torneio (servido por /api/torneio-foto/[id])
   photoMime   String?
   createdAt   DateTime          @default(now())
@@ -292,6 +293,7 @@ model TournamentSignup {
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   name         String
   phone        String
+  category     String? // categoria escolhida (ex: "Feminino" / "Masculino"), quando o torneio usa categorias
   note         String? // observação livre
   answers      String? // respostas às perguntas extras (JSON: {"pergunta":"resposta"})
   createdAt    DateTime   @default(now())

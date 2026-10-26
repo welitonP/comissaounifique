@@ -25,9 +25,10 @@ export async function GET(req: NextRequest) {
     select: {
       title: true,
       questions: true,
+      categories: true,
       signups: {
         orderBy: { createdAt: "asc" },
-        select: { name: true, phone: true, note: true, answers: true, createdAt: true },
+        select: { name: true, phone: true, category: true, note: true, answers: true, createdAt: true },
       },
     },
   });
@@ -40,8 +41,31 @@ export async function GET(req: NextRequest) {
     .map((p) => p.trim())
     .filter(Boolean);
 
-  const header = ["Nome", "Telefone", ...perguntas, "Observação", "Inscrito em"];
-  const rows = torneio.signups.map((s) => {
+  const categorias = (torneio.categories || "")
+    .split("\n")
+    .map((c) => c.trim())
+    .filter(Boolean);
+  const temCategorias = categorias.length > 0;
+
+  // Quando há categorias, ordena os inscritos por categoria (na ordem definida)
+  // para a planilha já sair agrupada.
+  const signups = temCategorias
+    ? [...torneio.signups].sort((a, b) => {
+        const ia = categorias.indexOf(a.category ?? "");
+        const ib = categorias.indexOf(b.category ?? "");
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      })
+    : torneio.signups;
+
+  const header = [
+    "Nome",
+    "Telefone",
+    ...(temCategorias ? ["Categoria"] : []),
+    ...perguntas,
+    "Observação",
+    "Inscrito em",
+  ];
+  const rows = signups.map((s) => {
     let respostas: Record<string, string> = {};
     try {
       respostas = s.answers ? (JSON.parse(s.answers) as Record<string, string>) : {};
@@ -51,6 +75,7 @@ export async function GET(req: NextRequest) {
     return [
       cell(s.name),
       cell(s.phone),
+      ...(temCategorias ? [cell(s.category)] : []),
       ...perguntas.map((p) => cell(respostas[p] || "")),
       cell(s.note),
       cell(fmtDataHora(s.createdAt)),

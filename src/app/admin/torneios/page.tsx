@@ -39,10 +39,11 @@ export default async function AdminTorneiosPage({
         location: true,
         description: true,
         questions: true,
+        categories: true,
         photoMime: true,
         signups: {
           orderBy: { createdAt: "asc" },
-          select: { id: true, name: true, phone: true, note: true, answers: true },
+          select: { id: true, name: true, phone: true, category: true, note: true, answers: true },
         },
       },
     }),
@@ -127,6 +128,7 @@ export default async function AdminTorneiosPage({
                 description: t.description ?? "",
                 location: t.location ?? "",
                 questions: t.questions ?? "",
+                categories: t.categories ?? "",
                 dateLocal: toInputLocal(t.date),
                 hasPhoto: !!t.photoMime,
               }}
@@ -147,8 +149,8 @@ export default async function AdminTorneiosPage({
               {t.signups.length === 0 ? (
                 <p className="text-sm text-gray-400">Ninguém inscrito ainda.</p>
               ) : (
-                <ul className="space-y-1">
-                  {t.signups.map((s) => {
+                (() => {
+                  const renderRow = (s: (typeof t.signups)[number]) => {
                     const respostas = parseAnswers(s.answers);
                     return (
                       <li
@@ -156,12 +158,12 @@ export default async function AdminTorneiosPage({
                         className="flex items-start justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 text-sm"
                       >
                         <span>
-                          <span className="font-medium">{s.name}</span>
-                          <span className="text-gray-500"> · {s.phone}</span>
-                          {s.note && <span className="text-gray-400"> · {s.note}</span>}
+                          <span className="font-semibold text-gray-900">{s.name}</span>
+                          <span className="text-gray-600"> · {s.phone}</span>
+                          {s.note && <span className="text-gray-500"> · {s.note}</span>}
                           {respostas.map(([q, a]) => (
                             <span key={q} className="block text-xs text-gray-500">
-                              {q}: <span className="text-gray-700">{a}</span>
+                              {q}: <span className="font-medium text-gray-700">{a}</span>
                             </span>
                           ))}
                         </span>
@@ -173,8 +175,43 @@ export default async function AdminTorneiosPage({
                         </form>
                       </li>
                     );
-                  })}
-                </ul>
+                  };
+
+                  const cats = (t.categories || "")
+                    .split("\n")
+                    .map((c) => c.trim())
+                    .filter(Boolean);
+
+                  // Sem categorias: lista simples (como antes).
+                  if (cats.length === 0) {
+                    return <ul className="space-y-1">{t.signups.map(renderRow)}</ul>;
+                  }
+
+                  // Com categorias: separa em grupos (mais um grupo "Sem categoria" se houver).
+                  const grupos = cats.map((c) => ({
+                    cat: c,
+                    itens: t.signups.filter((s) => s.category === c),
+                  }));
+                  const semCat = t.signups.filter((s) => !s.category || !cats.includes(s.category));
+                  if (semCat.length) grupos.push({ cat: "Sem categoria", itens: semCat });
+
+                  return (
+                    <div className="space-y-3">
+                      {grupos.map((g) => (
+                        <div key={g.cat}>
+                          <p className="mb-1 text-xs font-bold uppercase tracking-wide text-unifique">
+                            {g.cat} ({g.itens.length})
+                          </p>
+                          {g.itens.length === 0 ? (
+                            <p className="text-xs text-gray-400">Ninguém nesta categoria.</p>
+                          ) : (
+                            <ul className="space-y-1">{g.itens.map(renderRow)}</ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()
               )}
             </div>
           </div>

@@ -1196,6 +1196,7 @@ export async function createTournament(formData: FormData) {
   const location = String(formData.get("location") || "").trim();
   const dateRaw = String(formData.get("date") || "");
   const questions = limparPerguntas(String(formData.get("questions") || ""));
+  const categories = limparPerguntas(String(formData.get("categories") || ""));
   if (!title) return;
 
   // Cartaz/foto do torneio (opcional). Chega já reduzida pelo PhotoField.
@@ -1220,6 +1221,7 @@ export async function createTournament(formData: FormData) {
       location: location || null,
       date: dateRaw ? parseDataLocal(dateRaw) : null,
       questions,
+      categories,
       open: true,
       photoData,
       photoMime,
@@ -1240,6 +1242,7 @@ export async function updateTournament(formData: FormData) {
   const location = String(formData.get("location") || "").trim();
   const dateRaw = String(formData.get("date") || "");
   const questions = limparPerguntas(String(formData.get("questions") || ""));
+  const categories = limparPerguntas(String(formData.get("categories") || ""));
   const { parseDataLocal } = await import("./datas");
 
   const data: {
@@ -1248,6 +1251,7 @@ export async function updateTournament(formData: FormData) {
     location: string | null;
     date: Date | null;
     questions: string | null;
+    categories: string | null;
     slug?: string;
     photoData?: Buffer | null;
     photoMime?: string | null;
@@ -1257,6 +1261,7 @@ export async function updateTournament(formData: FormData) {
     location: location || null,
     date: dateRaw ? parseDataLocal(dateRaw) : null,
     questions,
+    categories,
   };
 
   // Slug: mantém estável (não muda ao editar o título, pra não quebrar links já
@@ -1330,7 +1335,7 @@ export async function createTournamentSignup(formData: FormData) {
   }
   const t = await prisma.tournament.findUnique({
     where: { id: tournamentId },
-    select: { slug: true, title: true, open: true, questions: true, signups: { select: { name: true, phone: true } } },
+    select: { slug: true, title: true, open: true, questions: true, categories: true, signups: { select: { name: true, phone: true } } },
   });
   // Prefere a URL bonita (slug) para o retorno.
   if (t?.slug) back = `/torneios/${t.slug}`;
@@ -1350,6 +1355,17 @@ export async function createTournamentSignup(formData: FormData) {
     redirect(`${back}?erro=ja-inscrito`);
   }
 
+  // Categoria (quando o torneio usa categorias: é obrigatória e precisa ser uma das definidas).
+  const categoriasDef = (t.categories || "").split("\n").map((c) => c.trim()).filter(Boolean);
+  let category: string | null = null;
+  if (categoriasDef.length > 0) {
+    const escolhida = String(formData.get("category") || "").trim();
+    category = categoriasDef.find((c) => c === escolhida) ?? null;
+    if (!category) {
+      redirect(`${back}?erro=categoria`);
+    }
+  }
+
   // Respostas às perguntas extras do torneio (todas opcionais).
   const perguntas = (t.questions || "").split("\n").map((p) => p.trim()).filter(Boolean);
   const respostas: Record<string, string> = {};
@@ -1360,7 +1376,7 @@ export async function createTournamentSignup(formData: FormData) {
   const answers = Object.keys(respostas).length > 0 ? JSON.stringify(respostas) : null;
 
   await prisma.tournamentSignup.create({
-    data: { tournamentId, name, phone, note: note || null, answers },
+    data: { tournamentId, name, phone, category, note: note || null, answers },
   });
   // Avisa automações externas (n8n), se configurado. Roda DEPOIS da resposta
   // (after) e é best-effort: se o n8n estiver fora ou com URL errada, a
@@ -1371,6 +1387,7 @@ export async function createTournamentSignup(formData: FormData) {
       slug: t.slug,
       nome: name,
       telefone: phone,
+      categoria: category,
       observacao: note || null,
     }),
   );
