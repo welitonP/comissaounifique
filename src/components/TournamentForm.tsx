@@ -13,6 +13,7 @@ type TournamentData = {
   location: string;
   questions: string;
   categories: string;
+  rules: string;
   dateLocal: string;
   hasPhoto: boolean;
 };
@@ -155,6 +156,22 @@ export default function TournamentForm({ tournament }: { tournament?: Tournament
           <p className="mt-1 text-xs text-gray-400">
             Se preencher, o atleta escolhe a categoria na inscrição e a lista fica separada
             por categoria. Deixe em branco para não usar.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-500">
+            Regulamento <span className="font-normal text-gray-400">(opcional)</span>
+          </label>
+          <textarea
+            name="rules"
+            defaultValue={tournament?.rules ?? ""}
+            rows={6}
+            placeholder={"Regras do torneio, formato das partidas, critérios de desempate, premiação, etc."}
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Aparece na página do torneio, num bloco &quot;Regulamento&quot; que a galera abre para ler.
           </p>
         </div>
 

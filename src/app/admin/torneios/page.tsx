@@ -40,6 +40,7 @@ export default async function AdminTorneiosPage({
         description: true,
         questions: true,
         categories: true,
+        rules: true,
         photoMime: true,
         signups: {
           orderBy: { createdAt: "asc" },
@@ -129,6 +130,7 @@ export default async function AdminTorneiosPage({
                 location: t.location ?? "",
                 questions: t.questions ?? "",
                 categories: t.categories ?? "",
+                rules: t.rules ?? "",
                 dateLocal: toInputLocal(t.date),
                 hasPhoto: !!t.photoMime,
               }}

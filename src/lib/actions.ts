@@ -1197,6 +1197,7 @@ export async function createTournament(formData: FormData) {
   const dateRaw = String(formData.get("date") || "");
   const questions = limparPerguntas(String(formData.get("questions") || ""));
   const categories = limparPerguntas(String(formData.get("categories") || ""));
+  const rules = String(formData.get("rules") || "").trim().slice(0, 8000) || null;
   if (!title) return;
 
   // Cartaz/foto do torneio (opcional). Chega já reduzida pelo PhotoField.
@@ -1222,6 +1223,7 @@ export async function createTournament(formData: FormData) {
       date: dateRaw ? parseDataLocal(dateRaw) : null,
       questions,
       categories,
+      rules,
       open: true,
       photoData,
       photoMime,
@@ -1243,6 +1245,7 @@ export async function updateTournament(formData: FormData) {
   const dateRaw = String(formData.get("date") || "");
   const questions = limparPerguntas(String(formData.get("questions") || ""));
   const categories = limparPerguntas(String(formData.get("categories") || ""));
+  const rules = String(formData.get("rules") || "").trim().slice(0, 8000) || null;
   const { parseDataLocal } = await import("./datas");
 
   const data: {
@@ -1252,6 +1255,7 @@ export async function updateTournament(formData: FormData) {
     date: Date | null;
     questions: string | null;
     categories: string | null;
+    rules: string | null;
     slug?: string;
     photoData?: Buffer | null;
     photoMime?: string | null;
@@ -1262,6 +1266,7 @@ export async function updateTournament(formData: FormData) {
     date: dateRaw ? parseDataLocal(dateRaw) : null,
     questions,
     categories,
+    rules,
   };
 
   // Slug: mantém estável (não muda ao editar o título, pra não quebrar links já

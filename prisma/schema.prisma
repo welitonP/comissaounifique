@@ -280,6 +280,7 @@ model Tournament {
   open        Boolean           @default(true) // inscrições abertas?
   questions   String? // perguntas extras da comissão, uma por linha (ex: "Nome da sua dupla")
   categories  String? // categorias para separar (uma por linha, ex: "Feminino\nMasculino"); vazio = sem categoria
+  rules       String? // regulamento do torneio (texto livre, exibido na página pública)
   photoData   Bytes? // cartaz/foto do torneio (servido por /api/torneio-foto/[id])
   photoMime   String?
   createdAt   DateTime          @default(now())

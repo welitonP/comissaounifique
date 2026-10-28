@@ -74,6 +74,7 @@ export default async function TorneioDetalhePage({
       open: true,
       questions: true,
       categories: true,
+      rules: true,
       photoMime: true,
       _count: { select: { signups: true } },
     },
@@ -214,6 +215,18 @@ export default async function TorneioDetalhePage({
               {t._count.signups} inscrito(s)
             </span>
           </div>
+
+          {/* Regulamento (abre/fecha) */}
+          {t.rules && (
+            <details open className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-gray-900">
+              <summary className="cursor-pointer list-none font-display font-semibold text-unifique dark:text-white">
+                📋 Regulamento
+              </summary>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                {t.rules}
+              </p>
+            </details>
+          )}
 
           {/* Compartilhar este torneio */}
           <div className="mt-4 border-t border-gray-100 pt-4">
