@@ -89,8 +89,6 @@ export default async function TorneioDetalhePage({
       ...(comArquivo ? { rulesMime: true, rulesName: true } : {}),
       photoMime: true,
       _count: { select: { signups: true } },
-      // Lista pública de inscritos: só nome e categoria (nunca o telefone).
-      signups: { select: { name: true, category: true }, orderBy: { createdAt: "asc" } },
     },
   });
   if (!t) {
@@ -118,7 +116,6 @@ export default async function TorneioDetalhePage({
     );
   }
 
-  const inscritos = t.signups;
   const perguntas = (t.questions || "").split("\n").map((p) => p.trim()).filter(Boolean);
   const categorias = (t.categories || "").split("\n").map((c) => c.trim()).filter(Boolean);
   const arquivo = t as { rulesMime?: string | null; rulesName?: string | null };
@@ -168,15 +165,6 @@ export default async function TorneioDetalhePage({
   const erro = typeof sp.erro === "string" ? erroMsg[sp.erro] : undefined;
   const campo =
     "mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base focus:border-unifique focus:outline-none focus:ring-2 focus:ring-unifique/15 dark:border-white/15 dark:bg-gray-800 dark:text-white";
-
-  // Quem já se inscreveu: só o nome (nunca o telefone), por categoria.
-  const gruposInscritos =
-    categorias.length > 0
-      ? [
-          ...categorias.map((c) => ({ cat: c, nomes: inscritos.filter((i) => i.category === c).map((i) => i.name) })),
-          { cat: "Outros", nomes: inscritos.filter((i) => !i.category || !categorias.includes(i.category)).map((i) => i.name) },
-        ].filter((g) => g.nomes.length > 0)
-      : [{ cat: null as string | null, nomes: inscritos.map((i) => i.name) }];
 
   const compartilharEAgenda = (
     <>
@@ -367,37 +355,6 @@ export default async function TorneioDetalhePage({
           </div>
         )}
       </section>
-
-      {/* Quem já está dentro (só nomes) */}
-      {inscritos.length > 0 && (
-        <section className="rounded-2xl bg-white p-5 shadow-sm dark:bg-gray-900">
-          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-unifique dark:text-white">
-            <Users size={20} className="text-unifique-blue" /> Quem já está dentro
-            <span className="rounded-full bg-unifique px-2 py-0.5 text-xs font-bold text-white">{inscritos.length}</span>
-          </h2>
-          <div className="mt-3 space-y-3">
-            {gruposInscritos.map((g) => (
-              <div key={g.cat ?? "todos"}>
-                {g.cat && (
-                  <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-gray-400">
-                    {g.cat} · {g.nomes.length}
-                  </p>
-                )}
-                <div className="flex flex-wrap gap-1.5">
-                  {g.nomes.map((n, i) => (
-                    <span
-                      key={`${n}-${i}`}
-                      className="rounded-full bg-unifique-light px-3 py-1 text-sm font-medium text-unifique dark:bg-white/10 dark:text-gray-200"
-                    >
-                      {n}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {!ok && <section className="rounded-2xl bg-white p-5 shadow-sm dark:bg-gray-900">{compartilharEAgenda}</section>}
 
