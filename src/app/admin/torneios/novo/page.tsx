@@ -9,6 +9,7 @@ const ERROS: Record<string, string> = {
   titulo: "Dê um título para o torneio.",
   foto: "O cartaz precisa ser uma imagem (JPG, PNG ou WEBP) de até 2 MB.",
   regulamento: "O arquivo do regulamento precisa ser PDF ou imagem, de até 3 MB.",
+  banco: "Para anexar arquivo, falta rodar o SQL do regulamento no Supabase. Nada foi salvo: rode o SQL ou salve sem o arquivo.",
 };
 
 export default async function NovoTorneioPage({

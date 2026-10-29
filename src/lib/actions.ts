@@ -14,6 +14,7 @@ import {
 } from "./auth";
 import { SESSION_COOKIE, createSessionToken } from "./session";
 import { notifyWebhook } from "./webhook";
+import { temColunasArquivoRegulamento } from "./schema-check";
 
 export async function loginAction(formData: FormData) {
   const username = String(formData.get("username") || "")
@@ -1240,6 +1241,7 @@ export async function createTournament(formData: FormData) {
 
   const arquivo = await lerArquivoRegulamento(formData);
   if (arquivo === "invalido") redirect("/admin/torneios/novo?erro=regulamento");
+  if (arquivo && !(await temColunasArquivoRegulamento())) redirect("/admin/torneios/novo?erro=banco");
 
   const { parseDataLocal } = await import("./datas");
   const slug = await slugUnico(slugify(title));
@@ -1256,9 +1258,7 @@ export async function createTournament(formData: FormData) {
       open: true,
       photoData,
       photoMime,
-      rulesData: arquivo?.data ?? null,
-      rulesMime: arquivo?.mime ?? null,
-      rulesName: arquivo?.name ?? null,
+      ...(arquivo ? { rulesData: arquivo.data, rulesMime: arquivo.mime, rulesName: arquivo.name } : {}),
     },
     select: { id: true },
   });
@@ -1322,6 +1322,7 @@ export async function updateTournament(formData: FormData) {
   } else {
     const arquivo = await lerArquivoRegulamento(formData);
     if (arquivo === "invalido") voltarErro("regulamento");
+    if (arquivo && !(await temColunasArquivoRegulamento())) voltarErro("banco");
     if (arquivo && arquivo !== "invalido") {
       data.rulesData = arquivo.data;
       data.rulesMime = arquivo.mime;
@@ -1329,7 +1330,7 @@ export async function updateTournament(formData: FormData) {
     }
   }
 
-  await prisma.tournament.update({ where: { id }, data });
+  await prisma.tournament.update({ where: { id }, data, select: { id: true } });
   revalidarTorneios();
   redirect(`/admin/torneios/${id}?ok=editado`);
 }
@@ -1340,7 +1341,7 @@ export async function toggleTournament(formData: FormData) {
   if (!id) return;
   const t = await prisma.tournament.findUnique({ where: { id }, select: { open: true } });
   if (!t) return;
-  await prisma.tournament.update({ where: { id }, data: { open: !t.open } });
+  await prisma.tournament.update({ where: { id }, data: { open: !t.open }, select: { id: true } });
   revalidarTorneios();
 }
 
@@ -1348,7 +1349,7 @@ export async function deleteTournament(formData: FormData) {
   await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
-  await prisma.tournament.delete({ where: { id } });
+  await prisma.tournament.delete({ where: { id }, select: { id: true } });
   revalidarTorneios();
   redirect("/admin/torneios?ok=excluido");
 }

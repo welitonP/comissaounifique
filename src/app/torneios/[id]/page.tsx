@@ -8,6 +8,7 @@ import SuccessCelebration from "@/components/SuccessCelebration";
 import ShareLink from "@/components/ShareLink";
 import AddToCalendar from "@/components/AddToCalendar";
 import RulesModal from "@/components/RulesModal";
+import { temColunasArquivoRegulamento } from "@/lib/schema-check";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +63,11 @@ export default async function TorneioDetalhePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ id: ref }, sp] = await Promise.all([params, searchParams]);
+  const [{ id: ref }, sp, comArquivo] = await Promise.all([
+    params,
+    searchParams,
+    temColunasArquivoRegulamento(),
+  ]);
   const t = await prisma.tournament.findFirst({
     where: { OR: [{ slug: ref }, { id: ref }] },
     select: {
@@ -76,8 +81,7 @@ export default async function TorneioDetalhePage({
       questions: true,
       categories: true,
       rules: true,
-      rulesMime: true,
-      rulesName: true,
+      ...(comArquivo ? { rulesMime: true, rulesName: true } : {}),
       photoMime: true,
       _count: { select: { signups: true } },
     },
@@ -109,7 +113,8 @@ export default async function TorneioDetalhePage({
 
   const perguntas = (t.questions || "").split("\n").map((p) => p.trim()).filter(Boolean);
   const categorias = (t.categories || "").split("\n").map((c) => c.trim()).filter(Boolean);
-  const regulamentoUrl = t.rulesMime ? `/api/torneio-regulamento/${t.id}` : null;
+  const arquivo = t as { rulesMime?: string | null; rulesName?: string | null };
+  const regulamentoUrl = arquivo.rulesMime ? `/api/torneio-regulamento/${t.id}` : null;
   const temRegulamento = !!(t.rules || regulamentoUrl);
 
   // Links de "adicionar à agenda" (só quando o torneio tem data).
@@ -228,8 +233,8 @@ export default async function TorneioDetalhePage({
                 title={t.title}
                 text={t.rules}
                 fileUrl={regulamentoUrl}
-                fileMime={t.rulesMime}
-                fileName={t.rulesName}
+                fileMime={arquivo.rulesMime ?? null}
+                fileName={arquivo.rulesName ?? null}
               />
             </div>
           )}
@@ -340,8 +345,8 @@ export default async function TorneioDetalhePage({
                   title={t.title}
                   text={t.rules}
                   fileUrl={regulamentoUrl}
-                  fileMime={t.rulesMime}
-                  fileName={t.rulesName}
+                  fileMime={arquivo.rulesMime ?? null}
+                  fileName={arquivo.rulesName ?? null}
                 />{" "}
                 do torneio.
               </p>

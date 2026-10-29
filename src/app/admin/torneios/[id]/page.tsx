@@ -21,6 +21,7 @@ import ConfirmButton from "@/components/ConfirmButton";
 import ShareLink from "@/components/ShareLink";
 import TournamentForm from "@/components/TournamentForm";
 import AdminSignupList, { type AdminSignup } from "@/components/AdminSignupList";
+import { temColunasArquivoRegulamento } from "@/lib/schema-check";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ const ERROS: Record<string, string> = {
   titulo: "O torneio precisa de um título.",
   foto: "O cartaz precisa ser uma imagem (JPG, PNG ou WEBP) de até 2 MB.",
   regulamento: "O arquivo do regulamento precisa ser PDF ou imagem, de até 3 MB.",
+  banco: "Para anexar arquivo, falta rodar o SQL do regulamento no Supabase. Nada foi salvo: rode o SQL ou salve sem o arquivo.",
 };
 
 function parseAnswers(raw: string | null): [string, string][] {
@@ -47,7 +49,7 @@ export default async function AdminTorneioPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   await requireUserPage();
-  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const [{ id }, sp, comArquivo] = await Promise.all([params, searchParams, temColunasArquivoRegulamento()]);
 
   const t = await prisma.tournament.findUnique({
     where: { id },
@@ -63,8 +65,7 @@ export default async function AdminTorneioPage({
       questions: true,
       categories: true,
       rules: true,
-      rulesMime: true,
-      rulesName: true,
+      ...(comArquivo ? { rulesMime: true, rulesName: true } : {}),
       photoMime: true,
       signups: {
         orderBy: { createdAt: "asc" },
@@ -84,6 +85,7 @@ export default async function AdminTorneioPage({
     );
   }
 
+  const arquivo = t as { rulesMime?: string | null; rulesName?: string | null };
   const aba = sp.aba === "editar" ? "editar" : "inscritos";
   const msgErro = typeof sp.erro === "string" ? ERROS[sp.erro] : undefined;
   const cats = (t.categories || "").split("\n").map((c) => c.trim()).filter(Boolean);
@@ -162,7 +164,7 @@ export default async function AdminTorneioPage({
             )}
             <span className="inline-flex items-center gap-1.5">
               <FileText size={15} className="text-unifique-blue" />
-              {t.rules || t.rulesMime ? "Regulamento publicado" : "Sem regulamento"}
+              {t.rules || arquivo.rulesMime ? "Regulamento publicado" : "Sem regulamento"}
             </span>
           </div>
 
@@ -259,7 +261,7 @@ export default async function AdminTorneioPage({
             rules: t.rules ?? "",
             dateLocal: toInputLocal(t.date),
             hasPhoto: !!t.photoMime,
-            rulesFileName: t.rulesMime ? t.rulesName || "regulamento" : null,
+            rulesFileName: arquivo.rulesMime ? arquivo.rulesName || "regulamento" : null,
           }}
         />
       )}
