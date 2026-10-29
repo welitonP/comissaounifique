@@ -31,6 +31,18 @@ echo "== Conferindo conexões =="
 supa -Atc "select 'Supabase ok: PostgreSQL ' || current_setting('server_version')"
 local_db -Atc "select 'Local ok: PostgreSQL ' || current_setting('server_version')"
 
+# Tabelas com RLS (segurança por linha) escondem as linhas de quem não é dono.
+# Sem permissão de ignorar o RLS, a cópia sairia vazia sem dar erro.
+COM_RLS=$(supa -Atc "select count(*) from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r' and relrowsecurity")
+PODE_IGNORAR=$(supa -Atc "select (rolbypassrls or rolsuper)::text from pg_roles where rolname = current_user")
+if [ "$COM_RLS" != "0" ] && [ "$PODE_IGNORAR" != "true" ]; then
+  echo
+  echo "ERRO: $COM_RLS tabela(s) do Supabase têm RLS ligado e o usuário desta conexão"
+  echo "não pode ignorá-lo. A cópia sairia VAZIA. Nada foi alterado."
+  echo "No SQL Editor do Supabase, rode:  alter role <usuario> bypassrls;"
+  exit 1
+fi
+
 LISTA_TABELAS="select tablename from pg_tables where schemaname = 'public' and tablename <> '_prisma_migrations' order by 1"
 mapfile -t TABELAS_SUPA < <(supa -Atc "$LISTA_TABELAS")
 mapfile -t TABELAS_LOCAL < <(local_db -Atc "$LISTA_TABELAS")
@@ -95,14 +107,20 @@ done
 echo
 echo "== Conferindo quantidades (Supabase x local) =="
 DIFERENCAS=0
+TOTAL_SUPA=0
 for t in "${COPIAR[@]}"; do
   n_supa=$(supa -Atc "select count(*) from public.\"$t\"")
+  TOTAL_SUPA=$((TOTAL_SUPA + n_supa))
   n_local=$(local_db -Atc "select count(*) from public.\"$t\"")
   if [ "$n_supa" = "$n_local" ]; then status="ok"; else status="DIFERENTE"; DIFERENCAS=$((DIFERENCAS + 1)); fi
   printf "  %-28s %8s %8s   %s\n" "$t" "$n_supa" "$n_local" "$status"
 done
 
 echo
+if [ "$TOTAL_SUPA" -eq 0 ]; then
+  echo "ATENÇÃO: o Supabase devolveu ZERO linhas em todas as tabelas. Confira as permissões do usuário."
+  exit 3
+fi
 if [ "$DIFERENCAS" -eq 0 ]; then
   echo "PRONTO: todos os dados foram copiados e as quantidades batem."
 else
