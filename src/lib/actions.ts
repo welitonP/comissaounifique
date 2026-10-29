@@ -1189,6 +1189,32 @@ async function slugUnico(base: string, excluirId?: string): Promise<string> {
   }
 }
 
+// Arquivo do regulamento: PDF ou imagem, até 3 MB (o envio inteiro tem limite
+// de ~4,5 MB na Vercel, e o cartaz pode ir junto no mesmo formulário).
+const RULES_MIMES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
+const RULES_MAX_BYTES = 3 * 1024 * 1024;
+
+type ArquivoRegulamento = { data: Buffer; mime: string; name: string };
+
+// Lê o arquivo do regulamento do formulário. Retorna null se não veio arquivo
+// e "invalido" se o formato/tamanho não for aceito.
+async function lerArquivoRegulamento(
+  formData: FormData,
+): Promise<ArquivoRegulamento | null | "invalido"> {
+  const f = formData.get("rulesFile");
+  if (!(f instanceof File) || f.size === 0) return null;
+  if (!RULES_MIMES.has(f.type) || f.size > RULES_MAX_BYTES) return "invalido";
+  const name = (f.name || "regulamento").replace(/[^\w.\- ]+/g, "_").slice(0, 120);
+  return { data: Buffer.from(await f.arrayBuffer()), mime: f.type, name };
+}
+
+function revalidarTorneios() {
+  revalidatePath("/torneios", "layout");
+  revalidatePath("/admin/torneios", "layout");
+  revalidatePath("/calendario");
+  revalidatePath("/");
+}
+
 export async function createTournament(formData: FormData) {
   await requireUser();
   const title = String(formData.get("title") || "").trim();
@@ -1198,7 +1224,7 @@ export async function createTournament(formData: FormData) {
   const questions = limparPerguntas(String(formData.get("questions") || ""));
   const categories = limparPerguntas(String(formData.get("categories") || ""));
   const rules = String(formData.get("rules") || "").trim().slice(0, 8000) || null;
-  if (!title) return;
+  if (!title) redirect("/admin/torneios/novo?erro=titulo");
 
   // Cartaz/foto do torneio (opcional). Chega já reduzida pelo PhotoField.
   const photo = formData.get("photo");
@@ -1206,15 +1232,18 @@ export async function createTournament(formData: FormData) {
   let photoMime: string | null = null;
   if (photo instanceof File && photo.size > 0) {
     if (!ALLOWED_IMAGE_MIMES.has(photo.type) || photo.size > 2 * 1024 * 1024) {
-      redirect("/admin/torneios?erro=foto");
+      redirect("/admin/torneios/novo?erro=foto");
     }
     photoData = Buffer.from(await photo.arrayBuffer());
     photoMime = photo.type;
   }
 
+  const arquivo = await lerArquivoRegulamento(formData);
+  if (arquivo === "invalido") redirect("/admin/torneios/novo?erro=regulamento");
+
   const { parseDataLocal } = await import("./datas");
   const slug = await slugUnico(slugify(title));
-  await prisma.tournament.create({
+  const criado = await prisma.tournament.create({
     data: {
       title,
       slug,
@@ -1227,19 +1256,23 @@ export async function createTournament(formData: FormData) {
       open: true,
       photoData,
       photoMime,
+      rulesData: arquivo?.data ?? null,
+      rulesMime: arquivo?.mime ?? null,
+      rulesName: arquivo?.name ?? null,
     },
+    select: { id: true },
   });
-  revalidatePath("/torneios");
-  revalidatePath("/admin/torneios");
-  revalidatePath("/calendario");
-  revalidatePath("/");
+  revalidarTorneios();
+  redirect(`/admin/torneios/${criado.id}?ok=criado`);
 }
 
 export async function updateTournament(formData: FormData) {
   await requireUser();
   const id = String(formData.get("id") || "");
   const title = String(formData.get("title") || "").trim();
-  if (!id || !title) return;
+  if (!id) redirect("/admin/torneios");
+  const voltarErro = (codigo: string) => redirect(`/admin/torneios/${id}?aba=editar&erro=${codigo}`);
+  if (!title) voltarErro("titulo");
   const description = String(formData.get("description") || "").trim();
   const location = String(formData.get("location") || "").trim();
   const dateRaw = String(formData.get("date") || "");
@@ -1248,18 +1281,7 @@ export async function updateTournament(formData: FormData) {
   const rules = String(formData.get("rules") || "").trim().slice(0, 8000) || null;
   const { parseDataLocal } = await import("./datas");
 
-  const data: {
-    title: string;
-    description: string | null;
-    location: string | null;
-    date: Date | null;
-    questions: string | null;
-    categories: string | null;
-    rules: string | null;
-    slug?: string;
-    photoData?: Buffer | null;
-    photoMime?: string | null;
-  } = {
+  const data: Prisma.TournamentUpdateInput = {
     title,
     description: description || null,
     location: location || null,
@@ -1272,7 +1294,8 @@ export async function updateTournament(formData: FormData) {
   // Slug: mantém estável (não muda ao editar o título, pra não quebrar links já
   // divulgados). Só gera se o torneio ainda não tiver um (caso legado).
   const atual = await prisma.tournament.findUnique({ where: { id }, select: { slug: true } });
-  if (atual && !atual.slug) {
+  if (!atual) redirect("/admin/torneios");
+  if (!atual.slug) {
     data.slug = await slugUnico(slugify(title), id);
   }
 
@@ -1284,19 +1307,31 @@ export async function updateTournament(formData: FormData) {
     const photo = formData.get("photo");
     if (photo instanceof File && photo.size > 0) {
       if (!ALLOWED_IMAGE_MIMES.has(photo.type) || photo.size > 2 * 1024 * 1024) {
-        redirect("/admin/torneios?erro=foto");
+        voltarErro("foto");
       }
-      data.photoData = Buffer.from(await photo.arrayBuffer());
-      data.photoMime = photo.type;
+      data.photoData = Buffer.from(await (photo as File).arrayBuffer());
+      data.photoMime = (photo as File).type;
+    }
+  }
+
+  // Arquivo do regulamento: mesma lógica (trocar ou remover).
+  if (String(formData.get("removeRulesFile") || "")) {
+    data.rulesData = null;
+    data.rulesMime = null;
+    data.rulesName = null;
+  } else {
+    const arquivo = await lerArquivoRegulamento(formData);
+    if (arquivo === "invalido") voltarErro("regulamento");
+    if (arquivo && arquivo !== "invalido") {
+      data.rulesData = arquivo.data;
+      data.rulesMime = arquivo.mime;
+      data.rulesName = arquivo.name;
     }
   }
 
   await prisma.tournament.update({ where: { id }, data });
-  revalidatePath("/torneios");
-  revalidatePath("/admin/torneios");
-  revalidatePath("/calendario");
-  revalidatePath("/");
-  redirect("/admin/torneios?ok=editado");
+  revalidarTorneios();
+  redirect(`/admin/torneios/${id}?ok=editado`);
 }
 
 export async function toggleTournament(formData: FormData) {
@@ -1306,10 +1341,7 @@ export async function toggleTournament(formData: FormData) {
   const t = await prisma.tournament.findUnique({ where: { id }, select: { open: true } });
   if (!t) return;
   await prisma.tournament.update({ where: { id }, data: { open: !t.open } });
-  revalidatePath("/torneios");
-  revalidatePath("/admin/torneios");
-  revalidatePath("/calendario");
-  revalidatePath("/");
+  revalidarTorneios();
 }
 
 export async function deleteTournament(formData: FormData) {
@@ -1317,10 +1349,8 @@ export async function deleteTournament(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.tournament.delete({ where: { id } });
-  revalidatePath("/torneios");
-  revalidatePath("/admin/torneios");
-  revalidatePath("/calendario");
-  revalidatePath("/");
+  revalidarTorneios();
+  redirect("/admin/torneios?ok=excluido");
 }
 
 // Pública: o atleta se inscreve num torneio interno (nome + WhatsApp).
@@ -1396,7 +1426,7 @@ export async function createTournamentSignup(formData: FormData) {
       observacao: note || null,
     }),
   );
-  revalidatePath("/admin/torneios");
+  revalidatePath("/admin/torneios", "layout");
   redirect(`${back}?ok=1`);
 }
 
@@ -1405,7 +1435,7 @@ export async function deleteTournamentSignup(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) return;
   await prisma.tournamentSignup.delete({ where: { id } });
-  revalidatePath("/admin/torneios");
+  revalidatePath("/admin/torneios", "layout");
 }
 
 // ===== Grade de treinos (recorrentes) =====

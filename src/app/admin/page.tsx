@@ -1,4 +1,25 @@
 import Link from "next/link";
+import {
+  Camera,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
+  Download,
+  Dumbbell,
+  KeyRound,
+  Lightbulb,
+  Medal,
+  Megaphone,
+  Package,
+  ShieldCheck,
+  Shirt,
+  Swords,
+  Trophy,
+  Truck,
+  Users,
+  Vote,
+  type LucideIcon,
+} from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logoutAction } from "@/lib/actions";
@@ -48,29 +69,54 @@ export default async function AdminDashboardPage() {
     "/admin/uniformes": uniformesEmprestados,
   };
 
-  const sections = [
-    { href: "/admin/entre-empresas", label: "Entre Empresas", description: "Modalidades e empresas inscritas." },
-    { href: "/admin/torneios", label: "Torneios internos", description: "Criar torneios (truco, CS...) e ver os inscritos." },
-    { href: "/admin/calendario", label: "Calendário", description: "Datas de jogos e eventos." },
-    { href: "/admin/treinos", label: "Grade de treinos", description: "Horários dos treinos da semana." },
-    { href: "/admin/materiais", label: "Materiais", description: "Estoque de materiais." },
-    { href: "/admin/uniformes", label: "Uniformes", description: "Itens controlados e quem está com eles." },
-    { href: "/admin/saidas", label: "Saídas de equipamento", description: "Kits e checklist do que sai/volta nos jogos." },
-    { href: "/admin/comunicados", label: "Comunicados", description: "Publicar avisos (com fotos) para todos." },
-    { href: "/admin/fotos", label: "Fotos", description: "Galeria pública de fotos dos jogos e eventos." },
-    { href: "/admin/inscricoes", label: "Inscrições", description: "Abrir/fechar e aprovar inscrições de atletas." },
-    { href: "/admin/exportar", label: "Exportar dados", description: "Baixar o elenco em planilha, filtrando por modalidade." },
-    { href: "/admin/presencas", label: "Presenças", description: "Quem confirmou presença nos jogos." },
-    { href: "/admin/sugestoes", label: "Sugestões", description: "Ver o que os atletas sugeriram." },
-    { href: "/admin/resultados", label: "Resultados", description: "Registrar conquistas e medalhas." },
-    { href: "/admin/comissao", label: "A Comissão", description: "Apresentar os membros da comissão." },
-    { href: "/admin/enquetes", label: "Enquetes", description: "Criar enquetes e ver resultados." },
-    { href: "/admin/conta", label: "Minha conta", description: "Alterar minha senha." },
+  type Secao = { href: string; label: string; description: string; icon: LucideIcon };
+  const grupos: { titulo: string; itens: Secao[] }[] = [
+    {
+      titulo: "Competições",
+      itens: [
+        { href: "/admin/torneios", label: "Torneios internos", description: "Criar torneios, ver inscritos e regulamento.", icon: Swords },
+        { href: "/admin/entre-empresas", label: "Entre Empresas", description: "Modalidades e empresas inscritas.", icon: Trophy },
+        { href: "/admin/calendario", label: "Calendário", description: "Datas de jogos e eventos.", icon: CalendarDays },
+        { href: "/admin/treinos", label: "Grade de treinos", description: "Horários e quem participa.", icon: Dumbbell },
+        { href: "/admin/resultados", label: "Resultados", description: "Conquistas e medalhas.", icon: Medal },
+        { href: "/admin/presencas", label: "Presenças", description: "Quem confirmou nos jogos.", icon: CheckCircle2 },
+      ],
+    },
+    {
+      titulo: "Atletas",
+      itens: [
+        { href: "/admin/inscricoes", label: "Inscrições", description: "Abrir/fechar e aprovar atletas.", icon: ClipboardList },
+        { href: "/admin/exportar", label: "Exportar dados", description: "Elenco em planilha, por modalidade.", icon: Download },
+      ],
+    },
+    {
+      titulo: "Conteúdo do site",
+      itens: [
+        { href: "/admin/comunicados", label: "Comunicados", description: "Avisos com fotos para todos.", icon: Megaphone },
+        { href: "/admin/fotos", label: "Fotos", description: "Galeria pública.", icon: Camera },
+        { href: "/admin/enquetes", label: "Enquetes", description: "Criar e ver resultados.", icon: Vote },
+        { href: "/admin/sugestoes", label: "Sugestões", description: "O que os atletas sugeriram.", icon: Lightbulb },
+        { href: "/admin/comissao", label: "A Comissão", description: "Membros na vitrine do site.", icon: Users },
+      ],
+    },
+    {
+      titulo: "Equipamentos",
+      itens: [
+        { href: "/admin/materiais", label: "Materiais", description: "Estoque de materiais.", icon: Package },
+        { href: "/admin/uniformes", label: "Uniformes", description: "Quem está com cada item.", icon: Shirt },
+        { href: "/admin/saidas", label: "Saídas de equipamento", description: "Checklist do que sai e volta.", icon: Truck },
+      ],
+    },
+    {
+      titulo: "Conta",
+      itens: [
+        { href: "/admin/conta", label: "Minha conta", description: "Alterar minha senha.", icon: KeyRound },
+        ...(user.role === "master" || user.role === "admin"
+          ? [{ href: "/admin/membros", label: "Membros", description: "Quem tem acesso ao painel.", icon: ShieldCheck }]
+          : []),
+      ],
+    },
   ];
-
-  if (user.role === "master" || user.role === "admin") {
-    sections.push({ href: "/admin/membros", label: "Membros", description: "Gerenciar quem tem acesso ao site (conta master)." });
-  }
 
   return (
     <div className="space-y-6">
@@ -123,26 +169,37 @@ export default async function AdminDashboardPage() {
         </div>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {sections.map((s) => {
-          const badge = badges[s.href] ?? 0;
-          return (
-            <Link
-              key={s.href}
-              href={s.href}
-              className="group relative rounded-lg bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              {badge > 0 && (
-                <span className="absolute right-3 top-3 flex h-6 min-w-6 items-center justify-center rounded-full bg-unifique-yellow px-1.5 text-xs font-bold text-unifique-dark">
-                  {badge}
-                </span>
-              )}
-              <h2 className="font-semibold text-unifique group-hover:text-unifique-dark">{s.label}</h2>
-              <p className="mt-1 text-sm text-gray-500">{s.description}</p>
-            </Link>
-          );
-        })}
-      </div>
+      {grupos.map((g) => (
+        <section key={g.titulo} className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">{g.titulo}</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {g.itens.map((s) => {
+              const badge = badges[s.href] ?? 0;
+              const Icon = s.icon;
+              return (
+                <Link
+                  key={s.href}
+                  href={s.href}
+                  className="group relative flex items-start gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-unifique/30"
+                >
+                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-unifique-light text-unifique transition group-hover:bg-unifique group-hover:text-white">
+                    <Icon size={20} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-display font-semibold text-gray-900">{s.label}</span>
+                    <span className="block text-xs text-gray-500">{s.description}</span>
+                  </span>
+                  {badge > 0 && (
+                    <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-unifique-yellow px-1.5 text-xs font-bold text-unifique-dark">
+                      {badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }

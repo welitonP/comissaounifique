@@ -7,6 +7,7 @@ import { fmtDataHora } from "@/lib/datas";
 import SuccessCelebration from "@/components/SuccessCelebration";
 import ShareLink from "@/components/ShareLink";
 import AddToCalendar from "@/components/AddToCalendar";
+import RulesModal from "@/components/RulesModal";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +76,8 @@ export default async function TorneioDetalhePage({
       questions: true,
       categories: true,
       rules: true,
+      rulesMime: true,
+      rulesName: true,
       photoMime: true,
       _count: { select: { signups: true } },
     },
@@ -106,6 +109,8 @@ export default async function TorneioDetalhePage({
 
   const perguntas = (t.questions || "").split("\n").map((p) => p.trim()).filter(Boolean);
   const categorias = (t.categories || "").split("\n").map((c) => c.trim()).filter(Boolean);
+  const regulamentoUrl = t.rulesMime ? `/api/torneio-regulamento/${t.id}` : null;
+  const temRegulamento = !!(t.rules || regulamentoUrl);
 
   // Links de "adicionar à agenda" (só quando o torneio tem data).
   let googleHref: string | null = null;
@@ -216,16 +221,17 @@ export default async function TorneioDetalhePage({
             </span>
           </div>
 
-          {/* Regulamento (abre/fecha) */}
-          {t.rules && (
-            <details open className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-gray-900">
-              <summary className="cursor-pointer list-none font-display font-semibold text-unifique dark:text-white">
-                📋 Regulamento
-              </summary>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                {t.rules}
-              </p>
-            </details>
+          {/* Regulamento: botão que abre a janela por cima da página */}
+          {temRegulamento && (
+            <div className="mt-4">
+              <RulesModal
+                title={t.title}
+                text={t.rules}
+                fileUrl={regulamentoUrl}
+                fileMime={t.rulesMime}
+                fileName={t.rulesName}
+              />
+            </div>
           )}
 
           {/* Compartilhar este torneio */}
@@ -326,6 +332,20 @@ export default async function TorneioDetalhePage({
                 className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
               />
             </div>
+            {temRegulamento && (
+              <p className="text-center text-xs text-gray-500">
+                Ao se inscrever, você declara que leu o{" "}
+                <RulesModal
+                  variant="link"
+                  title={t.title}
+                  text={t.rules}
+                  fileUrl={regulamentoUrl}
+                  fileMime={t.rulesMime}
+                  fileName={t.rulesName}
+                />{" "}
+                do torneio.
+              </p>
+            )}
             <button
               type="submit"
               className="w-full rounded-xl bg-unifique py-3 font-display font-semibold text-white shadow transition hover:bg-unifique-dark"

@@ -281,6 +281,9 @@ model Tournament {
   questions   String? // perguntas extras da comissão, uma por linha (ex: "Nome da sua dupla")
   categories  String? // categorias para separar (uma por linha, ex: "Feminino\nMasculino"); vazio = sem categoria
   rules       String? // regulamento do torneio (texto livre, exibido na página pública)
+  rulesData   Bytes? // arquivo do regulamento (PDF ou imagem), servido por /api/torneio-regulamento/[id]
+  rulesMime   String?
+  rulesName   String? // nome original do arquivo (para download)
   photoData   Bytes? // cartaz/foto do torneio (servido por /api/torneio-foto/[id])
   photoMime   String?
   createdAt   DateTime          @default(now())
