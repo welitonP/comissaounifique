@@ -83,7 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="flex min-h-screen flex-col">
         <ScrollProgress />
         <NavBar user={user} inscricoesAbertas={inscricoesAbertas} />
-        <main className="fade-in-up mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
         <Footer />
         {user && <AssistantWidget configured={isAIConfigured()} />}
         {/* Contagem de acessos (Vercel Analytics, sem cookies) */}

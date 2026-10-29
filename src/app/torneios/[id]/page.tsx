@@ -256,7 +256,7 @@ export default async function TorneioDetalhePage({
       {/* Inscrição */}
       <section id="inscricao" className="scroll-mt-24 overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-gray-900">
         {ok ? (
-          <ScrollIntoView className="p-6">
+          <ScrollIntoView className="entrada-sucesso p-6">
             <div className="text-center">
               <AnimatedCheck size={72} />
               <h2 className="mt-3 font-display text-2xl font-bold text-unifique dark:text-white">Inscrição confirmada!</h2>
@@ -283,7 +283,7 @@ export default async function TorneioDetalhePage({
 
             {erro && (
               <ScrollIntoView>
-                <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-200">{erro}</p>
+                <p className="aviso-entrar rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-200">{erro}</p>
               </ScrollIntoView>
             )}
 
@@ -309,7 +309,7 @@ export default async function TorneioDetalhePage({
                   {categorias.map((c) => (
                     <label key={c} className="cursor-pointer">
                       <input type="radio" name="category" value={c} required className="peer sr-only" />
-                      <span className="block rounded-xl border-2 border-gray-200 px-3 py-3 text-center font-semibold text-gray-700 transition peer-checked:animate-[pulinho_0.3s_ease-out] peer-checked:border-unifique peer-checked:bg-unifique peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 dark:border-white/15 dark:text-gray-200">
+                      <span className="block rounded-xl border-2 border-gray-200 px-3 py-3 text-center font-semibold text-gray-700 transition peer-checked:border-unifique peer-checked:bg-unifique peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 dark:border-white/15 dark:text-gray-200">
                         {c}
                       </span>
                     </label>
@@ -349,7 +349,7 @@ export default async function TorneioDetalhePage({
                 do torneio.
               </p>
             )}
-            <SubmitButton className="btn-brilho w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
+            <SubmitButton className="w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
               Confirmar inscrição
             </SubmitButton>
           </form>

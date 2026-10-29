@@ -182,14 +182,14 @@ export default async function TreinosPage({
                       </p>
 
                       {acabouDeConfirmar ? (
-                        <ScrollIntoView className="mt-3">
+                        <ScrollIntoView className="entrada-sucesso mt-3">
                           <p className="flex items-center gap-2.5 rounded-xl bg-green-50 px-3 py-2.5 text-sm font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-300">
                             <AnimatedCheck size={28} /> Você está na lista! Nos vemos no treino.
                           </p>
                         </ScrollIntoView>
                       ) : (
-                        <details className="group mt-3" open={!!erroAqui}>
-                          <summary className="btn-brilho cursor-pointer list-none rounded-xl bg-unifique px-3 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-unifique-dark group-open:bg-gray-100 group-open:text-gray-600 dark:group-open:bg-white/10 dark:group-open:text-gray-300 [&::-webkit-details-marker]:hidden">
+                        <details className="details-suave group mt-3" open={!!erroAqui}>
+                          <summary className="cursor-pointer list-none rounded-xl bg-unifique px-3 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-unifique-dark group-open:bg-gray-100 group-open:text-gray-600 dark:group-open:bg-white/10 dark:group-open:text-gray-300 [&::-webkit-details-marker]:hidden">
                             <span className="group-open:hidden">Quero participar</span>
                             <span className="hidden group-open:inline">Fechar</span>
                           </summary>
@@ -199,7 +199,7 @@ export default async function TreinosPage({
                             <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
                             {erroAqui && (
                               <ScrollIntoView>
-                                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200">
+                                <p className="aviso-entrar rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200">
                                   {erroAqui === "ja-inscrito"
                                     ? "Você já está na lista deste treino (mesmo nome ou WhatsApp)."
                                     : "Informe seu nome e WhatsApp."}
@@ -209,7 +209,7 @@ export default async function TreinosPage({
                             <input name="name" required maxLength={100} autoComplete="name" placeholder="Seu nome" className={campo} />
                             <PhoneInput className={campo} placeholder="WhatsApp com DDD" />
                             <RememberMe />
-                            <SubmitButton className="btn-brilho w-full rounded-xl bg-unifique-blue py-2.5 text-sm font-semibold text-white transition hover:brightness-110">
+                            <SubmitButton className="w-full rounded-xl bg-unifique-blue py-2.5 text-sm font-semibold text-white transition hover:brightness-110">
                               Confirmar presença
                             </SubmitButton>
                           </form>

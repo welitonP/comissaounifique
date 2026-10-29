@@ -6,6 +6,7 @@ import { createEnrollment } from "@/lib/actions";
 import SuccessCelebration from "@/components/SuccessCelebration";
 import PhoneInput from "@/components/form/PhoneInput";
 import SubmitButton from "@/components/form/SubmitButton";
+import Etapas from "@/components/form/Etapas";
 import AnimatedCheck from "@/components/anim/AnimatedCheck";
 import RememberMe from "@/components/form/RememberMe";
 import ScrollIntoView from "@/components/form/ScrollIntoView";
@@ -25,17 +26,6 @@ const ERROS: Record<string, string> = {
   "ja-inscrito": "Já recebemos uma inscrição com este WhatsApp e ela está em análise. Se quiser mudar algo, fale com a comissão.",
 };
 
-function Passo({ n, children }: { n: number; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-unifique text-sm font-bold text-white">
-        {n}
-      </span>
-      <h2 className="font-display text-lg font-bold text-unifique dark:text-white">{children}</h2>
-    </div>
-  );
-}
-
 export default async function InscricaoPage({
   searchParams,
 }: {
@@ -53,7 +43,7 @@ export default async function InscricaoPage({
     return (
       <div className="mx-auto max-w-lg">
         <SuccessCelebration active message="Inscrição enviada! A comissão vai confirmar." />
-        <ScrollIntoView className="rounded-2xl bg-white p-8 text-center shadow-sm dark:bg-gray-900">
+        <ScrollIntoView className="entrada-sucesso rounded-2xl bg-white p-8 text-center shadow-sm dark:bg-gray-900">
           <AnimatedCheck size={72} />
           <h1 className="mt-3 font-display text-2xl font-bold text-unifique dark:text-white">Inscrição enviada!</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-300">Obrigado por querer representar a Unifique. 💙</p>
@@ -120,13 +110,13 @@ export default async function InscricaoPage({
           </div>
         </div>
         <p className="mt-4 text-sm text-white/85">
-          São 2 passos rápidos: seus dados e as modalidades. A comissão analisa e confirma.
+          São 2 etapas rápidas: seus dados e as modalidades. A comissão analisa e confirma.
         </p>
       </section>
 
       {erro && (
         <ScrollIntoView>
-          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-200">{erro}</p>
+          <p className="aviso-entrar rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-200">{erro}</p>
         </ScrollIntoView>
       )}
 
@@ -134,69 +124,73 @@ export default async function InscricaoPage({
         {/* honeypot anti-spam (invisível) */}
         <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
 
-        <div className="space-y-4">
-          <Passo n={1}>Seus dados</Passo>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <label className={rotulo}>
-                Nome completo <span className="text-unifique-blue">*</span>
-              </label>
-              <input name="name" required maxLength={100} autoComplete="name" className={campo} />
-            </div>
-            <div>
-              <label className={rotulo}>
-                Data de nascimento <span className="text-unifique-blue">*</span>
-              </label>
-              <input type="date" name="birthDate" required max="2015-12-31" min="1940-01-01" className={campo} />
-            </div>
-            <div>
-              <label className={rotulo}>
-                WhatsApp <span className="text-unifique-blue">*</span>
-              </label>
-              <PhoneInput className={campo} />
-            </div>
-            <div className="sm:col-span-2">
-              <label className={rotulo}>
-                Setor <span className="text-unifique-blue">*</span>
-              </label>
-              <input name="sector" required maxLength={100} placeholder="Ex: TI, Comercial, Atendimento..." className={campo} />
-            </div>
-          </div>
-          <fieldset>
-            <legend className={rotulo}>
-              Tamanho de camisa <span className="text-unifique-blue">*</span>
-            </legend>
-            <div className="mt-1 grid grid-cols-4 gap-2 sm:grid-cols-7">
-              {TAMANHOS.map((t) => (
-                <label key={t} className="cursor-pointer">
-                  <input type="radio" name="shirtSize" value={t} required className="peer sr-only" />
-                  <span className="block rounded-xl border-2 border-gray-200 py-2.5 text-center font-bold text-gray-700 transition peer-checked:animate-[pulinho_0.3s_ease-out] peer-checked:border-unifique peer-checked:bg-unifique peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 dark:border-white/15 dark:text-gray-200">
-                    {t}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        </div>
-
-        <div className="space-y-3 border-t border-gray-100 pt-6 dark:border-white/10">
-          <Passo n={2}>Modalidades que quero disputar</Passo>
-          <ModalidadesPicker modalidades={modalities} />
-        </div>
-
-        <div className="space-y-3 border-t border-gray-100 pt-5 dark:border-white/10">
-          <RememberMe fields={["name", "phone", "birthDate", "sector"]} />
-          <SubmitButton className="btn-brilho w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
-            Enviar inscrição
-          </SubmitButton>
-          <p className="text-center text-xs text-gray-400">
-            Ao enviar, você autoriza a comissão a usar estes dados para organizar as competições, conforme a{" "}
-            <Link href="/privacidade" className="underline hover:text-unifique">
-              Política de Privacidade
-            </Link>
-            .
-          </p>
-        </div>
+        <Etapas
+          titulos={["Seus dados", "Modalidades"]}
+          etapas={[
+            <div key="dados" className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className={rotulo}>
+                    Nome completo <span className="text-unifique-blue">*</span>
+                  </label>
+                  <input name="name" required maxLength={100} autoComplete="name" className={campo} />
+                </div>
+                <div>
+                  <label className={rotulo}>
+                    Data de nascimento <span className="text-unifique-blue">*</span>
+                  </label>
+                  <input type="date" name="birthDate" required max="2015-12-31" min="1940-01-01" className={campo} />
+                </div>
+                <div>
+                  <label className={rotulo}>
+                    WhatsApp <span className="text-unifique-blue">*</span>
+                  </label>
+                  <PhoneInput className={campo} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={rotulo}>
+                    Setor <span className="text-unifique-blue">*</span>
+                  </label>
+                  <input name="sector" required maxLength={100} placeholder="Ex: TI, Comercial, Atendimento..." className={campo} />
+                </div>
+              </div>
+              <fieldset>
+                <legend className={rotulo}>
+                  Tamanho de camisa <span className="text-unifique-blue">*</span>
+                </legend>
+                <div className="mt-1 grid grid-cols-4 gap-2 sm:grid-cols-7">
+                  {TAMANHOS.map((t) => (
+                    <label key={t} className="cursor-pointer">
+                      <input type="radio" name="shirtSize" value={t} required className="peer sr-only" />
+                      <span className="block rounded-xl border-2 border-gray-200 py-2.5 text-center font-bold text-gray-700 transition peer-checked:border-unifique peer-checked:bg-unifique peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 dark:border-white/15 dark:text-gray-200">
+                        {t}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </div>,
+            <div key="modalidades" className="space-y-3">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Marque todas as modalidades que você quer disputar.</p>
+              <ModalidadesPicker modalidades={modalities} />
+            </div>,
+          ]}
+          final={
+            <>
+              <RememberMe fields={["name", "phone", "birthDate", "sector"]} />
+              <SubmitButton className="w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
+                Enviar inscrição
+              </SubmitButton>
+              <p className="text-center text-xs text-gray-400">
+                Ao enviar, você autoriza a comissão a usar estes dados para organizar as competições, conforme a{" "}
+                <Link href="/privacidade" className="underline hover:text-unifique">
+                  Política de Privacidade
+                </Link>
+                .
+              </p>
+            </>
+          }
+        />
       </form>
     </div>
   );

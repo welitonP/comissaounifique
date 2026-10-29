@@ -55,7 +55,7 @@ export default function ModalidadesPicker({ modalidades }: { modalidades: { id: 
                 onChange={(e) => alternar(m.id, e.target.checked)}
               />
               <span
-                className={`flex h-full items-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition peer-checked:animate-[pulinho_0.3s_ease-out] peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 ${
+                className={`flex h-full items-center gap-2 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 ${
                   on
                     ? "border-unifique bg-unifique text-white"
                     : "border-gray-200 text-gray-700 hover:border-unifique/40 dark:border-white/15 dark:text-gray-200"

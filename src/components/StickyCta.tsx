@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 // Botão fixo no rodapé do celular que leva ao formulário. Some quando o
 // formulário já está na tela (para não cobrir os campos).
@@ -16,12 +17,14 @@ export default function StickyCta({ targetId, children }: { targetId: string; ch
   }, [targetId]);
 
   if (!visivel) return null;
-  return (
+  // Portal no body: fica fixo na tela mesmo durante a transição de página.
+  return createPortal(
     <a
       href={`#${targetId}`}
-      className="subir-mola btn-brilho fixed inset-x-4 bottom-4 z-30 rounded-2xl bg-unifique py-3.5 text-center font-display font-semibold text-white shadow-xl shadow-unifique/30 transition active:scale-[0.98] sm:hidden"
+      className="subir-mola fixed inset-x-4 bottom-4 z-30 rounded-2xl bg-unifique py-3.5 text-center font-display font-semibold text-white shadow-xl shadow-unifique/30 transition active:scale-[0.98] sm:hidden"
     >
       {children}
-    </a>
+    </a>,
+    document.body,
   );
 }

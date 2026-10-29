@@ -27,6 +27,7 @@ import MembersMarquee from "@/components/MembersMarquee";
 import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
 import HeroArena from "@/components/anim/HeroArena";
+import { bolaDaModalidade, type TipoBola } from "@/components/anim/Bolas";
 import TiltCard from "@/components/anim/TiltCard";
 import { fmtDataHora, fmtHora, fmtDiaSemanaLongo } from "@/lib/datas";
 import { isInscricoesAbertas } from "@/lib/settings";
@@ -42,7 +43,7 @@ export default async function HomePage({
   const now = new Date();
   const hoje = new Date(now.toDateString());
 
-  const [user, nextCalEvent, latestAnnouncements, modalityCount, atletasDistintos, upcomingEventCount, nextTournament, upcomingTournamentCount, latestPoll, galleryPhotos, torneiosAbertos, inscricoesAbertas] =
+  const [user, nextCalEvent, latestAnnouncements, modalidades, atletasDistintos, upcomingEventCount, nextTournament, upcomingTournamentCount, latestPoll, galleryPhotos, torneiosAbertos, inscricoesAbertas] =
     await Promise.all([
       getCurrentUser(),
       prisma.calendarEvent.findFirst({
@@ -55,7 +56,7 @@ export default async function HomePage({
         take: 3,
         include: { images: { select: { id: true }, take: 1 } },
       }),
-      prisma.modality.count(),
+      prisma.modality.findMany({ select: { name: true }, orderBy: { order: "asc" } }),
       // Conta atletas distintos (uma pessoa pode estar em várias modalidades).
       prisma.registration.findMany({ distinct: ["companyName"], select: { companyName: true } }),
       prisma.calendarEvent.count({ where: { date: { gte: hoje } } }),
@@ -85,6 +86,12 @@ export default async function HomePage({
       isInscricoesAbertas(),
     ]);
   const athleteCount = atletasDistintos.length;
+  const modalityCount = modalidades.length;
+  // Bolas do banner: uma de cada esporte cadastrado (sem repetir).
+  const tiposBola = Array.from(
+    new Set(modalidades.map((m) => bolaDaModalidade(m.name)).filter((b): b is TipoBola => !!b)),
+  );
+  if (tiposBola.length === 0) tiposBola.push("volei", "futebol", "basquete", "tenis");
 
   // "Eventos por vir" = eventos do calendário + torneios com data.
   const upcomingCount = upcomingEventCount + upcomingTournamentCount;
@@ -127,7 +134,7 @@ export default async function HomePage({
         {/* detalhes decorativos: luzes se mexendo, quadra e bola quicando */}
         <div className="anim-aurora pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-unifique-blue/40 blur-3xl" />
         <div className="anim-aurora pointer-events-none absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-unifique-teal/20 blur-3xl [animation-delay:-7s]" />
-        <HeroArena />
+        <HeroArena tipos={tiposBola} />
 
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
           <span className="anim-flutuar relative flex h-[104px] w-[104px] flex-none items-center justify-center sm:h-[120px] sm:w-[120px]">
