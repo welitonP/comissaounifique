@@ -86,8 +86,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
         <Footer />
         {user && <AssistantWidget configured={isAIConfigured()} />}
-        {/* Contagem de acessos (Vercel Analytics, sem cookies) */}
-        <Analytics />
+        {/* Contagem de acessos (Vercel Analytics, sem cookies). Só existe
+            quando o site roda na Vercel; no servidor próprio daria erro 404. */}
+        {process.env.VERCEL && <Analytics />}
       </body>
     </html>
   );
