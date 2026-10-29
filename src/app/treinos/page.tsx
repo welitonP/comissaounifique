@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Clock, Dumbbell, MapPin, Users } from "lucide-react";
+import { CalendarDays, Clock, Dumbbell, MapPin, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { createTrainingSignup } from "@/lib/actions";
 import { TZ_BRASIL } from "@/lib/datas";
@@ -7,6 +7,8 @@ import SubmitButton from "@/components/form/SubmitButton";
 import RememberMe from "@/components/form/RememberMe";
 import ScrollIntoView from "@/components/form/ScrollIntoView";
 import SuccessCelebration from "@/components/SuccessCelebration";
+import AnimatedCheck from "@/components/anim/AnimatedCheck";
+import CountUp from "@/components/CountUp";
 
 export const dynamic = "force-dynamic";
 
@@ -53,10 +55,8 @@ export default async function TreinosPage({
     searchParams,
     prisma.training.findMany({
       orderBy: [{ weekday: "asc" }, { time: "asc" }, { order: "asc" }],
-      // Publicamente só expomos o nome de quem participa (nunca o WhatsApp: LGPD).
-      include: {
-        signups: { select: { id: true, name: true }, orderBy: { createdAt: "asc" } },
-      },
+      // Publicamente só a QUANTIDADE de participantes (nomes e WhatsApp ficam só com a comissão).
+      include: { _count: { select: { signups: true } } },
     }),
   ]);
 
@@ -75,7 +75,7 @@ export default async function TreinosPage({
   return (
     <div className="space-y-6">
       <SuccessCelebration active={!!okId} message="Presença confirmada! Bom treino!" />
-      <section className="rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-6 text-white shadow-md sm:p-7">
+      <section className="banner-vivo rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-6 text-white shadow-md sm:p-7">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-white/15">
             <Dumbbell size={26} className="text-unifique-yellow" />
@@ -92,7 +92,7 @@ export default async function TreinosPage({
               <a
                 key={d}
                 href={`#dia-${d}`}
-                className="rounded-full bg-white/15 px-3 py-1 text-sm font-semibold hover:bg-white/25"
+                className="rounded-full bg-white/15 px-3 py-1 text-sm font-semibold transition hover:-translate-y-0.5 hover:bg-white/25"
               >
                 {DIAS[d]}
               </a>
@@ -125,20 +125,22 @@ export default async function TreinosPage({
               {DIAS[dia]}
               <span className="h-px flex-1 bg-gray-200 dark:bg-white/10" />
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="em-sequencia grid gap-3 sm:grid-cols-2">
               {porDia.get(dia)!.map((t) => {
                 const acabouDeConfirmar = okId === t.id;
+                const quando = proximoTreino(t.weekday, t.time);
+                const qtd = t._count.signups;
                 const erroAqui = erro && erroId === t.id ? erro : null;
                 return (
                   <div
                     key={t.id}
                     id={`treino-${t.id}`}
-                    className={`scroll-mt-24 rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-900 ${
-                      acabouDeConfirmar ? "ring-2 ring-green-400" : ""
+                    className={`scroll-mt-24 rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-md dark:bg-gray-900 ${
+                      acabouDeConfirmar ? "ring-2 ring-green-400" : quando === "Hoje" ? "ring-2 ring-unifique-blue/40" : ""
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <span className="flex h-14 w-14 flex-none flex-col items-center justify-center rounded-xl bg-unifique text-white">
+                      <span className="flex h-14 w-14 flex-none flex-col items-center justify-center rounded-xl bg-gradient-to-br from-unifique to-unifique-blue text-white shadow-md shadow-unifique/20">
                         <Clock size={15} />
                         <span className="mt-0.5 text-xs font-bold leading-none">{t.time}</span>
                       </span>
@@ -148,42 +150,46 @@ export default async function TreinosPage({
                           <MapPin size={14} className="flex-none text-unifique-blue" />
                           {t.location || "Local a confirmar"}
                         </p>
-                        <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-unifique-light px-2 py-0.5 text-xs font-semibold text-unifique dark:bg-white/10 dark:text-unifique-blue">
-                          <CalendarDays size={12} /> Próximo: {proximoTreino(t.weekday, t.time)}
-                        </p>
+                        {quando === "Hoje" ? (
+                          <p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700 dark:bg-green-500/15 dark:text-green-300">
+                            <span className="anim-respirar h-2 w-2 rounded-full bg-green-500" /> É hoje!
+                          </p>
+                        ) : (
+                          <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-unifique-light px-2 py-0.5 text-xs font-semibold text-unifique dark:bg-white/10 dark:text-unifique-blue">
+                            <CalendarDays size={12} /> Próximo: {quando}
+                          </p>
+                        )}
                         {t.notes && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t.notes}</p>}
                       </div>
                     </div>
 
-                    {/* Participantes */}
+                    {/* Participantes: só a quantidade (sem nomes) */}
                     <div className="mt-3 border-t border-gray-100 pt-3 dark:border-white/10">
-                      <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                        <Users size={13} /> Participantes ({t.signups.length})
+                      <p className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-unifique-light text-unifique dark:bg-white/10 dark:text-unifique-blue">
+                          <Users size={14} />
+                        </span>
+                        {qtd === 0 ? (
+                          "Seja o primeiro a confirmar!"
+                        ) : (
+                          <span>
+                            <strong className="font-display text-base text-unifique dark:text-white">
+                              <CountUp value={qtd} />
+                            </strong>{" "}
+                            {qtd === 1 ? "pessoa confirmada" : "pessoas confirmadas"}
+                          </span>
+                        )}
                       </p>
-                      {t.signups.length === 0 ? (
-                        <p className="mt-1 text-sm text-gray-400">Seja o primeiro a confirmar!</p>
-                      ) : (
-                        <div className="mt-1.5 flex flex-wrap gap-1.5">
-                          {t.signups.map((s) => (
-                            <span
-                              key={s.id}
-                              className="rounded-full bg-unifique-light px-2.5 py-0.5 text-xs font-medium text-unifique dark:bg-white/10 dark:text-gray-200"
-                            >
-                              {s.name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
 
                       {acabouDeConfirmar ? (
                         <ScrollIntoView className="mt-3">
-                          <p className="flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2.5 text-sm font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-300">
-                            <CheckCircle2 size={18} /> Você está na lista! Nos vemos no treino.
+                          <p className="flex items-center gap-2.5 rounded-xl bg-green-50 px-3 py-2.5 text-sm font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-300">
+                            <AnimatedCheck size={28} /> Você está na lista! Nos vemos no treino.
                           </p>
                         </ScrollIntoView>
                       ) : (
                         <details className="group mt-3" open={!!erroAqui}>
-                          <summary className="cursor-pointer list-none rounded-xl bg-unifique px-3 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-unifique-dark group-open:bg-gray-100 group-open:text-gray-600 dark:group-open:bg-white/10 dark:group-open:text-gray-300 [&::-webkit-details-marker]:hidden">
+                          <summary className="btn-brilho cursor-pointer list-none rounded-xl bg-unifique px-3 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-unifique-dark group-open:bg-gray-100 group-open:text-gray-600 dark:group-open:bg-white/10 dark:group-open:text-gray-300 [&::-webkit-details-marker]:hidden">
                             <span className="group-open:hidden">Quero participar</span>
                             <span className="hidden group-open:inline">Fechar</span>
                           </summary>
@@ -203,7 +209,7 @@ export default async function TreinosPage({
                             <input name="name" required maxLength={100} autoComplete="name" placeholder="Seu nome" className={campo} />
                             <PhoneInput className={campo} placeholder="WhatsApp com DDD" />
                             <RememberMe />
-                            <SubmitButton className="w-full rounded-xl bg-unifique-blue py-2.5 text-sm font-semibold text-white transition hover:brightness-110">
+                            <SubmitButton className="btn-brilho w-full rounded-xl bg-unifique-blue py-2.5 text-sm font-semibold text-white transition hover:brightness-110">
                               Confirmar presença
                             </SubmitButton>
                           </form>

@@ -26,6 +26,8 @@ import ShareWhatsApp from "@/components/ShareWhatsApp";
 import MembersMarquee from "@/components/MembersMarquee";
 import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
+import HeroArena from "@/components/anim/HeroArena";
+import TiltCard from "@/components/anim/TiltCard";
 import { fmtDataHora, fmtHora, fmtDiaSemanaLongo } from "@/lib/datas";
 import { isInscricoesAbertas } from "@/lib/settings";
 
@@ -122,25 +124,29 @@ export default async function HomePage({
       />
       {/* Hero */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-unifique via-unifique to-unifique-blue p-7 text-white shadow-lg sm:p-10">
-        {/* detalhes decorativos */}
-        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-unifique-blue/40 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-unifique-teal/20 blur-3xl" />
+        {/* detalhes decorativos: luzes se mexendo, quadra e bola quicando */}
+        <div className="anim-aurora pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-unifique-blue/40 blur-3xl" />
+        <div className="anim-aurora pointer-events-none absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-unifique-teal/20 blur-3xl [animation-delay:-7s]" />
+        <HeroArena />
 
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
-          <Image
-            src="/logo-comissao.png"
-            alt="Comissão de Esportes Unifique"
-            width={120}
-            height={120}
-            className="h-24 w-24 rounded-full bg-white shadow-xl ring-4 ring-white/30 sm:h-28 sm:w-28"
-            priority
-          />
+          <span className="anim-flutuar relative flex h-[104px] w-[104px] flex-none items-center justify-center sm:h-[120px] sm:w-[120px]">
+            <span aria-hidden="true" className="anel-logo absolute inset-0 rounded-full opacity-90" />
+            <Image
+              src="/logo-comissao.png"
+              alt="Comissão de Esportes Unifique"
+              width={120}
+              height={120}
+              className="relative h-24 w-24 rounded-full bg-white shadow-xl sm:h-28 sm:w-28"
+              priority
+            />
+          </span>
           <div className="flex-1">
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-unifique-teal">
               Unifique · desde 2015
             </p>
             <h1 className="mt-1 text-3xl font-extrabold leading-tight sm:text-4xl">
-              Comissão de Esportes
+              <span className="titulo-reflexo">Comissão de Esportes</span>
             </h1>
             <p className="mt-2 max-w-2xl text-white/85">
               Jogos, comunicados, elencos e tudo do esporte na Unifique em um lugar só.
@@ -174,7 +180,7 @@ export default async function HomePage({
         <div className="relative mt-6 flex flex-wrap gap-3">
           <Link
             href="/calendario"
-            className="rounded-xl bg-white px-5 py-2.5 font-display font-semibold text-unifique shadow transition hover:scale-[1.02]"
+            className="btn-brilho rounded-xl bg-white px-5 py-2.5 font-display font-semibold text-unifique shadow transition hover:scale-[1.02]"
           >
             Ver calendário
           </Link>
@@ -204,19 +210,19 @@ export default async function HomePage({
               </Link>
             )}
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="em-sequencia grid gap-3 sm:grid-cols-2">
             {torneiosAbertos.map((t) => (
+              <TiltCard key={t.id} className="rounded-2xl">
               <Link
-                key={t.id}
                 href={`/torneios/${t.slug ?? t.id}`}
-                className="group flex items-center gap-3 rounded-2xl border border-gray-100 p-3 transition hover:-translate-y-0.5 hover:border-unifique/30 hover:shadow-md dark:border-white/10"
+                className="group flex h-full items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 transition hover:border-unifique/30 hover:shadow-md dark:border-white/10 dark:bg-gray-900"
               >
                 {t.photoMime ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={`/api/torneio-foto/${t.id}`} alt="" className="h-16 w-16 flex-none rounded-xl object-cover" />
                 ) : (
                   <span className="flex h-16 w-16 flex-none items-center justify-center rounded-xl bg-unifique-light text-unifique dark:bg-white/10">
-                    <Swords size={26} />
+                    <Swords size={26} className="transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
                   </span>
                 )}
                 <span className="min-w-0 flex-1">
@@ -226,25 +232,29 @@ export default async function HomePage({
                     {t.location ? ` · ${t.location}` : ""}
                   </span>
                   <span className="mt-1 inline-block text-xs font-semibold text-unifique dark:text-unifique-blue">
-                    {t._count.signups > 0 ? `${t._count.signups} já inscrito(s) · ` : ""}Inscreva-se →
+                    {t._count.signups > 0 ? `${t._count.signups} já inscrito(s) · ` : ""}
+                    <span className="inline-block transition-transform group-hover:translate-x-1">Inscreva-se →</span>
                   </span>
                 </span>
               </Link>
+              </TiltCard>
             ))}
             {inscricoesAbertas && (
+              <TiltCard className="rounded-2xl">
               <Link
                 href="/inscricao"
-                className="group flex items-center gap-3 rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-3 text-white transition hover:-translate-y-0.5 hover:shadow-md"
+                className="btn-brilho group flex h-full items-center gap-3 rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-3 text-white transition hover:shadow-md"
               >
                 <span className="flex h-16 w-16 flex-none items-center justify-center rounded-xl bg-white/15">
-                  <Trophy size={28} className="text-unifique-yellow" />
+                  <Trophy size={28} className="text-unifique-yellow transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-display font-bold leading-snug">Seja atleta da Unifique</span>
                   <span className="block text-xs text-white/80">Inscrição para as competições Entre Empresas</span>
-                  <span className="mt-1 inline-block text-xs font-semibold text-unifique-yellow">Fazer inscrição →</span>
+                  <span className="mt-1 inline-block text-xs font-semibold text-unifique-yellow transition-transform group-hover:translate-x-1">Fazer inscrição →</span>
                 </span>
               </Link>
+              </TiltCard>
             )}
           </div>
         </section>
@@ -473,15 +483,17 @@ function Atalho({
   Icon: LucideIcon;
 }) {
   return (
-    <Link
-      href={href}
-      className="group rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-900"
-    >
-      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-unifique-light text-unifique transition group-hover:bg-unifique group-hover:text-white dark:bg-white/10 dark:text-unifique-blue dark:group-hover:bg-unifique-blue dark:group-hover:text-white">
-        <Icon size={22} />
-      </span>
-      <h3 className="mt-3 font-display font-semibold text-gray-800 dark:text-gray-100">{titulo}</h3>
-      <p className="text-xs text-gray-400 dark:text-gray-500">{desc}</p>
-    </Link>
+    <TiltCard className="rounded-2xl" max={8}>
+      <Link
+        href={href}
+        className="group block h-full rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md dark:bg-gray-900"
+      >
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-unifique-light text-unifique transition duration-300 group-hover:-rotate-6 group-hover:scale-110 group-hover:bg-unifique group-hover:text-white dark:bg-white/10 dark:text-unifique-blue dark:group-hover:bg-unifique-blue dark:group-hover:text-white">
+          <Icon size={22} />
+        </span>
+        <h3 className="mt-3 font-display font-semibold text-gray-800 dark:text-gray-100">{titulo}</h3>
+        <p className="text-xs text-gray-400 dark:text-gray-500">{desc}</p>
+      </Link>
+    </TiltCard>
   );
 }

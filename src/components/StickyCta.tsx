@@ -19,7 +19,7 @@ export default function StickyCta({ targetId, children }: { targetId: string; ch
   return (
     <a
       href={`#${targetId}`}
-      className="fixed inset-x-4 bottom-4 z-30 rounded-2xl bg-unifique py-3.5 text-center font-display font-semibold text-white shadow-xl shadow-unifique/30 transition active:scale-[0.98] sm:hidden"
+      className="subir-mola btn-brilho fixed inset-x-4 bottom-4 z-30 rounded-2xl bg-unifique py-3.5 text-center font-display font-semibold text-white shadow-xl shadow-unifique/30 transition active:scale-[0.98] sm:hidden"
     >
       {children}
     </a>

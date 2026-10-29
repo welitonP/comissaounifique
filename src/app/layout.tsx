@@ -3,6 +3,7 @@ import "./globals.css";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import AssistantWidget from "@/components/AssistantWidget";
+import ScrollProgress from "@/components/anim/ScrollProgress";
 import { getCurrentUser } from "@/lib/auth";
 import { isAIConfigured } from "@/lib/ai";
 import { isInscricoesAbertas } from "@/lib/settings";
@@ -80,6 +81,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="flex min-h-screen flex-col">
+        <ScrollProgress />
         <NavBar user={user} inscricoesAbertas={inscricoesAbertas} />
         <main className="fade-in-up mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
         <Footer />

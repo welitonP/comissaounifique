@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { CheckCircle2, ClipboardList, Lock, MessageCircle, ShieldCheck } from "lucide-react";
+import { ClipboardList, Lock, MessageCircle, ShieldCheck } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { isInscricoesAbertas } from "@/lib/settings";
 import { createEnrollment } from "@/lib/actions";
 import SuccessCelebration from "@/components/SuccessCelebration";
 import PhoneInput from "@/components/form/PhoneInput";
 import SubmitButton from "@/components/form/SubmitButton";
+import AnimatedCheck from "@/components/anim/AnimatedCheck";
 import RememberMe from "@/components/form/RememberMe";
 import ScrollIntoView from "@/components/form/ScrollIntoView";
 import ModalidadesPicker from "@/components/form/ModalidadesPicker";
@@ -53,9 +54,7 @@ export default async function InscricaoPage({
       <div className="mx-auto max-w-lg">
         <SuccessCelebration active message="Inscrição enviada! A comissão vai confirmar." />
         <ScrollIntoView className="rounded-2xl bg-white p-8 text-center shadow-sm dark:bg-gray-900">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-500/15">
-            <CheckCircle2 size={36} />
-          </span>
+          <AnimatedCheck size={72} />
           <h1 className="mt-3 font-display text-2xl font-bold text-unifique dark:text-white">Inscrição enviada!</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-300">Obrigado por querer representar a Unifique. 💙</p>
           <ol className="mx-auto mt-6 max-w-sm space-y-3 text-left text-sm text-gray-600 dark:text-gray-300">
@@ -110,7 +109,7 @@ export default async function InscricaoPage({
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <section className="rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-6 text-white shadow-md sm:p-7">
+      <section className="banner-vivo rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-6 text-white shadow-md sm:p-7">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-white/15">
             <ClipboardList size={26} />
@@ -171,7 +170,7 @@ export default async function InscricaoPage({
               {TAMANHOS.map((t) => (
                 <label key={t} className="cursor-pointer">
                   <input type="radio" name="shirtSize" value={t} required className="peer sr-only" />
-                  <span className="block rounded-xl border-2 border-gray-200 py-2.5 text-center font-bold text-gray-700 transition peer-checked:border-unifique peer-checked:bg-unifique peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 dark:border-white/15 dark:text-gray-200">
+                  <span className="block rounded-xl border-2 border-gray-200 py-2.5 text-center font-bold text-gray-700 transition peer-checked:animate-[pulinho_0.3s_ease-out] peer-checked:border-unifique peer-checked:bg-unifique peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 dark:border-white/15 dark:text-gray-200">
                     {t}
                   </span>
                 </label>
@@ -187,7 +186,7 @@ export default async function InscricaoPage({
 
         <div className="space-y-3 border-t border-gray-100 pt-5 dark:border-white/10">
           <RememberMe fields={["name", "phone", "birthDate", "sector"]} />
-          <SubmitButton className="w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
+          <SubmitButton className="btn-brilho w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
             Enviar inscrição
           </SubmitButton>
           <p className="text-center text-xs text-gray-400">

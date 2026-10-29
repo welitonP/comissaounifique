@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { MapPin, CalendarClock, Lock, ChevronLeft, Share2, Users, CheckCircle2 } from "lucide-react";
+import { MapPin, CalendarClock, Lock, ChevronLeft, Share2, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { createTournamentSignup } from "@/lib/actions";
 import { fmtDataHora } from "@/lib/datas";
@@ -14,6 +14,8 @@ import SubmitButton from "@/components/form/SubmitButton";
 import RememberMe from "@/components/form/RememberMe";
 import ScrollIntoView from "@/components/form/ScrollIntoView";
 import StickyCta from "@/components/StickyCta";
+import AnimatedCheck from "@/components/anim/AnimatedCheck";
+import CountUp from "@/components/CountUp";
 
 export const dynamic = "force-dynamic";
 
@@ -197,27 +199,30 @@ export default async function TorneioDetalhePage({
       <section className="overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-gray-900">
         {t.photoMime && (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={`/api/torneio-foto/${t.id}`}
-            alt={`Cartaz do ${t.title}`}
-            className="max-h-80 w-full object-cover"
-          />
+          <div className="max-h-80 overflow-hidden">
+            <img
+              src={`/api/torneio-foto/${t.id}`}
+              alt={`Cartaz do ${t.title}`}
+              className="zoom-lento max-h-80 w-full object-cover"
+            />
+          </div>
         )}
         <div className="p-5">
           <span
-            className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
               t.open
                 ? "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300"
                 : "bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400"
             }`}
           >
+            {t.open && <span className="anim-respirar h-1.5 w-1.5 rounded-full bg-green-500" />}
             {t.open ? "Inscrições abertas" : "Inscrições encerradas"}
           </span>
           <h1 className="mt-2 font-display text-2xl font-bold text-unifique sm:text-3xl dark:text-white">{t.title}</h1>
           {t.description && (
             <p className="mt-2 whitespace-pre-wrap text-gray-600 dark:text-gray-300">{t.description}</p>
           )}
-          <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+          <div className="em-sequencia mt-4 grid gap-2 text-sm sm:grid-cols-3">
             <div className="flex items-center gap-2 rounded-xl bg-unifique-light/70 px-3 py-2.5 text-gray-700 dark:bg-white/5 dark:text-gray-300">
               <CalendarClock size={18} className="flex-none text-unifique-blue" />
               <span>{t.date ? fmtDataHora(t.date) : "Data a definir"}</span>
@@ -228,7 +233,9 @@ export default async function TorneioDetalhePage({
             </div>
             <div className="flex items-center gap-2 rounded-xl bg-unifique-light/70 px-3 py-2.5 font-semibold text-unifique dark:bg-white/5 dark:text-unifique-blue">
               <Users size={18} className="flex-none text-unifique-blue" />
-              <span>{t._count.signups} inscrito(s)</span>
+              <span>
+                <CountUp value={t._count.signups} /> inscrito(s)
+              </span>
             </div>
           </div>
 
@@ -251,9 +258,7 @@ export default async function TorneioDetalhePage({
         {ok ? (
           <ScrollIntoView className="p-6">
             <div className="text-center">
-              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-500/15">
-                <CheckCircle2 size={36} />
-              </span>
+              <AnimatedCheck size={72} />
               <h2 className="mt-3 font-display text-2xl font-bold text-unifique dark:text-white">Inscrição confirmada!</h2>
               <p className="mt-1 text-gray-600 dark:text-gray-300">
                 Você está na lista do <strong>{t.title}</strong>. Se precisar, a comissão chama no seu WhatsApp.
@@ -304,7 +309,7 @@ export default async function TorneioDetalhePage({
                   {categorias.map((c) => (
                     <label key={c} className="cursor-pointer">
                       <input type="radio" name="category" value={c} required className="peer sr-only" />
-                      <span className="block rounded-xl border-2 border-gray-200 px-3 py-3 text-center font-semibold text-gray-700 transition peer-checked:border-unifique peer-checked:bg-unifique peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 dark:border-white/15 dark:text-gray-200">
+                      <span className="block rounded-xl border-2 border-gray-200 px-3 py-3 text-center font-semibold text-gray-700 transition peer-checked:animate-[pulinho_0.3s_ease-out] peer-checked:border-unifique peer-checked:bg-unifique peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 dark:border-white/15 dark:text-gray-200">
                         {c}
                       </span>
                     </label>
@@ -344,7 +349,7 @@ export default async function TorneioDetalhePage({
                 do torneio.
               </p>
             )}
-            <SubmitButton className="w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
+            <SubmitButton className="btn-brilho w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
               Confirmar inscrição
             </SubmitButton>
           </form>

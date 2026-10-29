@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Swords, MapPin, CalendarClock, ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { fmtDataHora } from "@/lib/datas";
+import TiltCard from "@/components/anim/TiltCard";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function TorneiosPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <section className="rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-7 text-white shadow-md">
+      <section className="banner-vivo rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-7 text-white shadow-md">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
             <Swords size={26} className="text-unifique-yellow" />
@@ -44,28 +45,31 @@ export default async function TorneiosPage() {
         </p>
       )}
 
-      <div className="space-y-3">
+      <div className="em-sequencia space-y-3">
         {torneios.map((t) => (
+          <TiltCard key={t.id} className="rounded-2xl" max={3}>
           <Link
-            key={t.id}
             href={`/torneios/${t.slug ?? t.id}`}
-            className="flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            className="group flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm transition hover:shadow-md"
           >
             {t.photoMime ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={`/api/torneio-foto/${t.id}`}
-                alt=""
-                className="h-20 w-20 flex-none rounded-xl object-cover"
-              />
+              <span className="h-20 w-20 flex-none overflow-hidden rounded-xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/torneio-foto/${t.id}`}
+                  alt=""
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              </span>
             ) : (
               <span className="flex h-20 w-20 flex-none items-center justify-center rounded-xl bg-unifique-light">
-                <Swords size={26} className="text-unifique" />
+                <Swords size={26} className="text-unifique transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
               </span>
             )}
             <div className="min-w-0 flex-1">
               {t.open ? (
-                <span className="inline-block rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
+                  <span className="anim-respirar h-1.5 w-1.5 rounded-full bg-green-500" />
                   Inscrições abertas
                 </span>
               ) : (
@@ -88,8 +92,9 @@ export default async function TorneiosPage() {
                 <span className="font-medium text-unifique">{t._count.signups} inscrito(s)</span>
               </div>
             </div>
-            <ChevronRight size={20} className="flex-none text-gray-300" />
+            <ChevronRight size={20} className="flex-none text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-unifique" />
           </Link>
+          </TiltCard>
         ))}
       </div>
     </div>

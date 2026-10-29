@@ -34,6 +34,21 @@ function fireConfetti() {
     vr: (Math.random() - 0.5) * 0.3,
   }));
 
+  // Bolas de vários esportes que caem e quicam no chão da tela.
+  const BOLAS = ["⚽", "🏐", "🏀", "🎾", "🏆"];
+  type B = { x: number; y: number; vx: number; vy: number; size: number; emoji: string; rot: number; vr: number };
+  const bolas: B[] = Array.from({ length: Math.min(16, Math.round(W / 40)) }, (_, i) => ({
+    x: Math.random() * W,
+    y: -40 - Math.random() * H * 0.5,
+    vx: (Math.random() - 0.5) * 4,
+    vy: Math.random() * 2,
+    size: 26 + Math.random() * 14,
+    emoji: BOLAS[i % BOLAS.length],
+    rot: 0,
+    vr: (Math.random() - 0.5) * 0.2,
+  }));
+  const DURACAO = 3400;
+
   const start = performance.now();
   const frame = (now: number) => {
     const elapsed = now - start;
@@ -52,7 +67,29 @@ function fireConfetti() {
       ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
       ctx.restore();
     });
-    if (elapsed < 2600) requestAnimationFrame(frame);
+    const chao = H - 8;
+    bolas.forEach((b) => {
+      b.vy += 0.45;
+      b.x += b.vx;
+      b.y += b.vy;
+      b.rot += b.vr + b.vx * 0.02;
+      if (b.y + b.size / 2 > chao) {
+        b.y = chao - b.size / 2;
+        b.vy *= -0.62; // quique
+        b.vx *= 0.9;
+      }
+      if (b.x < b.size / 2 || b.x > W - b.size / 2) b.vx *= -1;
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.rot);
+      ctx.globalAlpha = Math.max(0, Math.min(1, (DURACAO - elapsed) / 600));
+      ctx.font = `${b.size}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(b.emoji, 0, 0);
+      ctx.restore();
+    });
+    if (elapsed < DURACAO) requestAnimationFrame(frame);
     else canvas.remove();
   };
   requestAnimationFrame(frame);
