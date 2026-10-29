@@ -1,9 +1,23 @@
 import { cookies } from "next/headers";
+import { Vote } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { votePoll, suggestPollModality } from "@/lib/actions";
-import ShareEnquete from "@/components/ShareEnquete";
+import PollCard from "@/components/PollCard";
+import ScrollIntoView from "@/components/form/ScrollIntoView";
 
 export const dynamic = "force-dynamic";
+
+const AVISOS: Record<string, { texto: string; tipo: "ok" | "info" | "erro" }> = {
+  "voto-registrado": { texto: "Voto registrado! Veja como está a votação.", tipo: "ok" },
+  "ja-votou": { texto: "Você já votou nessa enquete. Aqui está o resultado parcial.", tipo: "info" },
+  "sugestao-ok": { texto: "Modalidade sugerida! A comissão vai avaliar. Obrigado!", tipo: "ok" },
+  "sugestao-curta": { texto: "Escreva o nome da modalidade que você quer sugerir.", tipo: "erro" },
+};
+
+const COR = {
+  ok: "bg-green-50 text-green-800 ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30",
+  info: "bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30",
+  erro: "bg-red-50 text-red-700 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30",
+};
 
 export default async function EnquetesPage({
   searchParams,
@@ -13,137 +27,63 @@ export default async function EnquetesPage({
   const params = await searchParams;
   const polls = await prisma.poll.findMany({
     orderBy: { createdAt: "desc" },
-    include: { options: true },
+    select: { id: true, question: true, options: { select: { id: true, text: true, votes: true }, orderBy: { id: "asc" } } },
   });
 
   const store = await cookies();
   const votedCookie = store.get("voted_polls")?.value ?? "";
-  const votedPolls = new Set(votedCookie ? votedCookie.split(",").filter(Boolean) : []);
+  const votadas = new Set(votedCookie ? votedCookie.split(",").filter(Boolean) : []);
+
+  const chave =
+    params.sucesso === "voto-registrado"
+      ? "voto-registrado"
+      : params.erro === "ja-votou"
+        ? "ja-votou"
+        : params.sugestao === "ok"
+          ? "sugestao-ok"
+          : params.sugestao === "curta"
+            ? "sugestao-curta"
+            : null;
+  const aviso = chave ? AVISOS[chave] : null;
+  const alvo = typeof params.p === "string" ? params.p : null;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-unifique-dark">Enquetes</h1>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <section className="banner-vivo rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-6 text-white shadow-md sm:p-7">
+        <div className="flex items-center gap-3">
+          <span className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-white/15">
+            <Vote size={26} className="text-unifique-yellow" />
+          </span>
+          <div>
+            <h1 className="font-display text-2xl font-bold">Enquetes</h1>
+            <p className="text-sm text-white/85">Sua opinião decide os próximos passos da comissão.</p>
+          </div>
+        </div>
+      </section>
 
-      {params.erro === "ja-votou" && (
-        <p className="rounded bg-yellow-100 px-4 py-2 text-sm text-yellow-800">
-          Você já votou nessa enquete.
-        </p>
-      )}
-      {params.sucesso === "voto-registrado" && (
-        <p className="rounded bg-green-100 px-4 py-2 text-sm text-green-800">
-          Voto registrado, obrigado por participar!
-        </p>
-      )}
-      {params.sugestao === "ok" && (
-        <p className="rounded bg-green-100 px-4 py-2 text-sm text-green-800">
-          Modalidade sugerida! A comissão vai avaliar. Obrigado!
-        </p>
-      )}
-      {params.sugestao === "curta" && (
-        <p className="rounded bg-red-100 px-4 py-2 text-sm text-red-700">
-          Escreva o nome da modalidade que você quer sugerir.
-        </p>
+      {aviso && !alvo && (
+        <p className={`aviso-entrar rounded-xl px-4 py-3 text-sm font-medium ring-1 ${COR[aviso.tipo]}`}>{aviso.texto}</p>
       )}
 
-      {polls.length === 0 && <p className="text-gray-500">Nenhuma enquete ativa no momento.</p>}
+      {polls.length === 0 && (
+        <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white px-6 py-12 text-center dark:border-white/10 dark:bg-gray-900">
+          <Vote size={32} className="mx-auto text-gray-300" />
+          <p className="mt-2 font-display font-semibold text-gray-700 dark:text-gray-200">Nenhuma enquete no momento</p>
+          <p className="text-sm text-gray-500">Quando a comissão abrir uma votação, ela aparece aqui.</p>
+        </div>
+      )}
 
-      <div className="space-y-4">
-        {polls.map((poll) => {
-          const totalVotes = poll.options.reduce((sum, o) => sum + o.votes, 0);
-          const alreadyVoted = votedPolls.has(poll.id);
-
-          return (
-            <div
-              key={poll.id}
-              id={`enquete-${poll.id}`}
-              className="scroll-mt-20 rounded-lg bg-white p-5 shadow-sm"
-            >
-              <h2 className="font-semibold text-unifique-dark">{poll.question}</h2>
-
-              <div className="mt-4 space-y-2">
-                {poll.options.map((option) => {
-                  const pct = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
-                  return (
-                    <div key={option.id}>
-                      {alreadyVoted ? (
-                        <div>
-                          <div className="flex justify-between text-sm">
-                            <span>{option.text}</span>
-                            <span className="text-gray-500">
-                              {option.votes} voto(s) · {pct}%
-                            </span>
-                          </div>
-                          <div className="mt-1 h-2 w-full rounded bg-gray-100">
-                            <div
-                              className="h-2 rounded bg-unifique"
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <form action={votePoll}>
-                          <input type="hidden" name="pollId" value={poll.id} />
-                          <input type="hidden" name="optionId" value={option.id} />
-                          <button
-                            type="submit"
-                            className="w-full rounded border border-unifique px-3 py-2 text-left text-sm text-unifique-dark hover:bg-unifique/10"
-                          >
-                            {option.text}
-                          </button>
-                        </form>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {alreadyVoted && (
-                <p className="mt-3 text-xs text-gray-400">Total de votos: {totalVotes}</p>
-              )}
-
-              {/* Campo para sugerir uma modalidade que não está nas opções */}
-              <form
-                action={suggestPollModality}
-                className="mt-4 border-t border-gray-100 pt-3"
-              >
-                <input type="hidden" name="pollId" value={poll.id} />
-                <input type="hidden" name="from" value="/enquetes" />
-                {/* honeypot anti-spam */}
-                <input
-                  type="text"
-                  name="website"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  className="hidden"
-                  aria-hidden="true"
-                />
-                <label className="block text-sm font-medium text-gray-600">
-                  Quer uma modalidade que não está na lista? Sugira aqui:
-                </label>
-                <div className="mt-1 flex gap-2">
-                  <input
-                    name="text"
-                    maxLength={80}
-                    placeholder="Ex: Beach Tennis, Padel..."
-                    className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:border-unifique focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="rounded bg-unifique px-4 py-2 text-sm font-medium text-white hover:bg-unifique-dark"
-                  >
-                    Sugerir
-                  </button>
-                </div>
-              </form>
-
-              {/* Compartilhar a enquete */}
-              <div className="mt-4 border-t border-gray-100 pt-3">
-                <p className="mb-2 text-xs font-medium text-gray-500">Chame a galera pra votar:</p>
-                <ShareEnquete question={poll.question} pollId={poll.id} />
-              </div>
-            </div>
-          );
-        })}
+      <div className="em-sequencia space-y-4">
+        {polls.map((poll) => (
+          <div key={poll.id} id={`enquete-${poll.id}`} className="scroll-mt-24 space-y-3">
+            {aviso && alvo === poll.id && (
+              <ScrollIntoView>
+                <p className={`aviso-entrar rounded-xl px-4 py-3 text-sm font-medium ring-1 ${COR[aviso.tipo]}`}>{aviso.texto}</p>
+              </ScrollIntoView>
+            )}
+            <PollCard poll={poll} jaVotou={votadas.has(poll.id)} from="/enquetes" />
+          </div>
+        ))}
       </div>
     </div>
   );

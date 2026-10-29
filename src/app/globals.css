@@ -594,3 +594,22 @@ form:has(button[aria-busy="true"]) :is(input, fieldset, label, select, textarea)
     transition: none;
   }
 }
+
+/* Barras do resultado das enquetes crescendo da esquerda */
+@keyframes barra-crescer {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.barra-enquete {
+  transform-origin: left center;
+  animation: barra-crescer 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .barra-enquete {
+    animation: none;
+  }
+}

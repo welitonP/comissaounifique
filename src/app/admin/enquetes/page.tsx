@@ -21,7 +21,7 @@ export default async function AdminEnquetesPage({
     searchParams,
     prisma.poll.findMany({
       orderBy: { createdAt: "desc" },
-      include: { options: true, suggestions: { orderBy: { createdAt: "desc" } } },
+      include: { options: { orderBy: { id: "asc" } }, suggestions: { orderBy: { createdAt: "desc" } } },
     }),
   ]);
 

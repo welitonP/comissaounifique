@@ -17,7 +17,6 @@ import {
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { votePoll, suggestPollModality } from "@/lib/actions";
 import SuccessCelebration from "@/components/SuccessCelebration";
 import Countdown from "@/components/Countdown";
 import PhotoSlideshow from "@/components/PhotoSlideshow";
@@ -26,6 +25,7 @@ import ShareWhatsApp from "@/components/ShareWhatsApp";
 import MembersMarquee from "@/components/MembersMarquee";
 import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
+import PollCard from "@/components/PollCard";
 import HeroArena from "@/components/anim/HeroArena";
 import { bolaDaModalidade, type TipoBola } from "@/components/anim/Bolas";
 import TiltCard from "@/components/anim/TiltCard";
@@ -69,7 +69,7 @@ export default async function HomePage({
       prisma.tournament.count({ where: { date: { gte: hoje } } }),
       prisma.poll.findFirst({
         orderBy: { createdAt: "desc" },
-        include: { options: true },
+        include: { options: { orderBy: { id: "asc" } } },
       }),
       prisma.galleryPhoto.findMany({
         orderBy: { createdAt: "desc" },
@@ -119,9 +119,6 @@ export default async function HomePage({
   const jaVotou = latestPoll
     ? votedCookie.split(",").filter(Boolean).includes(latestPoll.id)
     : false;
-  const totalVotos = latestPoll
-    ? latestPoll.options.reduce((sum, o) => sum + o.votes, 0)
-    : 0;
 
   return (
     <div className="space-y-10">
@@ -402,75 +399,7 @@ export default async function HomePage({
                 Ver todas <ChevronRight size={16} />
               </Link>
             </div>
-            <div className="rounded-2xl bg-white p-5 shadow-sm dark:bg-gray-900">
-              <h3 className="font-semibold text-gray-800 dark:text-gray-100">{latestPoll.question}</h3>
-              <div className="mt-4 space-y-2">
-                {latestPoll.options.map((option) => {
-                  const pct = totalVotos > 0 ? Math.round((option.votes / totalVotos) * 100) : 0;
-                  return jaVotou ? (
-                    <div key={option.id}>
-                      <div className="flex justify-between text-sm">
-                        <span>{option.text}</span>
-                        <span className="text-gray-500 dark:text-gray-400">
-                          {option.votes} voto(s) · {pct}%
-                        </span>
-                      </div>
-                      <div className="mt-1 h-2 w-full rounded bg-gray-100 dark:bg-white/10">
-                        <div className="h-2 rounded bg-unifique dark:bg-unifique-blue" style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                  ) : (
-                    <form key={option.id} action={votePoll}>
-                      <input type="hidden" name="pollId" value={latestPoll.id} />
-                      <input type="hidden" name="optionId" value={option.id} />
-                      <button
-                        type="submit"
-                        className="w-full rounded border border-unifique px-3 py-2 text-left text-sm text-unifique-dark hover:bg-unifique/10 dark:border-unifique-blue/50 dark:text-unifique-blue dark:hover:bg-unifique-blue/10"
-                      >
-                        {option.text}
-                      </button>
-                    </form>
-                  );
-                })}
-              </div>
-              {!jaVotou && (
-                <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">Toque em uma opção para votar.</p>
-              )}
-
-              {/* Sugerir uma modalidade que não está nas opções */}
-              <form
-                action={suggestPollModality}
-                className="mt-4 border-t border-gray-100 pt-3 dark:border-white/10"
-              >
-                <input type="hidden" name="pollId" value={latestPoll.id} />
-                <input type="hidden" name="from" value="/" />
-                <input
-                  type="text"
-                  name="website"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  className="hidden"
-                  aria-hidden="true"
-                />
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-300">
-                  Quer uma modalidade que não está na lista? Sugira aqui:
-                </label>
-                <div className="mt-1 flex gap-2">
-                  <input
-                    name="text"
-                    maxLength={80}
-                    placeholder="Ex: Beach Tennis, Padel..."
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-unifique focus:outline-none dark:border-white/15 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
-                  />
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-unifique px-4 py-2 text-sm font-medium text-white hover:bg-unifique-dark"
-                  >
-                    Sugerir
-                  </button>
-                </div>
-              </form>
-            </div>
+            <PollCard poll={latestPoll} jaVotou={jaVotou} from="/" compartilhar={false} />
           </section>
         </Reveal>
       )}

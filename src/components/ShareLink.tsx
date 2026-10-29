@@ -39,7 +39,7 @@ export default function ShareLink({ path, message }: { path: string; message: st
       <button
         type="button"
         onClick={copiar}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-unifique px-3 py-1.5 text-sm font-semibold text-unifique transition hover:bg-unifique/10"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-unifique px-3 py-1.5 text-sm font-semibold text-unifique transition hover:bg-unifique/10 dark:border-unifique-blue/60 dark:text-unifique-blue dark:hover:bg-unifique-blue/10"
       >
         {copiado ? <Check size={16} /> : <Copy size={16} />}
         {copiado ? "Link copiado!" : "Copiar link"}

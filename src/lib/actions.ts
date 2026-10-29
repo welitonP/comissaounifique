@@ -42,7 +42,13 @@ export async function loginAction(formData: FormData) {
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });
-  redirect(next.startsWith("/") ? next : "/");
+  redirect(caminhoInterno(next));
+}
+
+// Só aceita caminhos do próprio site ("/admin", "/torneios/x"). Bloqueia "//site.com"
+// e "/\\site.com", que o navegador trataria como outro site (redirecionamento aberto).
+function caminhoInterno(destino: string): string {
+  return /^\/(?![\/\\])/.test(destino) && !/[\r\n]/.test(destino) ? destino : "/";
 }
 
 export async function logoutAction() {
@@ -430,22 +436,25 @@ export async function deletePoll(formData: FormData) {
 // Pública: o atleta sugere uma modalidade que não está entre as opções.
 export async function suggestPollModality(formData: FormData) {
   // De onde veio (home "/" ou "/enquetes"), para voltar ao mesmo lugar.
-  const fromRaw = String(formData.get("from") || "/enquetes");
-  const from = fromRaw.startsWith("/") ? fromRaw : "/enquetes";
+  // Só aceita os dois destinos conhecidos: um valor livre como "//outro-site.com"
+  // viraria um redirecionamento para fora do site.
+  const from = String(formData.get("from") || "") === "/" ? "/" : "/enquetes";
+  const pollId = String(formData.get("pollId") || "");
+  // Na página de enquetes, volta direto para a enquete em que a pessoa sugeriu.
+  const extra = from === "/enquetes" && pollId ? `&p=${encodeURIComponent(pollId)}` : "";
   // honeypot anti-spam
   if (String(formData.get("website") || "")) {
-    redirect(`${from}?sugestao=ok`);
+    redirect(`${from}?sugestao=ok${extra}`);
   }
-  const pollId = String(formData.get("pollId") || "");
   const text = String(formData.get("text") || "").trim().slice(0, 80);
   if (!pollId || text.length < 2) {
-    redirect(`${from}?sugestao=curta`);
+    redirect(`${from}?sugestao=curta${extra}`);
   }
   const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { id: true } });
   if (!poll) redirect(from);
   await prisma.pollSuggestion.create({ data: { pollId, text } });
   revalidatePath("/admin/enquetes");
-  redirect(`${from}?sugestao=ok`);
+  redirect(`${from}?sugestao=ok${extra}`);
 }
 
 // Comissão corrige o texto de uma sugestão (ex: erro de digitação).
@@ -475,7 +484,7 @@ export async function votePoll(formData: FormData) {
   const votedCookie = store.get("voted_polls")?.value ?? "";
   const votedPolls = votedCookie ? votedCookie.split(",").filter(Boolean) : [];
   if (votedPolls.includes(pollId)) {
-    redirect("/enquetes?erro=ja-votou");
+    redirect(`/enquetes?erro=ja-votou&p=${encodeURIComponent(pollId)}`);
   }
 
   // A opção precisa pertencer mesmo a esta enquete (evita voto forjado).
@@ -500,7 +509,8 @@ export async function votePoll(formData: FormData) {
   });
 
   revalidatePath("/enquetes");
-  redirect("/enquetes?sucesso=voto-registrado");
+  revalidatePath("/");
+  redirect(`/enquetes?sucesso=voto-registrado&p=${encodeURIComponent(pollId)}`);
 }
 
 // ===== Entre Empresas: Modalidades =====
