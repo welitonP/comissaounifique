@@ -267,7 +267,7 @@ export async function updateAnnouncement(formData: FormData) {
   // Imagens existentes marcadas para remover.
   const remover = formData.getAll("removeImage").map(String).filter(Boolean);
 
-  // Novas fotos (opcionais) — já chegam redimensionadas pelo PhotoField.
+  // Novas fotos (opcionais): já chegam redimensionadas pelo PhotoField.
   const files = formData
     .getAll("photos")
     .filter((f): f is File => f instanceof File && f.size > 0);
@@ -914,6 +914,20 @@ export async function createEnrollment(formData: FormData) {
     redirect("/inscricao?erro=dados");
   }
 
+  // Evita inscrição repetida: mesmo WhatsApp com inscrição ainda aguardando análise.
+  const normFone = (f: string) => {
+    const d = f.replace(/\D/g, "");
+    return d.length > 11 && d.startsWith("55") ? d.slice(2) : d;
+  };
+  const digitos = normFone(phone);
+  const pendentes = await prisma.enrollment.findMany({
+    where: { status: "pendente" },
+    select: { phone: true },
+  });
+  if (digitos.length >= 10 && pendentes.some((e) => normFone(e.phone ?? "") === digitos)) {
+    redirect("/inscricao?erro=ja-inscrito");
+  }
+
   await prisma.enrollment.create({
     data: {
       name,
@@ -1465,7 +1479,7 @@ export async function deleteTraining(formData: FormData) {
   revalidatePath("/admin/treinos");
 }
 
-// Inscrição pública num treino da grade (nome obrigatório, WhatsApp opcional).
+// Inscrição pública num treino da grade (nome e WhatsApp obrigatórios).
 export async function createTrainingSignup(formData: FormData) {
   // honeypot anti-spam
   if (String(formData.get("website") || "")) {
@@ -1475,7 +1489,7 @@ export async function createTrainingSignup(formData: FormData) {
   const name = String(formData.get("name") || "").trim().slice(0, 100);
   const phone = String(formData.get("phone") || "").trim().slice(0, 30);
   if (!trainingId || !name || !phone) {
-    redirect("/treinos?erro=dados");
+    redirect(`/treinos?erro=dados&t=${trainingId}`);
   }
   const treino = await prisma.training.findUnique({
     where: { id: trainingId },
@@ -1500,7 +1514,7 @@ export async function createTrainingSignup(formData: FormData) {
     (s) => normNome(s.name) === nomeAlvo || (foneAlvo && s.phone && soDigitos(s.phone) === foneAlvo),
   );
   if (jaInscrito) {
-    redirect("/treinos?erro=ja-inscrito");
+    redirect(`/treinos?erro=ja-inscrito&t=${trainingId}`);
   }
 
   await prisma.trainingSignup.create({
@@ -1519,7 +1533,7 @@ export async function createTrainingSignup(formData: FormData) {
   );
   revalidatePath("/treinos");
   revalidatePath("/admin/treinos");
-  redirect("/treinos?ok=1");
+  redirect(`/treinos?ok=${trainingId}`);
 }
 
 export async function deleteTrainingSignup(formData: FormData) {

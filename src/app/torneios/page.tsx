@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TorneiosPage() {
   const torneios = await prisma.tournament.findMany({
-    orderBy: [{ open: "desc" }, { createdAt: "desc" }],
+    orderBy: [{ open: "desc" }, { date: "asc" }, { createdAt: "desc" }],
     // Lista enxuta: NÃO carrega o blob da foto.
     select: {
       id: true,
@@ -64,18 +64,16 @@ export default async function TorneiosPage() {
               </span>
             )}
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h2 className="truncate font-display text-lg font-bold text-unifique">{t.title}</h2>
-                {t.open ? (
-                  <span className="whitespace-nowrap rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
-                    Abertas
-                  </span>
-                ) : (
-                  <span className="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-500">
-                    Encerrado
-                  </span>
-                )}
-              </div>
+              {t.open ? (
+                <span className="inline-block rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700">
+                  Inscrições abertas
+                </span>
+              ) : (
+                <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-500">
+                  Encerrado
+                </span>
+              )}
+              <h2 className="mt-1 line-clamp-2 font-display text-lg font-bold leading-snug text-unifique">{t.title}</h2>
               <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
                 {t.date && (
                   <span className="inline-flex items-center gap-1.5">

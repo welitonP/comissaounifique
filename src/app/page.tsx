@@ -9,6 +9,7 @@ import {
   Package,
   Settings,
   Shirt,
+  Swords,
   Trophy,
   Vote,
   type LucideIcon,
@@ -26,6 +27,7 @@ import MembersMarquee from "@/components/MembersMarquee";
 import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
 import { fmtDataHora, fmtHora, fmtDiaSemanaLongo } from "@/lib/datas";
+import { isInscricoesAbertas } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +40,7 @@ export default async function HomePage({
   const now = new Date();
   const hoje = new Date(now.toDateString());
 
-  const [user, nextCalEvent, latestAnnouncements, modalityCount, atletasDistintos, upcomingEventCount, nextTournament, upcomingTournamentCount, latestPoll, galleryPhotos] =
+  const [user, nextCalEvent, latestAnnouncements, modalityCount, atletasDistintos, upcomingEventCount, nextTournament, upcomingTournamentCount, latestPoll, galleryPhotos, torneiosAbertos, inscricoesAbertas] =
     await Promise.all([
       getCurrentUser(),
       prisma.calendarEvent.findFirst({
@@ -71,6 +73,14 @@ export default async function HomePage({
         take: 6,
         select: { id: true, caption: true, createdAt: true },
       }),
+      // Faixa "Inscrições abertas": torneios com inscrição aberta (sem o blob do cartaz).
+      prisma.tournament.findMany({
+        where: { open: true },
+        orderBy: [{ date: "asc" }, { createdAt: "desc" }],
+        take: 3,
+        select: { id: true, slug: true, title: true, date: true, location: true, photoMime: true, _count: { select: { signups: true } } },
+      }),
+      isInscricoesAbertas(),
     ]);
   const athleteCount = atletasDistintos.length;
 
@@ -176,6 +186,69 @@ export default async function HomePage({
           </Link>
         </div>
       </section>
+
+      {/* Inscrições abertas: torneios + inscrição de atletas */}
+      {(torneiosAbertos.length > 0 || inscricoesAbertas) && (
+        <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-unifique/10 sm:p-6 dark:bg-gray-900 dark:ring-white/10">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 font-display text-xl font-bold text-unifique dark:text-white">
+              <span className="relative flex h-3 w-3">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500" />
+              </span>
+              Inscrições abertas
+            </h2>
+            {torneiosAbertos.length > 0 && (
+              <Link href="/torneios" className="flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline">
+                Ver todos <ChevronRight size={16} />
+              </Link>
+            )}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {torneiosAbertos.map((t) => (
+              <Link
+                key={t.id}
+                href={`/torneios/${t.slug ?? t.id}`}
+                className="group flex items-center gap-3 rounded-2xl border border-gray-100 p-3 transition hover:-translate-y-0.5 hover:border-unifique/30 hover:shadow-md dark:border-white/10"
+              >
+                {t.photoMime ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={`/api/torneio-foto/${t.id}`} alt="" className="h-16 w-16 flex-none rounded-xl object-cover" />
+                ) : (
+                  <span className="flex h-16 w-16 flex-none items-center justify-center rounded-xl bg-unifique-light text-unifique dark:bg-white/10">
+                    <Swords size={26} />
+                  </span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block font-display font-bold leading-snug text-gray-900 dark:text-white">{t.title}</span>
+                  <span className="block text-xs text-gray-500 dark:text-gray-400">
+                    {t.date ? fmtDataHora(t.date) : "Data a definir"}
+                    {t.location ? ` · ${t.location}` : ""}
+                  </span>
+                  <span className="mt-1 inline-block text-xs font-semibold text-unifique dark:text-unifique-blue">
+                    {t._count.signups > 0 ? `${t._count.signups} já inscrito(s) · ` : ""}Inscreva-se →
+                  </span>
+                </span>
+              </Link>
+            ))}
+            {inscricoesAbertas && (
+              <Link
+                href="/inscricao"
+                className="group flex items-center gap-3 rounded-2xl bg-gradient-to-br from-unifique to-unifique-blue p-3 text-white transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <span className="flex h-16 w-16 flex-none items-center justify-center rounded-xl bg-white/15">
+                  <Trophy size={28} className="text-unifique-yellow" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-display font-bold leading-snug">Seja atleta da Unifique</span>
+                  <span className="block text-xs text-white/80">Inscrição para as competições Entre Empresas</span>
+                  <span className="mt-1 inline-block text-xs font-semibold text-unifique-yellow">Fazer inscrição →</span>
+                </span>
+              </Link>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Números */}
       <Reveal>

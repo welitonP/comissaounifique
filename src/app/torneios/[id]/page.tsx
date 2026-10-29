@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { MapPin, CalendarClock, Lock, ChevronLeft, Share2 } from "lucide-react";
+import { MapPin, CalendarClock, Lock, ChevronLeft, Share2, Users, CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { createTournamentSignup } from "@/lib/actions";
 import { fmtDataHora } from "@/lib/datas";
@@ -9,6 +9,11 @@ import ShareLink from "@/components/ShareLink";
 import AddToCalendar from "@/components/AddToCalendar";
 import RulesModal from "@/components/RulesModal";
 import { temColunasArquivoRegulamento } from "@/lib/schema-check";
+import PhoneInput from "@/components/form/PhoneInput";
+import SubmitButton from "@/components/form/SubmitButton";
+import RememberMe from "@/components/form/RememberMe";
+import ScrollIntoView from "@/components/form/ScrollIntoView";
+import StickyCta from "@/components/StickyCta";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +89,8 @@ export default async function TorneioDetalhePage({
       ...(comArquivo ? { rulesMime: true, rulesName: true } : {}),
       photoMime: true,
       _count: { select: { signups: true } },
+      // Lista pública de inscritos: só nome e categoria (nunca o telefone).
+      signups: { select: { name: true, category: true }, orderBy: { createdAt: "asc" } },
     },
   });
   if (!t) {
@@ -111,6 +118,7 @@ export default async function TorneioDetalhePage({
     );
   }
 
+  const inscritos = t.signups;
   const perguntas = (t.questions || "").split("\n").map((p) => p.trim()).filter(Boolean);
   const categorias = (t.categories || "").split("\n").map((c) => c.trim()).filter(Boolean);
   const arquivo = t as { rulesMime?: string | null; rulesName?: string | null };
@@ -149,8 +157,45 @@ export default async function TorneioDetalhePage({
     outlookHref = `https://outlook.office.com/calendar/0/deeplink/compose?${o.toString()}`;
   }
 
+  const ok = sp.ok === "1";
+  const caminho = `/torneios/${t.slug ?? t.id}`;
+  const erroMsg: Record<string, string> = {
+    "ja-inscrito": "Você já está inscrito neste torneio (mesmo nome ou WhatsApp). É uma inscrição por pessoa.",
+    dados: "Preencha seu nome e WhatsApp para se inscrever.",
+    fechado: "As inscrições deste torneio foram encerradas.",
+    categoria: "Escolha a sua categoria para se inscrever.",
+  };
+  const erro = typeof sp.erro === "string" ? erroMsg[sp.erro] : undefined;
+  const campo =
+    "mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base focus:border-unifique focus:outline-none focus:ring-2 focus:ring-unifique/15 dark:border-white/15 dark:bg-gray-800 dark:text-white";
+
+  // Quem já se inscreveu: só o nome (nunca o telefone), por categoria.
+  const gruposInscritos =
+    categorias.length > 0
+      ? [
+          ...categorias.map((c) => ({ cat: c, nomes: inscritos.filter((i) => i.category === c).map((i) => i.name) })),
+          { cat: "Outros", nomes: inscritos.filter((i) => !i.category || !categorias.includes(i.category)).map((i) => i.name) },
+        ].filter((g) => g.nomes.length > 0)
+      : [{ cat: null as string | null, nomes: inscritos.map((i) => i.name) }];
+
+  const compartilharEAgenda = (
+    <>
+      <div>
+        <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <Share2 size={13} /> Chame a galera
+        </p>
+        <ShareLink path={caminho} message={`🏆 ${t.title} · Comissão de Esportes Unifique`} />
+      </div>
+      {googleHref && outlookHref && (
+        <div className="mt-4 border-t border-gray-100 pt-4 dark:border-white/10">
+          <AddToCalendar googleHref={googleHref} outlookHref={outlookHref} />
+        </div>
+      )}
+    </>
+  );
+
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
+    <div className="mx-auto max-w-2xl space-y-5 pb-20 sm:pb-0">
       <Link
         href="/torneios"
         className="inline-flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline"
@@ -158,34 +203,10 @@ export default async function TorneioDetalhePage({
         <ChevronLeft size={16} /> Todos os torneios
       </Link>
 
-      <SuccessCelebration active={sp.ok === "1"} message="Inscrição finalizada! Bom jogo!" />
-      {sp.ok === "1" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
-          ✅ Inscrição finalizada com sucesso! Você está confirmado. Nos vemos no jogo!
-        </p>
-      )}
-      {sp.erro === "ja-inscrito" && (
-        <p className="rounded-xl bg-yellow-100 px-4 py-3 text-sm text-yellow-800">
-          Você já está inscrito neste torneio (mesmo nome ou telefone). Uma inscrição por pessoa.
-        </p>
-      )}
-      {sp.erro === "dados" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-          Preencha seu nome e telefone (WhatsApp) para se inscrever.
-        </p>
-      )}
-      {sp.erro === "fechado" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-          As inscrições deste torneio foram encerradas.
-        </p>
-      )}
-      {sp.erro === "categoria" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
-          Escolha a categoria para se inscrever.
-        </p>
-      )}
+      <SuccessCelebration active={ok} message="Inscrição confirmada! Bom jogo!" />
 
-      <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
+      {/* Informações do torneio */}
+      <section className="overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-gray-900">
         {t.photoMime && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
@@ -195,38 +216,34 @@ export default async function TorneioDetalhePage({
           />
         )}
         <div className="p-5">
-          <div className="flex items-start justify-between gap-3">
-            <h1 className="font-display text-2xl font-bold text-unifique">{t.title}</h1>
-            {t.open ? (
-              <span className="whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                Inscrições abertas
-              </span>
-            ) : (
-              <span className="whitespace-nowrap rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">
-                Encerrado
-              </span>
-            )}
-          </div>
+          <span
+            className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+              t.open
+                ? "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300"
+                : "bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400"
+            }`}
+          >
+            {t.open ? "Inscrições abertas" : "Inscrições encerradas"}
+          </span>
+          <h1 className="mt-2 font-display text-2xl font-bold text-unifique sm:text-3xl dark:text-white">{t.title}</h1>
           {t.description && (
-            <p className="mt-2 whitespace-pre-wrap text-gray-600">{t.description}</p>
+            <p className="mt-2 whitespace-pre-wrap text-gray-600 dark:text-gray-300">{t.description}</p>
           )}
-          <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
-            {t.date && (
-              <span className="inline-flex items-center gap-1.5">
-                <CalendarClock size={16} className="text-unifique-blue" /> {fmtDataHora(t.date)}
-              </span>
-            )}
-            {t.location && (
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin size={16} className="text-unifique-blue" /> {t.location}
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1.5 font-medium text-unifique">
-              {t._count.signups} inscrito(s)
-            </span>
+          <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+            <div className="flex items-center gap-2 rounded-xl bg-unifique-light/70 px-3 py-2.5 text-gray-700 dark:bg-white/5 dark:text-gray-300">
+              <CalendarClock size={18} className="flex-none text-unifique-blue" />
+              <span>{t.date ? fmtDataHora(t.date) : "Data a definir"}</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-unifique-light/70 px-3 py-2.5 text-gray-700 dark:bg-white/5 dark:text-gray-300">
+              <MapPin size={18} className="flex-none text-unifique-blue" />
+              <span>{t.location || "Local a definir"}</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-unifique-light/70 px-3 py-2.5 font-semibold text-unifique dark:bg-white/5 dark:text-unifique-blue">
+              <Users size={18} className="flex-none text-unifique-blue" />
+              <span>{t._count.signups} inscrito(s)</span>
+            </div>
           </div>
 
-          {/* Regulamento: botão que abre a janela por cima da página */}
           {temRegulamento && (
             <div className="mt-4">
               <RulesModal
@@ -238,107 +255,95 @@ export default async function TorneioDetalhePage({
               />
             </div>
           )}
-
-          {/* Compartilhar este torneio */}
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
-              <Share2 size={13} /> Compartilhar este torneio
-            </p>
-            <ShareLink path={`/torneios/${t.slug ?? t.id}`} message={`🏆 ${t.title} · Comissão de Esportes Unifique`} />
-          </div>
-
-          {/* Adicionar à agenda (só quando tem data) */}
-          {googleHref && outlookHref && (
-            <div className="mt-4 border-t border-gray-100 pt-4 dark:border-white/10">
-              <AddToCalendar googleHref={googleHref} outlookHref={outlookHref} />
-            </div>
-          )}
         </div>
+      </section>
 
-        {t.open ? (
-          <form action={createTournamentSignup} className="space-y-3 border-t border-gray-100 p-5">
+      {/* Inscrição */}
+      <section id="inscricao" className="scroll-mt-24 overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-gray-900">
+        {ok ? (
+          <ScrollIntoView className="p-6">
+            <div className="text-center">
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-500/15">
+                <CheckCircle2 size={36} />
+              </span>
+              <h2 className="mt-3 font-display text-2xl font-bold text-unifique dark:text-white">Inscrição confirmada!</h2>
+              <p className="mt-1 text-gray-600 dark:text-gray-300">
+                Você está na lista do <strong>{t.title}</strong>. Se precisar, a comissão chama no seu WhatsApp.
+              </p>
+            </div>
+            <div className="mt-6 rounded-2xl border border-gray-100 p-4 dark:border-white/10">{compartilharEAgenda}</div>
+            <div className="mt-4 text-center">
+              <Link href={`${caminho}#inscricao`} className="text-sm font-semibold text-unifique-blue hover:underline">
+                Inscrever outra pessoa
+              </Link>
+            </div>
+          </ScrollIntoView>
+        ) : t.open ? (
+          <form action={createTournamentSignup} className="space-y-4 p-5">
             <input type="hidden" name="tournamentId" value={t.id} />
             {/* honeypot */}
-            <input
-              type="text"
-              name="website"
-              tabIndex={-1}
-              autoComplete="off"
-              className="hidden"
-              aria-hidden="true"
-            />
-            <p className="font-display font-semibold text-unifique">Fazer inscrição</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700">
-                  Nome <span className="text-unifique-blue">*</span>
-                </label>
-                <input
-                  name="name"
-                  required
-                  className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700">
-                  Telefone (WhatsApp) <span className="text-unifique-blue">*</span>
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  required
-                  inputMode="tel"
-                  placeholder="(47) 90000-0000"
-                  className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-                />
-              </div>
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
+            <div>
+              <h2 className="font-display text-xl font-bold text-unifique dark:text-white">Quero participar</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Leva menos de 1 minuto.</p>
             </div>
-            {categorias.length > 0 && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700">
-                  Categoria <span className="text-unifique-blue">*</span>
-                </label>
-                <select
-                  name="category"
-                  required
-                  defaultValue=""
-                  className="mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 focus:border-unifique focus:outline-none"
-                >
-                  <option value="" disabled>
-                    Selecione...
-                  </option>
-                  {categorias.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
+            {erro && (
+              <ScrollIntoView>
+                <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-200">{erro}</p>
+              </ScrollIntoView>
             )}
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                Nome completo <span className="text-unifique-blue">*</span>
+              </label>
+              <input name="name" required maxLength={100} autoComplete="name" className={campo} />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                WhatsApp <span className="text-unifique-blue">*</span>
+              </label>
+              <PhoneInput className={campo} />
+            </div>
+
+            {categorias.length > 0 && (
+              <fieldset>
+                <legend className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  Categoria <span className="text-unifique-blue">*</span>
+                </legend>
+                <div className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {categorias.map((c) => (
+                    <label key={c} className="cursor-pointer">
+                      <input type="radio" name="category" value={c} required className="peer sr-only" />
+                      <span className="block rounded-xl border-2 border-gray-200 px-3 py-3 text-center font-semibold text-gray-700 transition peer-checked:border-unifique peer-checked:bg-unifique peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-unifique/30 dark:border-white/15 dark:text-gray-200">
+                        {c}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+
             {perguntas.map((pergunta, i) => (
               <div key={i}>
-                <label className="block text-sm font-semibold text-gray-700">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
                   {pergunta} <span className="font-normal text-gray-400">(opcional)</span>
                 </label>
-                <input
-                  name={`q_${i}`}
-                  maxLength={200}
-                  className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-                />
+                <input name={`q_${i}`} maxLength={200} className={campo} />
               </div>
             ))}
             <div>
-              <label className="block text-sm font-semibold text-gray-700">
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
                 Observação <span className="font-normal text-gray-400">(opcional)</span>
               </label>
-              <input
-                name="note"
-                placeholder="Algo que a comissão precise saber"
-                className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-              />
+              <input name="note" maxLength={200} placeholder="Algo que a comissão precise saber" className={campo} />
             </div>
+
+            <RememberMe />
+
             {temRegulamento && (
-              <p className="text-center text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Ao se inscrever, você declara que leu o{" "}
                 <RulesModal
                   variant="link"
@@ -351,19 +356,52 @@ export default async function TorneioDetalhePage({
                 do torneio.
               </p>
             )}
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-unifique py-3 font-display font-semibold text-white shadow transition hover:bg-unifique-dark"
-            >
-              Quero participar
-            </button>
+            <SubmitButton className="w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
+              Confirmar inscrição
+            </SubmitButton>
           </form>
         ) : (
-          <div className="flex items-center gap-2 border-t border-gray-100 p-5 text-sm text-gray-500">
-            <Lock size={16} /> Inscrições encerradas para este torneio.
+          <div className="flex items-center gap-3 p-5 text-gray-500 dark:text-gray-400">
+            <Lock size={20} className="flex-none" />
+            <p>As inscrições deste torneio estão encerradas.</p>
           </div>
         )}
       </section>
+
+      {/* Quem já está dentro (só nomes) */}
+      {inscritos.length > 0 && (
+        <section className="rounded-2xl bg-white p-5 shadow-sm dark:bg-gray-900">
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-unifique dark:text-white">
+            <Users size={20} className="text-unifique-blue" /> Quem já está dentro
+            <span className="rounded-full bg-unifique px-2 py-0.5 text-xs font-bold text-white">{inscritos.length}</span>
+          </h2>
+          <div className="mt-3 space-y-3">
+            {gruposInscritos.map((g) => (
+              <div key={g.cat ?? "todos"}>
+                {g.cat && (
+                  <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-gray-400">
+                    {g.cat} · {g.nomes.length}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-1.5">
+                  {g.nomes.map((n, i) => (
+                    <span
+                      key={`${n}-${i}`}
+                      className="rounded-full bg-unifique-light px-3 py-1 text-sm font-medium text-unifique dark:bg-white/10 dark:text-gray-200"
+                    >
+                      {n}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!ok && <section className="rounded-2xl bg-white p-5 shadow-sm dark:bg-gray-900">{compartilharEAgenda}</section>}
+
+      {t.open && !ok && <StickyCta targetId="inscricao">Quero participar</StickyCta>}
     </div>
   );
 }
