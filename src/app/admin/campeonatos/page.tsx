@@ -37,7 +37,7 @@ export default async function AdminCampeonatosPage({ searchParams }: { searchPar
   }
 
   return (
-    <div className="space-y-6">
+    <div className="campeonato space-y-6">
       <Link href="/admin" className="inline-flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline">
         <ChevronLeft size={16} /> Gerenciar
       </Link>

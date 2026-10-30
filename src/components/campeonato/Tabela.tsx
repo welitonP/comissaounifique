@@ -60,7 +60,7 @@ export default function Tabela({
             const nome = (
               <span className="flex min-w-0 items-center gap-2">
                 <Escudo time={l.time} size={24} />
-                <span className="truncate font-semibold text-gray-800 dark:text-slate-100">{l.time.name}</span>
+                <span className="line-clamp-3 break-words leading-tight text-[13px] font-semibold text-gray-800 dark:text-slate-100 sm:text-sm">{l.time.name}</span>
               </span>
             );
             return (

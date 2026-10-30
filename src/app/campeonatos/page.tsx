@@ -33,7 +33,7 @@ export default async function CampeonatosPage() {
   const cups = await carregar();
 
   return (
-    <div className="space-y-8">
+    <div className="campeonato space-y-8">
       <section className="banner-vivo relative overflow-hidden rounded-3xl bg-gradient-to-br from-unifique-dark via-unifique to-unifique-blue px-6 py-10 text-white shadow-lg sm:px-10">
         <div aria-hidden className="anim-aurora pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-unifique-teal/30 blur-3xl" />
         <div className="relative flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">

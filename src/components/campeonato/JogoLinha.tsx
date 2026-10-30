@@ -36,7 +36,7 @@ export default function JogoLinha({
       <div className="flex items-center gap-2.5">
         <Escudo time={t} size={24} />
         <span
-          className={`min-w-0 flex-1 truncate text-[15px] ${
+          className={`min-w-0 flex-1 line-clamp-2 break-words leading-tight text-[15px] ${
             ganhou
               ? "font-bold text-gray-900 dark:text-white"
               : perdeu

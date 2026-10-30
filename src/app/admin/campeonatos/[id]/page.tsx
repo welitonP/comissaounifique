@@ -92,7 +92,7 @@ export default async function AdminCampeonatoPage({
   const grupoPendente = painel.jogosGrupo.filter((m) => m.status !== "encerrado").length;
 
   return (
-    <div className="tela-cheia">
+    <div className="campeonato tela-cheia">
       <div className="tela-cheia-miolo space-y-5">
       <Link href="/admin/campeonatos" className="inline-flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline">
         <ChevronLeft size={16} /> Campeonatos
@@ -178,12 +178,12 @@ export default async function AdminCampeonatoPage({
                     : "Fase de grupos concluída! Escolha quantos avançam e monte a chave."}
                 </p>
               </div>
-              <form action={gerarMataMata} className="flex flex-wrap items-center gap-2">
+              <form action={gerarMataMata} className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                 <input type="hidden" name="cupId" value={cup.id} />
                 {opcoesClassif.length > 0 && (
-                  <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-1.5 text-sm shadow-sm dark:bg-slate-900">
+                  <label className="flex w-full min-w-0 items-center gap-2 rounded-xl bg-white px-3 py-1.5 text-sm shadow-sm dark:bg-slate-900 sm:w-auto">
                     <span className="text-xs font-semibold text-gray-500">Avançam</span>
-                    <select name="qualifiers" defaultValue={classifPadrao} className="bg-transparent py-1 font-semibold text-unifique outline-none dark:text-unifique-teal">
+                    <select name="qualifiers" defaultValue={classifPadrao} className="min-w-0 flex-1 bg-transparent py-1 font-semibold text-unifique outline-none dark:text-unifique-teal">
                       {opcoesClassif.map((o) => (
                         <option key={o.q} value={o.q}>
                           {qtdGrupos > 1 ? `${o.q} por grupo` : `${o.q} melhores`} → {o.total} times ({o.fase})
@@ -210,7 +210,7 @@ export default async function AdminCampeonatoPage({
           )}
 
           {fases.length > 0 && (
-            <div className="rolagem-suave -mx-4 overflow-x-auto px-4">
+            <div className="rolagem-suave -mx-3 overflow-x-auto px-3">
               <div className="flex w-max gap-1.5">
                 {fases.map((f) => (
                   <Link
@@ -247,8 +247,8 @@ export default async function AdminCampeonatoPage({
 
           {temJogos && (
             <details className="rounded-2xl bg-white shadow-sm dark:bg-slate-800" open={semHorario > 0 && painel.progresso.feitos === 0}>
-              <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 font-placar text-lg font-bold uppercase text-unifique dark:text-unifique-teal">
-                <CalendarClock size={18} /> Agendar horários automaticamente
+              <summary className="flex cursor-pointer flex-wrap items-center gap-2 px-4 py-3 font-placar text-lg font-bold uppercase text-unifique dark:text-unifique-teal">
+                <CalendarClock size={18} /> Agendar horários
                 {semHorario > 0 && <span className="rounded-full bg-amber-100 px-2 py-0.5 font-sans text-xs font-semibold normal-case text-amber-800">{semHorario} sem horário</span>}
               </summary>
               <form action={agendarJogos} className="grid gap-3 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -363,7 +363,7 @@ export default async function AdminCampeonatoPage({
                 <summary className="flex cursor-pointer list-none items-center gap-3 p-3">
                   <Escudo time={t} size={36} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-display font-semibold">{t.name}</span>
+                    <span className="block line-clamp-2 break-words leading-tight font-display font-semibold">{t.name}</span>
                     <span className="block text-xs text-gray-400">
                       {t.group ? `Grupo ${t.group}` : "Sem grupo"}
                       {t.seeded && " · ⭐ cabeça de chave"}

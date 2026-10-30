@@ -92,7 +92,7 @@ export default async function CampeonatoPage({ params, searchParams }: Params) {
   );
 
   return (
-    <div className="tela-cheia">
+    <div className="campeonato tela-cheia">
       <div className="tela-cheia-miolo space-y-5">
         <Link href="/campeonatos" className="inline-flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline">
           <ChevronLeft size={16} /> Campeonatos
@@ -292,7 +292,7 @@ export default async function CampeonatoPage({ params, searchParams }: Params) {
                   <div className="flex items-center gap-3 p-4">
                     <Escudo time={time} size={44} />
                     <div className="min-w-0">
-                      <p className="truncate font-display font-bold text-gray-800 dark:text-slate-100">{time.name}</p>
+                      <p className="line-clamp-2 break-words leading-tight font-display font-bold text-gray-800 dark:text-slate-100">{time.name}</p>
                       <p className="text-xs text-gray-400">
                         {time.group ? `Grupo ${time.group}` : ""}
                         {time.seeded ? " · cabeça de chave" : ""}
@@ -336,7 +336,7 @@ function JogosDoTime({ painel, timeId }: { painel: Painel; timeId: string }) {
         <div className="flex items-center gap-3 p-4">
           <Escudo time={time} size={52} />
           <div className="min-w-0">
-            <p className="truncate font-placar text-2xl font-bold uppercase">{time.name}</p>
+            <p className="line-clamp-2 break-words leading-tight font-placar text-2xl font-bold uppercase">{time.name}</p>
             {time.group && <p className="text-xs text-gray-400">Grupo {time.group}</p>}
           </div>
         </div>
@@ -403,7 +403,7 @@ function Destaques({ painel, base }: { painel: Painel; base: string }) {
           <div key={c.titulo} className="relative overflow-hidden rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-800">
             <span className="absolute inset-y-0 left-0 w-1" style={{ background: c.cor ?? "#00A2FF" }} />
             <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">{c.titulo}</p>
-            <p className="mt-1 truncate font-semibold text-gray-800 dark:text-slate-100">{c.nome}</p>
+            <p className="mt-1 line-clamp-2 break-words leading-tight font-semibold text-gray-800 dark:text-slate-100">{c.nome}</p>
             <p className="font-placar text-3xl font-bold text-unifique dark:text-unifique-teal">{c.valor}</p>
           </div>
         ))}
@@ -505,7 +505,7 @@ function Ranking({
             <span className={`relative w-6 text-center font-placar text-lg font-bold ${k === 0 ? "text-amber-500" : "text-gray-400"}`}>{k + 1}</span>
             <Escudo time={i.time} size={24} />
             <span className="relative min-w-0 flex-1">
-              <span className="block truncate font-semibold text-gray-800 dark:text-slate-100">{i.nome}</span>
+              <span className="block line-clamp-2 break-words leading-tight font-semibold text-gray-800 dark:text-slate-100">{i.nome}</span>
               <span className="block truncate text-xs text-gray-400">{i.time?.name}</span>
             </span>
             <span className="relative font-placar text-2xl font-bold text-unifique dark:text-unifique-teal">{i.valor}</span>

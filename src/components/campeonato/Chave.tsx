@@ -20,7 +20,7 @@ function JogoChave({ jogo, painel }: { jogo: JogoCompleto; painel: Painel }) {
       >
         <Escudo time={t} size={22} />
         <span
-          className={`min-w-0 flex-1 truncate text-[13px] ${
+          className={`min-w-0 flex-1 line-clamp-2 break-words leading-tight text-[13px] ${
             ganhou
               ? "font-bold text-gray-900 dark:text-white"
               : perdeu
@@ -80,7 +80,28 @@ export default function Chave({ painel }: { painel: Painel }) {
 
   return (
     <div className="space-y-4">
-      <div className="rolagem-suave -mx-4 overflow-x-auto px-4 pb-3">
+      {/* Celular: uma fase embaixo da outra (sem rolar para o lado) */}
+      <div className="space-y-4 md:hidden">
+        {[...fases].reverse().map((lista, k) => {
+          const i = fases.length - 1 - k;
+          const visiveis = lista.filter((j) => j.status !== "folga");
+          if (visiveis.length === 0) return null;
+          return (
+            <section key={i}>
+              <h4 className="mb-2 rounded-lg bg-unifique/10 py-1.5 text-center font-placar text-sm font-bold uppercase tracking-wider text-unifique dark:bg-unifique-blue/15 dark:text-unifique-teal">
+                {nomeFase(lista.length)}
+              </h4>
+              <div className="grid grid-cols-1 gap-2">
+                {visiveis.map((j) => (
+                  <JogoChave key={j.id} jogo={j} painel={painel} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+
+      <div className="rolagem-suave -mx-4 hidden overflow-x-auto px-4 pb-3 md:block">
         <div className="chave">
           {fases.map((lista, i) => {
             const pares: JogoCompleto[][] = [];

@@ -1,5 +1,17 @@
 @tailwind base;
 @tailwind components;
+
+@layer components {
+  /* Campeonatos: grade sem colunas definidas nunca fica mais larga que a tela
+     (nomes longos quebram/encurtam em vez de empurrar a página para o lado).
+     As classes md:grid-cols-* continuam valendo por cima. */
+  :where(.campeonato) .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :where(.campeonato) .grid > * {
+    min-width: 0;
+  }
+}
 @tailwind utilities;
 
 :root {
@@ -839,4 +851,11 @@ body:has(.modo-telao) > footer {
   animation: none;
   filter: none;
   translate: none;
+}
+
+/* No celular, o botão flutuante do assistente cobre os placares: some nos campeonatos */
+@media (max-width: 767px) {
+  body:has(.campeonato) > div.fixed.bottom-5.left-5 {
+    display: none;
+  }
 }

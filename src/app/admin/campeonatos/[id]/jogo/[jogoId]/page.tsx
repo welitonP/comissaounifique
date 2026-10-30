@@ -76,7 +76,9 @@ export default async function SumulaPage({
     return (
       <div className={`flex min-w-0 flex-1 flex-col items-center gap-2 ${perdeu ? "opacity-50" : ""}`}>
         <Escudo time={t} size={56} />
-        <p className="w-full truncate text-center font-placar text-xl font-bold uppercase leading-tight">{t.name}</p>
+        <div className="flex min-h-[4.2rem] w-full items-center justify-center">
+          <p className="line-clamp-3 break-words text-center font-placar text-lg font-bold uppercase leading-tight sm:text-xl">{t.name}</p>
+        </div>
         <p key={placar ?? -1} className="placar-pop numeros font-placar text-7xl font-extrabold leading-none sm:text-8xl">{placar ?? 0}</p>
         {aoVivo && (
           <div className="flex w-full flex-col gap-2">
@@ -105,7 +107,7 @@ export default async function SumulaPage({
   };
 
   return (
-    <div className="-mx-4 -my-8 min-h-[calc(100vh-66px)] bg-[#f0f4fb] pb-24 dark:bg-[#0b0f1a]">
+    <div className="campeonato -mx-4 -my-8 min-h-[calc(100vh-66px)] bg-[#f0f4fb] pb-24 dark:bg-[#0b0f1a]">
       {/* Placar */}
       <section className={`relative overflow-hidden bg-gradient-to-br ${esp.gradiente} text-white`}>
         <div aria-hidden className="absolute inset-0 bg-unifique-dark/80" />
@@ -178,7 +180,7 @@ export default async function SumulaPage({
                   {voltar}
                   <div className="flex items-center gap-2">
                     <Escudo time={t} size={26} />
-                    <p className="truncate font-placar text-lg font-bold uppercase">{t.name}</p>
+                    <p className="line-clamp-2 break-words leading-tight font-placar text-lg font-bold uppercase">{t.name}</p>
                   </div>
                   <div className="grid grid-cols-4 gap-1 rounded-xl bg-gray-100 p-1 dark:bg-slate-900">
                     {tiposLance.map(([v, r], i) => (

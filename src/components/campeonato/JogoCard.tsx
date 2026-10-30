@@ -14,10 +14,14 @@ export default function JogoCard({ jogo, painel, rotulo }: { jogo: JogoCompleto;
   const gols = jogo.events.filter((e) => e.kind === "gol");
 
   const lado = (t: typeof casa, placar: number | null, pens: number | null, alinhar: "esq" | "dir") => (
-    <div className={`flex min-w-0 flex-1 items-center gap-2.5 ${alinhar === "dir" ? "flex-row-reverse text-right" : ""}`}>
+    <div
+      className={`flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center sm:flex-row sm:gap-2.5 ${
+        alinhar === "dir" ? "sm:flex-row-reverse sm:text-right" : "sm:text-left"
+      }`}
+    >
       <Escudo time={t} size={38} />
       <span
-        className={`min-w-0 truncate font-display text-sm font-semibold sm:text-base ${
+        className={`line-clamp-2 min-w-0 break-words font-display text-sm font-semibold leading-tight sm:text-base ${
           venc && t && venc !== t.id ? "text-gray-400 dark:text-slate-500" : "text-gray-800 dark:text-slate-100"
         }`}
       >

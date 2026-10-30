@@ -9,7 +9,7 @@ export default async function NovoCampeonatoPage({ searchParams }: { searchParam
   await requireUserPage();
   const { erro } = await searchParams;
   return (
-    <div className="space-y-6">
+    <div className="campeonato space-y-6">
       <Link href="/admin/campeonatos" className="inline-flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline">
         <ChevronLeft size={16} /> Campeonatos
       </Link>

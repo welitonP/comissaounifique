@@ -75,7 +75,7 @@ export default function AdminLinha({
               return (
                 <label key={String(campo)} className="flex items-center gap-2">
                   <Escudo time={time} size={26} />
-                  <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">{time.name}</span>
+                  <span className="min-w-0 flex-1 line-clamp-3 break-words leading-tight text-[15px] font-semibold">{time.name}</span>
                   <input
                     type="number"
                     inputMode="numeric"
