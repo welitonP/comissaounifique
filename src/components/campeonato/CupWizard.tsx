@@ -66,7 +66,7 @@ function resumo(f: Formato, n: number, grupos: number, classificam: number, idaV
   let jg = 0;
   for (let i = 0; i < g; i++) jg += rr(base + (i < extra ? 1 : 0));
   jg *= idaVolta ? 2 : 1;
-  const cls = Math.min(g * classificam, n);
+  const cls = Math.min(g * Math.max(classificam, g * classificam < 2 ? 2 : 1), n);
   const j = jg + Math.max(cls - 1, 0) + (terceiro && cls >= 4 ? 1 : 0);
   return {
     jogos: j,
@@ -250,6 +250,11 @@ export default function CupWizard({ erro }: { erro?: string }) {
                   onChange={(e) => setClassificam(Math.max(1, Number(e.target.value) || 1))}
                   className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 dark:border-slate-600 dark:bg-slate-900"
                 />
+                {grupos * classificam < 2 && (
+                  <span className="mt-1 block text-xs font-medium text-amber-700">
+                    Com 1 grupo, avançam pelo menos 2 (senão não dá para montar a chave). Vamos usar 2.
+                  </span>
+                )}
               </label>
             </>
           )}

@@ -4,7 +4,7 @@ import { CalendarClock, ChevronLeft, ExternalLink, MonitorPlay, RotateCcw, Shuff
 import { requireUserPage } from "@/lib/auth";
 import { buscarCampeonato, etapaAtual, etapasDo, montarPainel, rotuloDoJogo, type JogoCompleto } from "@/lib/campeonato/dados";
 import { ESPORTES, FORMATOS, CORES_TIMES, type Formato } from "@/lib/campeonato/esportes";
-import { LETRAS } from "@/lib/campeonato/motor";
+import { LETRAS, nomeFase, proximaPotencia2 } from "@/lib/campeonato/motor";
 import {
   addTeams,
   agendarJogos,
@@ -76,6 +76,17 @@ export default async function AdminCampeonatoPage({
   if (pendentes.length) fases.push({ id: "pendentes", rotulo: "Todos a jogar", jogos: pendentes });
   const faseAtual =
     fases.find((f) => f.id === sp.fase) ?? fases.find((f) => f.id === "vivo") ?? fases.find((f) => f.id === etapaAtual(etapas)?.id) ?? fases[0];
+  // Opções de "quantos avançam por grupo" (só as que formam uma chave de 2+ times)
+  const qtdGrupos = Math.max(painel.tabelas.size, 1);
+  const maiorGrupo = Math.max(0, ...[...painel.tabelas.values()].map((l) => l.length));
+  const opcoesClassif = Array.from({ length: maiorGrupo }, (_, i) => i + 1)
+    .map((q) => {
+      const total = [...painel.tabelas.values()].reduce((n, l) => n + Math.min(q, l.length), 0);
+      const tam = proximaPotencia2(total);
+      return { q, total, fase: nomeFase(tam / 2) };
+    })
+    .filter((o) => o.total >= 2);
+  const classifPadrao = opcoesClassif.find((o) => o.q === cup.qualifiers)?.q ?? opcoesClassif[0]?.q;
   const semHorario = cup.matches.filter((m) => m.status === "agendado" && !m.date).length;
 
   const grupoPendente = painel.jogosGrupo.filter((m) => m.status !== "encerrado").length;
@@ -164,11 +175,23 @@ export default async function AdminCampeonatoPage({
                 <p className="text-gray-500">
                   {grupoPendente > 0
                     ? `Faltam ${grupoPendente} jogo(s) da fase de grupos.`
-                    : `Fase de grupos concluída! Os ${cup.qualifiers} melhores de cada grupo avançam.`}
+                    : "Fase de grupos concluída! Escolha quantos avançam e monte a chave."}
                 </p>
               </div>
-              <form action={gerarMataMata}>
+              <form action={gerarMataMata} className="flex flex-wrap items-center gap-2">
                 <input type="hidden" name="cupId" value={cup.id} />
+                {opcoesClassif.length > 0 && (
+                  <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-1.5 text-sm shadow-sm dark:bg-slate-900">
+                    <span className="text-xs font-semibold text-gray-500">Avançam</span>
+                    <select name="qualifiers" defaultValue={classifPadrao} className="bg-transparent py-1 font-semibold text-unifique outline-none dark:text-unifique-teal">
+                      {opcoesClassif.map((o) => (
+                        <option key={o.q} value={o.q}>
+                          {qtdGrupos > 1 ? `${o.q} por grupo` : `${o.q} melhores`} → {o.total} times ({o.fase})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 {grupoPendente > 0 && <input type="hidden" name="forcar" value="1" />}
                 {grupoPendente > 0 ? (
                   <ConfirmButton
@@ -443,12 +466,17 @@ export default async function AdminCampeonatoPage({
                   <span className="text-sm font-semibold">Grupos</span>
                   <input type="number" name="groupsCount" min={1} max={16} defaultValue={cup.groupsCount} className={input} />
                 </label>
-                <label className="block">
-                  <span className="text-sm font-semibold">Classificam por grupo</span>
-                  <input type="number" name="qualifiers" min={1} max={8} defaultValue={cup.qualifiers} className={input} />
-                </label>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="doubleRound" defaultChecked={cup.doubleRound} className="h-4 w-4 accent-unifique" /> Turno e returno
+                </label>
+              </div>
+            )}
+
+            {cup.format !== "liga" && painel.jogosMata.length === 0 && (
+              <div className="grid gap-3 rounded-xl bg-unifique-light/50 p-4 dark:bg-slate-700/40 sm:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm font-semibold">{cup.format === "grupos" ? "Classificam por grupo" : "Classificados"}</span>
+                  <input type="number" name="qualifiers" min={1} max={16} defaultValue={cup.qualifiers} className={input} />
                 </label>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="thirdPlace" defaultChecked={cup.thirdPlace} className="h-4 w-4 accent-unifique" /> Disputa de 3º lugar

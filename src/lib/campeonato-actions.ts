@@ -94,6 +94,11 @@ export async function createCup(fd: FormData) {
   const slug = await slugUnico(slugify(name));
   const startRaw = txt(fd, "startDate", 20);
 
+  // Grupos + mata-mata precisa de pelo menos 2 times na chave.
+  const gruposReais = Math.max(1, Math.min(int(fd, "groupsCount", 2, 1, 16), Math.floor(nomesTimes.length / 2)));
+  let qualifiers = int(fd, "qualifiers", 2, 1, 8);
+  if (format === "grupos" && gruposReais * qualifiers < 2) qualifiers = 2;
+
   const cup = await prisma.cup.create({
     data: {
       name,
@@ -104,7 +109,7 @@ export async function createCup(fd: FormData) {
       location: txt(fd, "location", 120) || null,
       startDate: startRaw ? parseDataLocal(startRaw) : null,
       groupsCount: int(fd, "groupsCount", 2, 1, 16),
-      qualifiers: int(fd, "qualifiers", 2, 1, 8),
+      qualifiers,
       doubleRound: marcado(fd, "doubleRound"),
       thirdPlace: marcado(fd, "thirdPlace"),
       allowDraw: esp.empate,
@@ -139,6 +144,7 @@ export async function updateCup(fd: FormData) {
   const slug = name !== cup.name ? await slugUnico(slugify(name), id) : cup.slug;
   // Formato e esporte só mudam enquanto a tabela não foi gerada.
   const semJogos = (await prisma.cupMatch.count({ where: { cupId: id } })) === 0;
+  const semMata = (await prisma.cupMatch.count({ where: { cupId: id, stage: { not: "grupo" } } })) === 0;
   const formatRaw = txt(fd, "format", 10);
   await prisma.cup.update({
     where: { id },
@@ -157,10 +163,11 @@ export async function updateCup(fd: FormData) {
             sport: esporte(txt(fd, "sport", 30) || cup.sport).id,
             format: formatRaw in FORMATOS ? formatRaw : cup.format,
             groupsCount: int(fd, "groupsCount", cup.groupsCount, 1, 16),
-            qualifiers: int(fd, "qualifiers", cup.qualifiers, 1, 8),
             doubleRound: marcado(fd, "doubleRound"),
-            thirdPlace: marcado(fd, "thirdPlace"),
           }
+        : {}),
+      ...(semMata && fd.has("qualifiers")
+        ? { qualifiers: int(fd, "qualifiers", cup.qualifiers, 1, 16), thirdPlace: marcado(fd, "thirdPlace") }
         : {}),
     },
   });
@@ -318,8 +325,11 @@ export async function gerarMataMata(fd: FormData) {
     redirect(`/admin/campeonatos/${cupId}?aba=jogos&erro=grupos-abertos`);
   }
   const tabelas = tabelasDo(cup);
-  const seeds = semeadosDosGrupos(tabelas, cup.qualifiers);
+  // A comissão escolhe quantos avançam por grupo na hora de montar a chave.
+  const qualifiers = int(fd, "qualifiers", cup.qualifiers, 1, 16);
+  const seeds = semeadosDosGrupos(tabelas, qualifiers);
   if (seeds.length < 2) redirect(`/admin/campeonatos/${cupId}?aba=jogos&erro=poucos-classificados`);
+  if (qualifiers !== cup.qualifiers) await prisma.cup.update({ where: { id: cupId }, data: { qualifiers } });
   const grupoDe = new Map(cup.teams.map((t) => [t.id, t.group]));
   const chave = evitarMesmoGrupo(montarChave(seeds), (id) => grupoDe.get(id) ?? null);
   const fases = Math.max(...chave.map((j) => j.round));
