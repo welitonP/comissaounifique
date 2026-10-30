@@ -124,4 +124,18 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- As tabelas novas ficam com o mesmo dono das tabelas que o site já usa
+-- (assim o site tem permissão, mesmo rodando este arquivo como postgres).
+DO $$
+DECLARE dono text;
+BEGIN
+  SELECT tableowner INTO dono FROM pg_tables WHERE schemaname = 'public' AND tablename = 'Tournament';
+  IF dono IS NOT NULL THEN
+    EXECUTE format('ALTER TABLE "Cup" OWNER TO %I', dono);
+    EXECUTE format('ALTER TABLE "CupTeam" OWNER TO %I', dono);
+    EXECUTE format('ALTER TABLE "CupMatch" OWNER TO %I', dono);
+    EXECUTE format('ALTER TABLE "CupEvent" OWNER TO %I', dono);
+  END IF;
+END $$;
+
 COMMIT;
