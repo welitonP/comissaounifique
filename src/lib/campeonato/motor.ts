@@ -482,7 +482,8 @@ export function aplicarPonto(
     if (status === "encerrado") return est; // jogo já acabou: só o −1 mexe
     const cur: Par = atual ? [...atual] : [0, 0];
     cur[lado === "home" ? 0 : 1] += delta;
-    const decisivo = sets.length === 2 * setsToWin - 2;
+    // Set de desempate (ex: 15 no vôlei) só existe quando o jogo tem mais de um set.
+    const decisivo = setsToWin > 1 && sets.length === 2 * setsToWin - 2;
     if (setTerminou(cur, regra, decisivo)) {
       sets.push(cur);
       atual = [0, 0];

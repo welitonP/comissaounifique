@@ -307,7 +307,7 @@ export default function CupWizard({ erro }: { erro?: string }) {
                     onChange={(e) => setSets(Number(e.target.value))}
                     className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-900"
                   >
-                    <option value={1}>Jogo único</option>
+                    <option value={1}>Set único</option>
                     <option value={2}>Melhor de 3</option>
                     <option value={3}>Melhor de 5</option>
                   </select>

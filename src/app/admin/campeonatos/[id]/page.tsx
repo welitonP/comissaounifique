@@ -474,9 +474,9 @@ export default async function AdminCampeonatoPage({
               </label>
               {esp.placar === "sets" && (
                 <label className="block">
-                  <span className="text-xs font-semibold text-gray-500">Jogos</span>
+                  <span className="text-xs font-semibold text-gray-500">Sets por jogo</span>
                   <select name="setsToWin" defaultValue={cup.setsToWin} className={input}>
-                    <option value={1}>Jogo único</option>
+                    <option value={1}>Set único</option>
                     <option value={2}>Melhor de 3</option>
                     <option value={3}>Melhor de 5</option>
                   </select>
