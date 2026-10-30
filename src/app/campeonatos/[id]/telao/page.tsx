@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { X } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
 import { buscarCampeonato, etapaAtual, etapasDo, montarPainel, rotuloDoJogo, type JogoCompleto, type Painel } from "@/lib/campeonato/dados";
-import { vencedor } from "@/lib/campeonato/motor";
+import { formatarParciais, vencedor } from "@/lib/campeonato/motor";
 import { fmtHora } from "@/lib/datas";
 import AutoRefresh from "@/components/campeonato/AutoRefresh";
 import Chave from "@/components/campeonato/Chave";
@@ -43,7 +43,7 @@ function PlacarGrande({ jogo, painel }: { jogo: JogoCompleto; painel: Painel }) 
               {temPlacar ? `${jogo.homeScore}–${jogo.awayScore}` : "×"}
             </div>
             {jogo.homePens != null && <p className="text-sm text-white/60">pên. {jogo.homePens}–{jogo.awayPens}</p>}
-            {jogo.partials && <p className="numeros text-sm text-white/60">{jogo.partials}</p>}
+            {jogo.partials && <p className="numeros text-sm text-white/60">{formatarParciais(jogo.partials)}</p>}
           </div>
           {lado(fora)}
         </div>

@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarClock, ChevronLeft, ExternalLink, MonitorPlay, RotateCcw, Shuffle, Swords, Trash2, Trophy } from "lucide-react";
+import { ChevronLeft, ExternalLink, MonitorPlay, RotateCcw, Shuffle, Swords, Trash2, Trophy } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
 import { buscarCampeonato, etapaAtual, etapasDo, montarPainel, rotuloDoJogo, type JogoCompleto } from "@/lib/campeonato/dados";
 import { ESPORTES, FORMATOS, CORES_TIMES, type Formato } from "@/lib/campeonato/esportes";
 import { LETRAS, nomeFase, proximaPotencia2 } from "@/lib/campeonato/motor";
 import {
   addTeams,
-  agendarJogos,
   deleteCup,
   deleteTeam,
   gerarMataMata,
@@ -41,8 +40,6 @@ const MENSAGENS: Record<string, [string, "ok" | "erro"]> = {
   "poucos-classificados": ["Não há classificados suficientes para o mata-mata.", "erro"],
   "sem-placar": ["Preencha o placar dos dois lados para encerrar.", "erro"],
   "empate-mata": ["Empate no mata-mata: abra a Súmula do jogo e informe os pênaltis.", "erro"],
-  agenda: ["Horários distribuídos nos jogos. 🗓️", "ok"],
-  "agenda-vazia": ["Não há jogos sem horário para agendar (marque 'refazer horários' para trocar todos).", "erro"],
   "sem-empate": ["Neste esporte não existe empate.", "erro"],
   lance: ["Informe o atleta do lance.", "erro"],
 };
@@ -87,7 +84,6 @@ export default async function AdminCampeonatoPage({
     })
     .filter((o) => o.total >= 2);
   const classifPadrao = opcoesClassif.find((o) => o.q === cup.qualifiers)?.q ?? opcoesClassif[0]?.q;
-  const semHorario = cup.matches.filter((m) => m.status === "agendado" && !m.date).length;
 
   const grupoPendente = painel.jogosGrupo.filter((m) => m.status !== "encerrado").length;
 
@@ -134,6 +130,24 @@ export default async function AdminCampeonatoPage({
           {msg[0]}
         </p>
       )}
+
+      {/* Atalho: jogo acontecendo agora */}
+      {painel.aoVivo.map((j) => (
+        <Link
+          key={j.id}
+          href={`/admin/campeonatos/${cup.id}/jogo/${j.id}`}
+          className="flex items-center gap-3 rounded-2xl bg-red-500 p-4 text-white shadow-lg transition active:scale-[0.99]"
+        >
+          <span className="ao-vivo-ponto h-3 w-3 flex-none rounded-full bg-white" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-white/80">Ao vivo agora · toque para marcar</span>
+            <span className="block line-clamp-2 font-placar text-lg font-bold uppercase leading-tight">
+              {painel.times.get(j.homeId!)?.name} {j.homeScore ?? 0} × {j.awayScore ?? 0} {painel.times.get(j.awayId!)?.name}
+            </span>
+          </span>
+          <ChevronLeft size={22} className="flex-none rotate-180" />
+        </Link>
+      ))}
 
       {/* Abas */}
       <div className="flex gap-1 rounded-2xl bg-white p-1 shadow-sm dark:bg-slate-800">
@@ -245,45 +259,6 @@ export default async function AdminCampeonatoPage({
             </div>
           )}
 
-          {temJogos && (
-            <details className="rounded-2xl bg-white shadow-sm dark:bg-slate-800" open={semHorario > 0 && painel.progresso.feitos === 0}>
-              <summary className="flex cursor-pointer flex-wrap items-center gap-2 px-4 py-3 font-placar text-lg font-bold uppercase text-unifique dark:text-unifique-teal">
-                <CalendarClock size={18} /> Agendar horários
-                {semHorario > 0 && <span className="rounded-full bg-amber-100 px-2 py-0.5 font-sans text-xs font-semibold normal-case text-amber-800">{semHorario} sem horário</span>}
-              </summary>
-              <form action={agendarJogos} className="grid gap-3 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-5">
-                <input type="hidden" name="cupId" value={cup.id} />
-                <label className="block lg:col-span-1">
-                  <span className="text-xs font-semibold text-gray-500">Primeiro jogo</span>
-                  <input type="datetime-local" name="inicio" required defaultValue={toInputLocal(cup.startDate)} className={input} />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-semibold text-gray-500">Duração do jogo (min)</span>
-                  <input type="number" name="duracao" min={5} max={300} defaultValue={esp.placar === "sets" ? 40 : 30} className={input} />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-semibold text-gray-500">Intervalo entre jogos (min)</span>
-                  <input type="number" name="intervalo" min={0} max={120} defaultValue={5} className={input} />
-                </label>
-                <label className="block lg:col-span-2">
-                  <span className="text-xs font-semibold text-gray-500">Quadras/campos (separe por vírgula)</span>
-                  <input name="quadras" placeholder="Ex: Quadra 1, Quadra 2" defaultValue={cup.location ?? ""} className={input} />
-                </label>
-                <label className="flex items-center gap-2 text-sm sm:col-span-2 lg:col-span-3">
-                  <input type="checkbox" name="sobrescrever" className="h-4 w-4 accent-unifique" />
-                  Refazer horários de todos os jogos que ainda não aconteceram
-                </label>
-                <div className="sm:col-span-2 lg:col-span-2 lg:text-right">
-                  <SubmitButton pendingText="Agendando..." className="w-full rounded-xl bg-unifique px-5 py-2.5 text-sm font-bold text-white lg:w-auto">
-                    Distribuir horários
-                  </SubmitButton>
-                </div>
-                <p className="text-xs text-gray-500 sm:col-span-2 lg:col-span-5">
-                  Com mais de uma quadra, os jogos acontecem ao mesmo tempo. Nenhum time joga duas vezes no mesmo horário, e cada fase do mata-mata começa depois da anterior.
-                </p>
-              </form>
-            </details>
-          )}
 
           {painel.tabelas.size > 0 && (
             <details className="rounded-2xl bg-white shadow-sm dark:bg-slate-800">

@@ -7,6 +7,8 @@ import { requireUser } from "./auth";
 import { parseDataLocal } from "./datas";
 import { esporte, FORMATOS, CORES_TIMES } from "./campeonato/esportes";
 import {
+  aplicarPonto,
+  type EstadoPlacar,
   evitarMesmoGrupo,
   LETRAS,
   montarChave,
@@ -533,74 +535,23 @@ export async function deleteEvent(fd: FormData) {
   voltar(fd, `/admin/campeonatos/${jogo.cupId}?aba=jogos#j-${jogo.id}`);
 }
 
-// ===================== agenda automática =====================
+// ===================== placar ponto a ponto (súmula) =====================
 
-// Distribui data/hora e quadra nos jogos, respeitando: um time não joga duas
-// vezes no mesmo horário e cada fase do mata-mata vem depois da anterior.
-export async function agendarJogos(fd: FormData) {
+// Chamada direto pela tela da súmula (sem recarregar a página): aplica o toque
+// e devolve o placar atualizado.
+export async function marcarPonto(id: string, lado: "home" | "away" | "fechar", delta: number): Promise<EstadoPlacar | null> {
   await requireUser();
-  const cupId = txt(fd, "cupId", 40);
-  const inicio = parseDataLocal(txt(fd, "inicio", 20));
-  const duracao = int(fd, "duracao", 30, 5, 300);
-  const intervalo = int(fd, "intervalo", 5, 0, 120);
-  const sobrescrever = marcado(fd, "sobrescrever");
-  const nomesQuadras = txt(fd, "quadras", 300)
-    .split(/[,;\n]+/)
-    .map((q) => q.trim().slice(0, 40))
-    .filter(Boolean);
-  const qtdQuadras = Math.max(1, nomesQuadras.length || int(fd, "qtdQuadras", 1, 1, 20));
-  const quadras = nomesQuadras.length ? nomesQuadras : Array.from({ length: qtdQuadras }, (_, i) => (qtdQuadras > 1 ? `Quadra ${i + 1}` : ""));
-  const destino = `/admin/campeonatos/${cupId}?aba=jogos`;
-  if (!inicio) redirect(`${destino}&erro=agenda`);
-
-  const cup = await buscarCampeonato(cupId);
-  if (!cup) redirect("/admin/campeonatos");
-  const ordemStage: Record<string, number> = { grupo: 0, mata: 1, terceiro: 1 };
-  const jogos = cup.matches
-    .filter((m) => m.status === "agendado" && (sobrescrever || !m.date))
-    .sort(
-      (a, b) =>
-        ordemStage[a.stage] - ordemStage[b.stage] ||
-        a.round - b.round ||
-        (a.stage === "terceiro" ? -1 : 0) - (b.stage === "terceiro" ? -1 : 0) ||
-        (a.group ?? "").localeCompare(b.group ?? "") ||
-        a.slot - b.slot,
-    );
-  if (jogos.length === 0) redirect(`${destino}&erro=agenda-vazia`);
-
-  // Horários já ocupados por jogos que não serão mexidos ficam de fora: começamos do início informado.
-  const passo = (duracao + intervalo) * 60_000;
-  const ocupacao: { quadras: number; times: Set<string> }[] = [];
-  const ultimoDoTime = new Map<string, number>();
-  let minimoFase = 0; // mata-mata: só depois de todos os jogos da fase anterior
-  let faseAtual = "";
-  let maiorSlot = -1;
-  const updates: { id: string; date: Date; location: string | null }[] = [];
-
-  for (const j of jogos) {
-    const fase = `${ordemStage[j.stage]}:${j.stage === "grupo" ? 0 : j.round}`;
-    if (fase !== faseAtual) {
-      if (j.stage !== "grupo" && faseAtual) minimoFase = maiorSlot + 1;
-      faseAtual = fase;
-    }
-    const ids = [j.homeId, j.awayId].filter((x): x is string => !!x);
-    let s = Math.max(minimoFase, ...ids.map((id) => (ultimoDoTime.get(id) ?? -1) + 1));
-    for (;; s++) {
-      const slot = (ocupacao[s] ??= { quadras: 0, times: new Set() });
-      if (slot.quadras < quadras.length && ids.every((id) => !slot.times.has(id))) break;
-    }
-    const slot = ocupacao[s];
-    const quadra = quadras[slot.quadras];
-    slot.quadras++;
-    ids.forEach((id) => {
-      slot.times.add(id);
-      ultimoDoTime.set(id, s);
-    });
-    maiorSlot = Math.max(maiorSlot, s);
-    updates.push({ id: j.id, date: new Date(inicio.getTime() + s * passo), location: quadra || cup.location });
-  }
-
-  await prisma.$transaction(updates.map((u) => prisma.cupMatch.update({ where: { id: u.id }, data: { date: u.date, location: u.location } })));
-  revalidar(cup.slug);
-  redirect(`${destino}&ok=agenda`);
+  const d = [-1, 1, 2, 3].includes(delta) ? delta : lado === "fechar" ? 0 : 1;
+  const jogo = await prisma.cupMatch.findUnique({ where: { id }, include: { cup: true } });
+  if (!jogo || !jogo.homeId || !jogo.awayId || jogo.status === "folga") return null;
+  const esp = esporte(jogo.cup.sport);
+  const novo = aplicarPonto(jogo, lado, d, esp.placar, esp.set, jogo.cup.setsToWin);
+  await prisma.cupMatch.update({
+    where: { id },
+    data: { homeScore: novo.homeScore, awayScore: novo.awayScore, partials: novo.partials, status: novo.status },
+  });
+  // Fim de jogo (ou reabertura) muda tabela e chave.
+  if (novo.status !== jogo.status && (novo.status === "encerrado" || jogo.status === "encerrado")) await recalcular(jogo.cupId);
+  revalidar(jogo.cup.slug);
+  return novo;
 }

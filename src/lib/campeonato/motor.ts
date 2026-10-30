@@ -401,3 +401,110 @@ export function setsDasParciais(parciais: string): { home: number; away: number;
   }
   return { home, away, validas: pares.map(([h, a]) => `${h}-${a}`).join(", ") };
 }
+
+// ===================== Placar ponto a ponto =====================
+// Parciais guardam os sets fechados e o set em andamento entre colchetes:
+// "25-20, 18-25, [7-5]". O placar do jogo (homeScore/awayScore) é o número
+// de sets vencidos.
+
+export type RegraSetMotor = { alvo: number; decisivo?: number; vantagem: 1 | 2; games?: boolean };
+export type EstadoPlacar = { homeScore: number | null; awayScore: number | null; partials: string | null; status: string };
+type Par = [number, number];
+
+export function lerParciais(p: string | null): { sets: Par[]; atual: Par | null } {
+  const sets: Par[] = [];
+  let atual: Par | null = null;
+  for (const parte of (p ?? "").split(/[,;]+/)) {
+    const t = parte.trim();
+    const m = t.match(/^(\[)?\s*(\d{1,3})\s*[-x×:]\s*(\d{1,3})\s*(\])?$/i);
+    if (!m) continue;
+    const par: Par = [Number(m[2]), Number(m[3])];
+    if (m[1]) atual = par;
+    else sets.push(par);
+  }
+  return { sets, atual };
+}
+
+export function escreverParciais(sets: Par[], atual: Par | null): string | null {
+  const partes = sets.map(([h, a]) => `${h}-${a}`);
+  if (atual) partes.push(`[${atual[0]}-${atual[1]}]`);
+  return partes.length ? partes.join(", ") : null;
+}
+
+// Texto para exibir: "25-20 · 18-25 · 7-5 (em jogo)"
+export function formatarParciais(p: string | null): string {
+  const { sets, atual } = lerParciais(p);
+  const partes = sets.map(([h, a]) => `${h}-${a}`);
+  if (atual && (atual[0] || atual[1] || sets.length)) partes.push(`${atual[0]}-${atual[1]} (em jogo)`);
+  return partes.join(" · ");
+}
+
+function setTerminou([h, a]: Par, regra: RegraSetMotor, decisivo: boolean): boolean {
+  const alvo = decisivo && regra.decisivo ? regra.decisivo : regra.alvo;
+  const maior = Math.max(h, a);
+  const dif = Math.abs(h - a);
+  if (regra.games) return (maior >= alvo && dif >= 2) || maior >= alvo + 1;
+  return maior >= alvo && dif >= regra.vantagem;
+}
+
+// Aplica um toque no placar. lado "fechar" fecha o set atual na mão.
+export function aplicarPonto(
+  est: EstadoPlacar,
+  lado: "home" | "away" | "fechar",
+  delta: number,
+  tipo: "gols" | "pontos" | "sets",
+  regra: RegraSetMotor | undefined,
+  setsToWin: number,
+): EstadoPlacar {
+  if (tipo !== "sets" || !regra) {
+    if (lado === "fechar") return est;
+    const campo = lado === "home" ? "homeScore" : "awayScore";
+    return {
+      ...est,
+      homeScore: est.homeScore ?? 0,
+      awayScore: est.awayScore ?? 0,
+      [campo]: Math.max(0, (est[campo] ?? 0) + delta),
+      status: est.status === "agendado" ? "ao_vivo" : est.status,
+    };
+  }
+
+  let { sets, atual } = lerParciais(est.partials);
+  sets = [...sets];
+  let status = est.status === "agendado" ? "ao_vivo" : est.status;
+  const vencidos = () => [sets.filter(([h, a]) => h > a).length, sets.filter(([h, a]) => a > h).length] as const;
+
+  if (lado === "fechar") {
+    if (atual && atual[0] !== atual[1]) {
+      sets.push(atual);
+      atual = [0, 0];
+    }
+  } else if (delta > 0) {
+    if (status === "encerrado") return est; // jogo já acabou: só o −1 mexe
+    const cur: Par = atual ? [...atual] : [0, 0];
+    cur[lado === "home" ? 0 : 1] += delta;
+    const decisivo = sets.length === 2 * setsToWin - 2;
+    if (setTerminou(cur, regra, decisivo)) {
+      sets.push(cur);
+      atual = [0, 0];
+    } else {
+      atual = cur;
+    }
+  } else {
+    // −1: tira do set atual; se ele está zerado, reabre o último set fechado.
+    const i = lado === "home" ? 0 : 1;
+    let cur: Par | null = atual ? [...atual] : null;
+    if ((!cur || (cur[0] === 0 && cur[1] === 0)) && sets.length) {
+      cur = [...sets.pop()!];
+    }
+    if (cur && cur[i] > 0) cur[i] -= 1;
+    atual = cur ?? [0, 0];
+    if (status === "encerrado") status = "ao_vivo";
+  }
+
+  const [vh, va] = vencidos();
+  if (vh >= setsToWin || va >= setsToWin) {
+    status = "encerrado";
+    atual = null;
+  }
+  return { homeScore: vh, awayScore: va, partials: escreverParciais(sets, atual), status };
+}

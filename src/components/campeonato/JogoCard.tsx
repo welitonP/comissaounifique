@@ -1,6 +1,6 @@
 import { CalendarClock, MapPin } from "lucide-react";
 import type { JogoCompleto, Painel } from "@/lib/campeonato/dados";
-import { vencedor } from "@/lib/campeonato/motor";
+import { formatarParciais, vencedor } from "@/lib/campeonato/motor";
 import { fmtDataHora } from "@/lib/datas";
 import { Escudo, StatusJogo } from "./ui";
 
@@ -72,7 +72,7 @@ export default function JogoCard({ jogo, painel, rotulo }: { jogo: JogoCompleto;
         {jogo.partials && (
           <p className="mt-2 text-center text-xs font-medium tabular-nums text-gray-500">
             {painel.esp.placar === "sets" ? "Parciais: " : ""}
-            {jogo.partials}
+            {formatarParciais(jogo.partials)}
           </p>
         )}
 

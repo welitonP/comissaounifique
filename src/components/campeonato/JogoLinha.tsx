@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { JogoCompleto, Painel } from "@/lib/campeonato/dados";
-import { vencedor } from "@/lib/campeonato/motor";
+import { formatarParciais, vencedor } from "@/lib/campeonato/motor";
 import { fmtHora, TZ_BRASIL } from "@/lib/datas";
 import { Escudo } from "./ui";
 
@@ -86,7 +86,7 @@ export default function JogoLinha({
             <span className="text-[11px] text-gray-400">{fmtDiaCurto(jogo.date)}</span>
           </>
         ) : (
-          <span className="text-[11px] font-medium text-gray-400">A marcar</span>
+          <span className="font-placar text-xs font-semibold uppercase text-gray-400">A jogar</span>
         )}
       </div>
 
@@ -99,7 +99,7 @@ export default function JogoLinha({
         )}
         {linhaTime(jogo.homeId, jogo.homeScore, jogo.homePens)}
         {linhaTime(jogo.awayId, jogo.awayScore, jogo.awayPens)}
-        {jogo.partials && <p className="numeros text-[11px] text-gray-400">{jogo.partials}</p>}
+        {jogo.partials && <p className="numeros text-[11px] text-gray-400">{formatarParciais(jogo.partials)}</p>}
         {gols.length > 0 && (
           <p className="truncate text-[11px] text-gray-500">
             ⚽ {gols.map((g) => `${g.player}${g.minute != null ? ` ${g.minute}'` : ""}`).join(" · ")}

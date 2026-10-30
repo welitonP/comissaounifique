@@ -73,6 +73,8 @@ export default async function CampeonatoPage({ params, searchParams }: Params) {
   const pct = painel.progresso.total ? Math.round((painel.progresso.feitos / painel.progresso.total) * 100) : 0;
   const t = (tid: string | null) => (tid ? painel.times.get(tid) ?? null : null);
   const hrefTime = (tid: string) => `${base}?aba=jogos&time=${tid}`;
+  // Tocar num jogo abre a súmula (placar ao vivo) — a página é só da comissão.
+  const hrefSumula = (jid: string) => `/admin/campeonatos/${cup.id}/jogo/${jid}`;
   const aoVivo = painel.aoVivo.length > 0;
 
   const tabelas = [...painel.tabelas.entries()];
@@ -191,7 +193,11 @@ export default async function CampeonatoPage({ params, searchParams }: Params) {
                     <span className="ao-vivo-ponto h-2.5 w-2.5 rounded-full bg-red-500" /> Acontecendo agora
                   </h2>
                   <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                    {painel.aoVivo.map((j) => <JogoCard key={j.id} jogo={j} painel={painel} rotulo={rotuloDoJogo(j, painel)} />)}
+                    {painel.aoVivo.map((j) => (
+                      <Link key={j.id} href={hrefSumula(j.id)} className="block transition active:scale-[0.99]">
+                        <JogoCard jogo={j} painel={painel} rotulo={rotuloDoJogo(j, painel)} />
+                      </Link>
+                    ))}
                   </div>
                 </section>
               )}
@@ -200,7 +206,7 @@ export default async function CampeonatoPage({ params, searchParams }: Params) {
                 {/* No celular a rodada vem primeiro */}
                 <aside className="order-first space-y-5 xl:order-last">
                   <div className="xl:sticky xl:top-36">
-                    <RodadaNav etapas={etapas} atual={atual} painel={painel} hrefEtapa={(e) => `${base}?aba=geral&rodada=${e}`} />
+                    <RodadaNav etapas={etapas} atual={atual} painel={painel} hrefEtapa={(e) => `${base}?aba=geral&rodada=${e}`} hrefJogo={hrefSumula} />
                   </div>
                 </aside>
                 <div className="min-w-0 space-y-5">
@@ -245,7 +251,7 @@ export default async function CampeonatoPage({ params, searchParams }: Params) {
                       </h2>
                       <div className="divide-y divide-gray-100 dark:divide-slate-700">
                         {e.jogos.map((j) => (
-                          <JogoLinha key={j.id} jogo={j} painel={painel} rotulo={rotuloDoJogo(j, painel)} />
+                          <JogoLinha key={j.id} jogo={j} painel={painel} rotulo={rotuloDoJogo(j, painel)} href={hrefSumula(j.id)} />
                         ))}
                       </div>
                     </section>
@@ -325,6 +331,7 @@ export default async function CampeonatoPage({ params, searchParams }: Params) {
 
 // Todos os jogos de um time + resumo da campanha.
 function JogosDoTime({ painel, timeId }: { painel: Painel; timeId: string }) {
+  const hrefSumula = (jid: string) => `/admin/campeonatos/${painel.cup.id}/jogo/${jid}`;
   const time = painel.times.get(timeId)!;
   const jogos = painel.cup.matches.filter((m) => (m.homeId === timeId || m.awayId === timeId) && m.status !== "folga");
   const linha = [...painel.tabelas.values()].flat().find((l) => l.time.id === timeId);
@@ -370,7 +377,7 @@ function JogosDoTime({ painel, timeId }: { painel: Painel; timeId: string }) {
       <div className="divide-y divide-gray-100 overflow-hidden rounded-2xl bg-white shadow-sm dark:divide-slate-700 dark:bg-slate-800">
         {jogos.length === 0 && <p className="p-6 text-center text-sm text-gray-500">Nenhum jogo ainda.</p>}
         {jogos.map((j) => (
-          <JogoLinha key={j.id} jogo={j} painel={painel} rotulo={rotuloDoJogo(j, painel)} destaqueTime={timeId} />
+          <JogoLinha key={j.id} jogo={j} painel={painel} rotulo={rotuloDoJogo(j, painel)} destaqueTime={timeId} href={hrefSumula(j.id)} />
         ))}
       </div>
     </div>

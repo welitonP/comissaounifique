@@ -3,10 +3,9 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, ExternalLink, Flag, Play, Trash2 } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
 import { buscarCampeonato, etapasDo, montarPainel, rotuloDoJogo } from "@/lib/campeonato/dados";
-import { addEvent, deleteEvent, placarRapido, saveMatch, setMatchStatus } from "@/lib/campeonato-actions";
+import { addEvent, deleteEvent, saveMatch, setMatchStatus } from "@/lib/campeonato-actions";
 import { toInputLocal } from "@/lib/datas";
-import { vencedor } from "@/lib/campeonato/motor";
-import AutoRefresh from "@/components/campeonato/AutoRefresh";
+import PlacarAoVivo from "@/components/campeonato/PlacarAoVivo";
 import Cronometro from "@/components/campeonato/Cronometro";
 import SubmitButton from "@/components/form/SubmitButton";
 import { Escudo } from "@/components/campeonato/ui";
@@ -45,7 +44,6 @@ export default async function SumulaPage({
   const encerrado = jogo.status === "encerrado";
   const mataMata = jogo.stage !== "grupo";
   const empatado = (jogo.homeScore ?? 0) === (jogo.awayScore ?? 0);
-  const venc = vencedor(jogo);
 
   // Próximo jogo a lançar (para seguir em sequência)
   const ordem = etapasDo(painel).flatMap((e) => e.jogos);
@@ -69,42 +67,6 @@ export default async function SumulaPage({
     );
   }
 
-  const ladoPlacar = (lado: "home" | "away") => {
-    const t = lado === "home" ? casa : fora;
-    const placar = lado === "home" ? jogo.homeScore : jogo.awayScore;
-    const perdeu = encerrado && venc && venc !== t.id;
-    return (
-      <div className={`flex min-w-0 flex-1 flex-col items-center gap-2 ${perdeu ? "opacity-50" : ""}`}>
-        <Escudo time={t} size={56} />
-        <div className="flex min-h-[4.2rem] w-full items-center justify-center">
-          <p className="line-clamp-3 break-words text-center font-placar text-lg font-bold uppercase leading-tight sm:text-xl">{t.name}</p>
-        </div>
-        <p key={placar ?? -1} className="placar-pop numeros font-placar text-7xl font-extrabold leading-none sm:text-8xl">{placar ?? 0}</p>
-        {aoVivo && (
-          <div className="flex w-full flex-col gap-2">
-            {incrementos.map((n) => (
-              <form key={n} action={placarRapido}>
-                <input type="hidden" name="id" value={jogo.id} />
-                <input type="hidden" name="lado" value={lado} />
-                <input type="hidden" name="delta" value={n} />
-                {voltar}
-                <button type="submit" className="w-full rounded-2xl bg-unifique-green py-4 font-placar text-2xl font-extrabold text-unifique-dark shadow-lg active:scale-95">
-                  +{n} {esp.placar === "sets" ? esp.rotuloPlacar.slice(0, -1) : ""}
-                </button>
-              </form>
-            ))}
-            <form action={placarRapido}>
-              <input type="hidden" name="id" value={jogo.id} />
-              <input type="hidden" name="lado" value={lado} />
-              <input type="hidden" name="delta" value={-1} />
-              {voltar}
-              <button type="submit" className="w-full rounded-xl bg-white/10 py-2 font-placar text-lg font-bold text-white/80 active:scale-95">−1</button>
-            </form>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <div className="campeonato -mx-4 -my-8 min-h-[calc(100vh-66px)] bg-[#f0f4fb] pb-24 dark:bg-[#0b0f1a]">
@@ -140,13 +102,21 @@ export default async function SumulaPage({
             </div>
           )}
 
-          <div className="mt-4 flex items-start gap-3">
-            {ladoPlacar("home")}
-            <span className="pt-24 font-placar text-3xl text-white/40">×</span>
-            {ladoPlacar("away")}
+          <div className="mt-4">
+            <PlacarAoVivo
+              jogoId={jogo.id}
+              inicial={{ homeScore: jogo.homeScore, awayScore: jogo.awayScore, partials: jogo.partials, status: jogo.status }}
+              tipo={esp.placar}
+              regra={esp.set}
+              nomeUnidade={esp.set?.nome}
+              setsToWin={cup.setsToWin}
+              casa={{ name: casa.name, color: casa.color }}
+              fora={{ name: fora.name, color: fora.color }}
+              incrementos={incrementos}
+            />
           </div>
           {jogo.homePens != null && <p className="mt-2 text-center text-sm text-white/70">Pênaltis {jogo.homePens} × {jogo.awayPens}</p>}
-          {jogo.partials && <p className="numeros mt-2 text-center text-sm text-white/70">{jogo.partials}</p>}
+          
 
           {jogo.status === "agendado" && (
             <form action={setMatchStatus} className="mt-5">
@@ -158,7 +128,6 @@ export default async function SumulaPage({
               </SubmitButton>
             </form>
           )}
-          {aoVivo && <div className="mt-3 flex justify-center"><AutoRefresh segundos={60} aoVivo /></div>}
         </div>
       </section>
 
@@ -250,10 +219,14 @@ export default async function SumulaPage({
         )}
 
         {/* Encerrar / corrigir */}
-        <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-800">
-          <h2 className="font-placar text-lg font-bold uppercase text-unifique dark:text-unifique-teal">
-            {encerrado ? "Corrigir resultado" : "Resultado final"}
-          </h2>
+        <details
+          open={!(aoVivo && esp.placar === "sets")}
+          className="group space-y-3 rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-800"
+        >
+          <summary className="cursor-pointer list-none font-placar text-lg font-bold uppercase text-unifique dark:text-unifique-teal">
+            {encerrado ? "Corrigir resultado" : esp.placar === "sets" ? "Lançar resultado na mão" : "Resultado final"}
+            <span className="ml-2 text-xs font-sans font-semibold normal-case text-gray-400 group-open:hidden">(toque para abrir)</span>
+          </summary>
           <form action={saveMatch} className="space-y-3">
             <input type="hidden" name="id" value={jogo.id} />
             {voltar}
@@ -295,7 +268,7 @@ export default async function SumulaPage({
               <button type="submit" className="w-full text-center text-xs font-semibold text-gray-500 underline">Reabrir o jogo</button>
             </form>
           )}
-        </section>
+        </details>
 
         {proximo && (
           <Link

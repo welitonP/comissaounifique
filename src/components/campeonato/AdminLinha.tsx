@@ -51,9 +51,7 @@ export default function AdminLinha({
             <span className="text-green-600">✓ Encerrado</span>
           ) : dia ? (
             <span className="text-unifique dark:text-unifique-teal">{dia} · {fmtHora(jogo.date!)}</span>
-          ) : (
-            <span className="text-gray-400">Sem horário</span>
-          )}
+          ) : null}
         </span>
       </div>
 
