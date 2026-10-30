@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
 // O site é público (informativos). Só as áreas da comissão exigem login.
-const PROTECTED_PREFIXES = ["/admin", "/materiais", "/uniformes"];
+const PROTECTED_PREFIXES = ["/admin", "/materiais", "/uniformes", "/campeonatos"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -28,5 +28,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/admin", "/materiais/:path*", "/materiais", "/uniformes/:path*", "/uniformes"],
+  matcher: ["/admin/:path*", "/admin", "/materiais/:path*", "/materiais", "/uniformes/:path*", "/uniformes", "/campeonatos/:path*", "/campeonatos"],
 };

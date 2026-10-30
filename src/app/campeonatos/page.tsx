@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { CalendarClock, ChevronRight, MapPin, Trophy, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { requireUserPage } from "@/lib/auth";
 import { esporte, FORMATOS, type Formato } from "@/lib/campeonato/esportes";
 import { tabelaNaoExiste } from "@/lib/campeonato/dados";
 import { fmtDataHora } from "@/lib/datas";
@@ -28,6 +29,7 @@ async function carregar() {
 }
 
 export default async function CampeonatosPage() {
+  await requireUserPage();
   const cups = await carregar();
 
   return (

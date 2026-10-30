@@ -6,7 +6,7 @@ import { CalendarClock, ChevronLeft, MapPin, Settings, Users } from "lucide-reac
 import { buscarCampeonato, montarPainel, tabelaNaoExiste, type JogoCompleto, type Painel } from "@/lib/campeonato/dados";
 import { FORMATOS, type Formato } from "@/lib/campeonato/esportes";
 import { nomeFase } from "@/lib/campeonato/motor";
-import { getCurrentUser } from "@/lib/auth";
+import { requireUserPage } from "@/lib/auth";
 import { fmtDataHora } from "@/lib/datas";
 import AutoRefresh from "@/components/campeonato/AutoRefresh";
 import Campeao from "@/components/campeonato/Campeao";
@@ -47,7 +47,7 @@ function rotuloJogo(j: JogoCompleto, painel: Painel): string {
 }
 
 export default async function CampeonatoPage({ params, searchParams }: Params) {
-  const [{ id }, { aba: abaRaw }, user] = await Promise.all([params, searchParams, getCurrentUser()]);
+  const [{ id }, { aba: abaRaw }, user] = await Promise.all([params, searchParams, requireUserPage()]);
   const cup = await carregar(id);
   if (!cup || (cup.status === "rascunho" && !user)) notFound();
   const painel = montarPainel(cup);

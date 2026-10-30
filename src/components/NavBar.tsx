@@ -31,13 +31,13 @@ const PUBLIC_LINKS = [
   { href: "/comunicados", label: "Comunicados", Icon: Megaphone },
   { href: "/fotos", label: "Fotos", Icon: Camera },
   { href: "/entre-empresas", label: "Entre Empresas", Icon: Trophy },
-  { href: "/campeonatos", label: "Campeonatos", Icon: Medal },
   { href: "/torneios", label: "Torneios", Icon: Swords },
   { href: "/comissao", label: "A Comissão", Icon: Users },
   { href: "/sugestoes", label: "Sugestões", Icon: Lightbulb },
 ];
 
 const MEMBER_LINKS = [
+  { href: "/campeonatos", label: "Campeonatos", Icon: Medal },
   { href: "/materiais", label: "Materiais", Icon: Package },
   { href: "/uniformes", label: "Uniformes", Icon: Shirt },
 ];
