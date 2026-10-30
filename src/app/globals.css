@@ -613,3 +613,193 @@ form:has(button[aria-busy="true"]) :is(input, fieldset, label, select, textarea)
     animation: none;
   }
 }
+
+/* ===================== Campeonatos ===================== */
+
+/* Bolinha vermelha "AO VIVO" */
+@keyframes ao-vivo {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(239, 68, 68, 0);
+  }
+}
+.ao-vivo-ponto {
+  animation: ao-vivo 1.4s ease-in-out infinite;
+}
+
+/* Card de jogo ao vivo: borda com gradiente girando */
+@property --ang {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes girar-ang {
+  to {
+    --ang: 360deg;
+  }
+}
+.borda-viva {
+  position: relative;
+  isolation: isolate;
+}
+.borda-viva::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--ang), #ef4444, #f5ec5a, #00a2ff, #ef4444);
+  animation: girar-ang 3s linear infinite;
+  z-index: -1;
+}
+
+/* Raios girando atrás do troféu do campeão */
+.raios-trofeu {
+  background: repeating-conic-gradient(from 0deg, rgba(245, 236, 90, 0.35) 0deg 10deg, transparent 10deg 30deg);
+  animation: girar 24s linear infinite;
+  mask-image: radial-gradient(circle, #000 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle, #000 20%, transparent 70%);
+}
+@keyframes trofeu-pulo {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(4deg);
+  }
+}
+.trofeu-pulo {
+  animation: trofeu-pulo 2.6s ease-in-out infinite;
+}
+
+/* Número do placar dando um "pulo" quando aparece */
+@keyframes placar-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.placar-pop {
+  display: inline-block;
+  animation: placar-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+
+/* Barra de progresso do campeonato */
+@keyframes listras {
+  to {
+    background-position: 28px 0;
+  }
+}
+.barra-listrada {
+  background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.25) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0.25) 75%, transparent 75%);
+  background-size: 28px 28px;
+  animation: listras 1s linear infinite;
+}
+
+/* Chaveamento: colunas por fase com linhas ligando os jogos */
+.chave {
+  --gap: 34px;
+  display: flex;
+  gap: var(--gap);
+  min-width: max-content;
+}
+.chave-fase {
+  display: flex;
+  flex-direction: column;
+  width: 230px;
+}
+.chave-jogos {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.chave-par {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.chave-slot {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  padding: 8px 0;
+}
+.chave-slot > * {
+  width: 100%;
+}
+/* traço saindo de cada jogo para a direita */
+.chave-fase:not(:last-child) .chave-slot::after {
+  content: "";
+  position: absolute;
+  right: calc(var(--gap) / -2);
+  top: 50%;
+  width: calc(var(--gap) / 2);
+  border-top: 2px solid var(--linha-chave, #c7d2fe);
+}
+/* traço vertical unindo os dois jogos do par + traço até a próxima fase */
+.chave-fase:not(:last-child) .chave-par::before {
+  content: "";
+  position: absolute;
+  right: calc(var(--gap) / -2);
+  top: 25%;
+  bottom: 25%;
+  border-right: 2px solid var(--linha-chave, #c7d2fe);
+}
+.chave-fase:not(:last-child) .chave-par::after {
+  content: "";
+  position: absolute;
+  right: calc(var(--gap) * -1);
+  top: 50%;
+  width: calc(var(--gap) / 2);
+  border-top: 2px solid var(--linha-chave, #c7d2fe);
+}
+html.dark .chave {
+  --linha-chave: #334155;
+}
+
+/* Linhas da tabela entrando uma a uma */
+.linhas-entrando > tr {
+  animation: entrar 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.linhas-entrando > tr:nth-child(2) { animation-delay: 40ms; }
+.linhas-entrando > tr:nth-child(3) { animation-delay: 80ms; }
+.linhas-entrando > tr:nth-child(4) { animation-delay: 120ms; }
+.linhas-entrando > tr:nth-child(5) { animation-delay: 160ms; }
+.linhas-entrando > tr:nth-child(6) { animation-delay: 200ms; }
+.linhas-entrando > tr:nth-child(n + 7) { animation-delay: 240ms; }
+
+/* Esportes no assistente: card escolhido dá um pulinho */
+.esporte-card:has(input:checked) {
+  animation: pulinho 0.35s ease-out;
+}
+
+/* Rolagem horizontal sem barra feia */
+.rolagem-suave {
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ao-vivo-ponto,
+  .borda-viva::before,
+  .raios-trofeu,
+  .trofeu-pulo,
+  .placar-pop,
+  .barra-listrada,
+  .linhas-entrando > tr,
+  .esporte-card:has(input:checked) {
+    animation: none !important;
+  }
+}

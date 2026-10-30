@@ -38,6 +38,11 @@ Acesse http://localhost:3000. A área administrativa fica em `/admin`
   - `/uniformes` — itens controlados (bolsas/uniformes) e quem está com cada um (com busca).
   - `/agenda`, `/classificacao`, `/comunicados`, `/enquetes` — jogos, tabela, avisos e enquetes.
   - `/admin/membros` — gestão de membros (somente admin).
+  - `/campeonatos` — campeonatos estilo "live cup": futebol, futsal, vôlei, basquete,
+    beach tennis, truco, e-sports e outros. Formatos: pontos corridos, mata-mata ou
+    grupos + mata-mata. O site sorteia grupos/chave (com cabeças de chave), monta a
+    tabela, calcula a classificação, avança os vencedores e mostra placar ao vivo,
+    artilharia e cartões. Gestão em `/admin/campeonatos`. Lógica em `src/lib/campeonato/`.
 - `public/logo-comissao.jpg` — logo oficial da comissão, exibido no topo e no login.
 - É uma **PWA**: pode ser adicionada à tela inicial do celular (`public/manifest.webmanifest`).
 - `src/lib/actions.ts` — Server Actions usadas pelos formulários (todo o CRUD).

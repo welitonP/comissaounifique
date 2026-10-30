@@ -313,3 +313,82 @@ model TrackedItem {
   notes      String?
   createdAt  DateTime  @default(now())
 }
+
+// ===================== Campeonatos (estilo "live cup") =====================
+// Campeonato com tabela/chaveamento gerado pelo site: pontos corridos,
+// mata-mata ou fase de grupos + mata-mata. Placar ao vivo e artilharia.
+model Cup {
+  id          String     @id @default(cuid())
+  slug        String?    @unique
+  name        String
+  sport       String // id do esporte (ver src/lib/campeonato/esportes.ts)
+  format      String // "liga" | "mata" | "grupos"
+  status      String     @default("rascunho") // rascunho | andamento | encerrado
+  description String?
+  location    String?
+  startDate   DateTime?
+  groupsCount Int        @default(2) // fase de grupos: quantos grupos
+  qualifiers  Int        @default(2) // fase de grupos: quantos passam por grupo
+  doubleRound Boolean    @default(false) // turno e returno (ida e volta)
+  thirdPlace  Boolean    @default(false) // disputa de 3º lugar no mata-mata
+  allowDraw   Boolean    @default(true) // empate vale na fase de pontos?
+  pointsWin   Int        @default(3)
+  pointsDraw  Int        @default(1)
+  pointsLoss  Int        @default(0)
+  setsToWin   Int        @default(2) // esportes de set: 2 = melhor de 3
+  createdAt   DateTime   @default(now())
+  teams       CupTeam[]
+  matches     CupMatch[]
+}
+
+model CupTeam {
+  id          String     @id @default(cuid())
+  cupId       String
+  cup         Cup        @relation(fields: [cupId], references: [id], onDelete: Cascade)
+  name        String
+  color       String     @default("#212492")
+  group       String? // "A", "B"... (fase de grupos)
+  seeded      Boolean    @default(false) // cabeça de chave
+  players     String? // um atleta por linha
+  createdAt   DateTime   @default(now())
+  homeMatches CupMatch[] @relation("CupHome")
+  awayMatches CupMatch[] @relation("CupAway")
+  events      CupEvent[]
+}
+
+model CupMatch {
+  id        String     @id @default(cuid())
+  cupId     String
+  cup       Cup        @relation(fields: [cupId], references: [id], onDelete: Cascade)
+  stage     String // "grupo" | "mata" | "terceiro"
+  group     String? // grupo (ou null na liga / mata-mata)
+  round     Int // rodada (pontos) ou fase do mata-mata (1 = primeira)
+  slot      Int        @default(0) // posição na chave
+  homeId    String?
+  home      CupTeam?   @relation("CupHome", fields: [homeId], references: [id], onDelete: SetNull)
+  awayId    String?
+  away      CupTeam?   @relation("CupAway", fields: [awayId], references: [id], onDelete: SetNull)
+  homeScore Int?
+  awayScore Int?
+  homePens  Int?
+  awayPens  Int?
+  partials  String? // parciais dos sets, ex: "25-20, 23-25, 15-12"
+  status    String     @default("agendado") // agendado | ao_vivo | encerrado | folga
+  date      DateTime?
+  location  String?
+  createdAt DateTime   @default(now())
+  events    CupEvent[]
+}
+
+// Lance de um jogo: gol/ponto, cartão ou destaque (craque do jogo).
+model CupEvent {
+  id        String   @id @default(cuid())
+  matchId   String
+  match     CupMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  teamId    String?
+  team      CupTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  player    String
+  kind      String // gol | amarelo | vermelho | destaque
+  minute    Int?
+  createdAt DateTime @default(now())
+}

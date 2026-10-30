@@ -74,6 +74,7 @@ export default async function AdminDashboardPage() {
     {
       titulo: "Competições",
       itens: [
+        { href: "/admin/campeonatos", label: "Campeonatos", description: "Tabela, chave, placar ao vivo e artilharia.", icon: Medal },
         { href: "/admin/torneios", label: "Torneios internos", description: "Criar torneios, ver inscritos e regulamento.", icon: Swords },
         { href: "/admin/entre-empresas", label: "Entre Empresas", description: "Modalidades e empresas inscritas.", icon: Trophy },
         { href: "/admin/calendario", label: "Calendário", description: "Datas de jogos e eventos.", icon: CalendarDays },
