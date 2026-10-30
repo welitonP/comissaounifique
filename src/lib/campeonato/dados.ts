@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 import { esporte } from "./esportes";
-import { classificacao, podio, type JogoLite, type Linha, type Regras, type TimeLite } from "./motor";
+import { classificacao, nomeFase, podio, type JogoLite, type Linha, type Regras, type TimeLite } from "./motor";
 
 const incluir = {
   teams: { orderBy: [{ group: "asc" }, { createdAt: "asc" }] },
@@ -153,4 +153,55 @@ export function slugify(s: string): string {
     .slice(0, 60)
     .replace(/-+$/g, "");
   return base || "campeonato";
+}
+
+// ===================== Etapas (rodadas e fases) =====================
+
+export type Etapa = { id: string; titulo: string; curto: string; jogos: JogoCompleto[] };
+
+// Rodadas da fase de pontos + fases do mata-mata, na ordem em que acontecem.
+// O 3º lugar entra junto da final.
+export function etapasDo(painel: Painel): Etapa[] {
+  const etapas: Etapa[] = [];
+  const grupo = painel.jogosGrupo;
+  const rodadas = [...new Set(grupo.map((m) => m.round))].sort((a, b) => a - b);
+  for (const r of rodadas) {
+    etapas.push({
+      id: `r${r}`,
+      titulo: `${r}ª rodada`,
+      curto: `R${r}`,
+      jogos: grupo.filter((m) => m.round === r).sort((a, b) => (a.group ?? "").localeCompare(b.group ?? "") || a.slot - b.slot),
+    });
+  }
+  const fases = [...new Set(painel.jogosMata.map((m) => m.round))].sort((a, b) => a - b);
+  for (const r of fases) {
+    const todos = painel.jogosMata.filter((m) => m.round === r).sort((a, b) => a.slot - b.slot);
+    const nome = nomeFase(todos.length);
+    const ultima = r === fases[fases.length - 1];
+    const jogos = todos.filter((m) => m.status !== "folga");
+    if (ultima && painel.terceiro) jogos.unshift(painel.terceiro);
+    if (jogos.length === 0) continue;
+    etapas.push({
+      id: `m${r}`,
+      titulo: ultima && painel.terceiro ? "Finais" : nome,
+      curto: nome === "Final" || ultima ? "Final" : nome === "Semifinal" ? "Semi" : nome.split(" ")[0],
+      jogos,
+    });
+  }
+  return etapas;
+}
+
+// Etapa "da vez": a primeira que ainda tem jogo sem resultado.
+export function etapaAtual(etapas: Etapa[]): Etapa | undefined {
+  return (
+    etapas.find((e) => e.jogos.some((j) => j.status === "ao_vivo")) ??
+    etapas.find((e) => e.jogos.some((j) => j.status !== "encerrado")) ??
+    etapas[etapas.length - 1]
+  );
+}
+
+export function rotuloDoJogo(j: JogoCompleto, painel: Painel): string {
+  if (j.stage === "terceiro") return "3º lugar";
+  if (j.stage === "mata") return nomeFase(painel.jogosMata.filter((m) => m.round === j.round).length);
+  return `${j.group ? `Grupo ${j.group} · ` : ""}${j.round}ª rodada`;
 }

@@ -803,3 +803,40 @@ html.dark .chave {
     animation: none !important;
   }
 }
+
+/* Campeonatos: ocupa a largura toda da tela (fora do container padrão) */
+body {
+  overflow-x: clip;
+}
+.tela-cheia {
+  margin-inline: calc(50% - 50vw);
+  padding-inline: max(12px, 2.5vw);
+}
+.tela-cheia > .tela-cheia-miolo {
+  max-width: 1680px;
+  margin-inline: auto;
+}
+.numeros {
+  font-variant-numeric: tabular-nums;
+}
+/* Linha de jogo: placar do vencedor em destaque */
+.linha-jogo:hover {
+  background: rgba(33, 36, 146, 0.04);
+}
+html.dark .linha-jogo:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+/* Telão: tela cheia de verdade (sem menu, rodapé nem animação de página,
+   que prenderia o position: fixed dentro dela) */
+body:has(.modo-telao) {
+  overflow: hidden;
+}
+body:has(.modo-telao) > header,
+body:has(.modo-telao) > footer {
+  display: none;
+}
+.transicao-pagina:has(.modo-telao) {
+  animation: none;
+  filter: none;
+  translate: none;
+}

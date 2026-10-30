@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, ExternalLink, RotateCcw, Shuffle, Swords, Trash2, Trophy } from "lucide-react";
+import { CalendarClock, ChevronLeft, ExternalLink, MonitorPlay, RotateCcw, Shuffle, Swords, Trash2, Trophy } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
-import { buscarCampeonato, montarPainel, type JogoCompleto, type Painel } from "@/lib/campeonato/dados";
+import { buscarCampeonato, etapaAtual, etapasDo, montarPainel, rotuloDoJogo, type JogoCompleto } from "@/lib/campeonato/dados";
 import { ESPORTES, FORMATOS, CORES_TIMES, type Formato } from "@/lib/campeonato/esportes";
-import { LETRAS, nomeFase } from "@/lib/campeonato/motor";
+import { LETRAS } from "@/lib/campeonato/motor";
 import {
   addTeams,
+  agendarJogos,
   deleteCup,
   deleteTeam,
   gerarMataMata,
@@ -16,7 +17,7 @@ import {
   updateTeam,
 } from "@/lib/campeonato-actions";
 import { toInputLocal } from "@/lib/datas";
-import AdminJogo from "@/components/campeonato/AdminJogo";
+import AdminLinha from "@/components/campeonato/AdminLinha";
 import AutoRefresh from "@/components/campeonato/AutoRefresh";
 import Tabela from "@/components/campeonato/Tabela";
 import ConfirmButton from "@/components/ConfirmButton";
@@ -39,16 +40,12 @@ const MENSAGENS: Record<string, [string, "ok" | "erro"]> = {
   "grupos-abertos": ["Ainda há jogos da fase de grupos sem resultado.", "erro"],
   "poucos-classificados": ["Não há classificados suficientes para o mata-mata.", "erro"],
   "sem-placar": ["Preencha o placar dos dois lados para encerrar.", "erro"],
-  "empate-mata": ["No mata-mata precisa ter vencedor: informe os pênaltis.", "erro"],
+  "empate-mata": ["Empate no mata-mata: abra a Súmula do jogo e informe os pênaltis.", "erro"],
+  agenda: ["Horários distribuídos nos jogos. 🗓️", "ok"],
+  "agenda-vazia": ["Não há jogos sem horário para agendar (marque 'refazer horários' para trocar todos).", "erro"],
   "sem-empate": ["Neste esporte não existe empate.", "erro"],
   lance: ["Informe o atleta do lance.", "erro"],
 };
-
-function rotuloJogo(j: JogoCompleto, painel: Painel): string {
-  if (j.stage === "terceiro") return "Disputa de 3º lugar";
-  if (j.stage === "mata") return nomeFase(painel.jogosMata.filter((m) => m.round === j.round).length);
-  return `${j.group ? `Grupo ${j.group} · ` : ""}${j.round}ª rodada`;
-}
 
 const input = "mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900";
 
@@ -70,27 +67,22 @@ export default async function AdminCampeonatoPage({
   const msg = MENSAGENS[sp.ok ?? ""] ?? MENSAGENS[sp.erro ?? ""];
   const publico = `/campeonatos/${cup.slug ?? cup.id}`;
 
-  // Filtro de fase na aba de jogos
-  const reais = cup.matches;
+  // Filtro de fase na aba de jogos (rodadas/fases + atalhos)
+  const etapas = etapasDo(painel);
   const fases: { id: string; rotulo: string; jogos: JogoCompleto[] }[] = [];
   if (painel.aoVivo.length) fases.push({ id: "vivo", rotulo: "🔴 Ao vivo", jogos: painel.aoVivo });
-  const pendentes = reais.filter((m) => m.status === "agendado" && m.homeId && m.awayId);
-  if (pendentes.length) fases.push({ id: "pendentes", rotulo: "A jogar", jogos: pendentes });
-  const rodadas = [...new Set(painel.jogosGrupo.map((m) => m.round))].sort((a, b) => a - b);
-  for (const r of rodadas) fases.push({ id: `r${r}`, rotulo: `${r}ª rodada`, jogos: painel.jogosGrupo.filter((m) => m.round === r) });
-  const rodadasMata = [...new Set(painel.jogosMata.map((m) => m.round))].sort((a, b) => a - b);
-  for (const r of rodadasMata) {
-    const lista = painel.jogosMata.filter((m) => m.round === r);
-    const extra = r === rodadasMata[rodadasMata.length - 1] && painel.terceiro ? [painel.terceiro] : [];
-    fases.push({ id: `m${r}`, rotulo: nomeFase(lista.length), jogos: [...extra, ...lista] });
-  }
-  if (temJogos) fases.push({ id: "todos", rotulo: "Todos", jogos: reais });
-  const faseAtual = fases.find((f) => f.id === sp.fase) ?? fases[0];
+  for (const e of etapas) fases.push({ id: e.id, rotulo: e.titulo, jogos: e.jogos });
+  const pendentes = cup.matches.filter((m) => m.status !== "encerrado" && m.status !== "folga" && m.homeId && m.awayId);
+  if (pendentes.length) fases.push({ id: "pendentes", rotulo: "Todos a jogar", jogos: pendentes });
+  const faseAtual =
+    fases.find((f) => f.id === sp.fase) ?? fases.find((f) => f.id === "vivo") ?? fases.find((f) => f.id === etapaAtual(etapas)?.id) ?? fases[0];
+  const semHorario = cup.matches.filter((m) => m.status === "agendado" && !m.date).length;
 
   const grupoPendente = painel.jogosGrupo.filter((m) => m.status !== "encerrado").length;
 
   return (
-    <div className="space-y-6">
+    <div className="tela-cheia">
+      <div className="tela-cheia-miolo space-y-5">
       <Link href="/admin/campeonatos" className="inline-flex items-center gap-1 text-sm font-semibold text-unifique-blue hover:underline">
         <ChevronLeft size={16} /> Campeonatos
       </Link>
@@ -113,6 +105,9 @@ export default async function AdminCampeonatoPage({
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <Link href={publico} target="_blank" className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-unifique shadow">
               <ExternalLink size={15} /> Página pública
+            </Link>
+            <Link href={`${publico}/telao`} target="_blank" className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-bold text-white">
+              <MonitorPlay size={15} /> Telão
             </Link>
             {painel.aoVivo.length > 0 && <AutoRefresh segundos={30} aoVivo />}
           </div>
@@ -212,17 +207,59 @@ export default async function AdminCampeonatoPage({
           )}
 
           {faseAtual && (
-            <div className="grid gap-3 lg:grid-cols-2">
-              {faseAtual.jogos.map((j) => (
-                <AdminJogo
-                  key={j.id}
-                  jogo={j}
-                  painel={painel}
-                  rotulo={rotuloJogo(j, painel)}
-                  voltar={`/admin/campeonatos/${cup.id}?aba=jogos&fase=${faseAtual.id}`}
-                />
-              ))}
+            <div className="grid gap-px overflow-hidden rounded-2xl bg-gray-200 shadow-sm dark:bg-slate-700 xl:grid-cols-2">
+              {faseAtual.jogos
+                .filter((j) => j.status !== "folga")
+                .map((j) => (
+                  <AdminLinha
+                    key={j.id}
+                    jogo={j}
+                    painel={painel}
+                    rotulo={rotuloDoJogo(j, painel)}
+                    voltar={`/admin/campeonatos/${cup.id}?aba=jogos&fase=${faseAtual.id}`}
+                  />
+                ))}
             </div>
+          )}
+
+          {temJogos && (
+            <details className="rounded-2xl bg-white shadow-sm dark:bg-slate-800" open={semHorario > 0 && painel.progresso.feitos === 0}>
+              <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 font-placar text-lg font-bold uppercase text-unifique dark:text-unifique-teal">
+                <CalendarClock size={18} /> Agendar horários automaticamente
+                {semHorario > 0 && <span className="rounded-full bg-amber-100 px-2 py-0.5 font-sans text-xs font-semibold normal-case text-amber-800">{semHorario} sem horário</span>}
+              </summary>
+              <form action={agendarJogos} className="grid gap-3 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-5">
+                <input type="hidden" name="cupId" value={cup.id} />
+                <label className="block lg:col-span-1">
+                  <span className="text-xs font-semibold text-gray-500">Primeiro jogo</span>
+                  <input type="datetime-local" name="inicio" required defaultValue={toInputLocal(cup.startDate)} className={input} />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold text-gray-500">Duração do jogo (min)</span>
+                  <input type="number" name="duracao" min={5} max={300} defaultValue={esp.placar === "sets" ? 40 : 30} className={input} />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold text-gray-500">Intervalo entre jogos (min)</span>
+                  <input type="number" name="intervalo" min={0} max={120} defaultValue={5} className={input} />
+                </label>
+                <label className="block lg:col-span-2">
+                  <span className="text-xs font-semibold text-gray-500">Quadras/campos (separe por vírgula)</span>
+                  <input name="quadras" placeholder="Ex: Quadra 1, Quadra 2" defaultValue={cup.location ?? ""} className={input} />
+                </label>
+                <label className="flex items-center gap-2 text-sm sm:col-span-2 lg:col-span-3">
+                  <input type="checkbox" name="sobrescrever" className="h-4 w-4 accent-unifique" />
+                  Refazer horários de todos os jogos que ainda não aconteceram
+                </label>
+                <div className="sm:col-span-2 lg:col-span-2 lg:text-right">
+                  <SubmitButton pendingText="Agendando..." className="w-full rounded-xl bg-unifique px-5 py-2.5 text-sm font-bold text-white lg:w-auto">
+                    Distribuir horários
+                  </SubmitButton>
+                </div>
+                <p className="text-xs text-gray-500 sm:col-span-2 lg:col-span-5">
+                  Com mais de uma quadra, os jogos acontecem ao mesmo tempo. Nenhum time joga duas vezes no mesmo horário, e cada fase do mata-mata começa depois da anterior.
+                </p>
+              </form>
+            </details>
           )}
 
           {painel.tabelas.size > 0 && (
@@ -471,6 +508,7 @@ export default async function AdminCampeonatoPage({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

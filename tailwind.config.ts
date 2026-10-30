@@ -5,6 +5,10 @@ const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
+      fontFamily: {
+        // Números de placar e títulos dos campeonatos (estilo transmissão esportiva)
+        placar: ['"Barlow Condensed"', "Poppins", "system-ui", "sans-serif"],
+      },
       colors: {
         // Paleta oficial Unifique (Brandbook 2025)
         unifique: {
