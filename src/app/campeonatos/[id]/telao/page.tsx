@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { X } from "lucide-react";
 import { requireUserPage } from "@/lib/auth";
 import { buscarCampeonato, etapaAtual, etapasDo, montarPainel, rotuloDoJogo, type JogoCompleto, type Painel } from "@/lib/campeonato/dados";
-import { formatarParciais, vencedor } from "@/lib/campeonato/motor";
+import { formatarParciais, lerParciais, vencedor } from "@/lib/campeonato/motor";
 import { fmtHora } from "@/lib/datas";
 import AutoRefresh from "@/components/campeonato/AutoRefresh";
 import Chave from "@/components/campeonato/Chave";
@@ -22,10 +22,14 @@ function PlacarGrande({ jogo, painel }: { jogo: JogoCompleto; painel: Painel }) 
   const aoVivo = jogo.status === "ao_vivo";
   const venc = vencedor(jogo);
   const temPlacar = jogo.homeScore != null && jogo.status !== "agendado";
+  const ehSets = painel.esp.placar === "sets";
+  const { sets, atual } = lerParciais(jogo.partials);
+  const mostraPontos = ehSets && aoVivo && !!atual;
+  const grande = mostraPontos ? `${atual![0]}–${atual![1]}` : temPlacar ? `${jogo.homeScore}–${jogo.awayScore}` : "×";
   const lado = (t: typeof casa) => (
     <div className={`flex min-w-0 flex-1 flex-col items-center gap-2 text-center ${venc && t && venc !== t.id ? "opacity-50" : ""}`}>
       <Escudo time={t} size={64} />
-      <span className="w-full truncate font-placar text-2xl font-bold uppercase tracking-wide xl:text-3xl">{t?.name ?? "A definir"}</span>
+      <span className="line-clamp-2 w-full break-words font-placar text-xl font-bold uppercase leading-tight tracking-wide xl:text-2xl">{t?.name ?? "A definir"}</span>
     </div>
   );
   return (
@@ -39,11 +43,26 @@ function PlacarGrande({ jogo, painel }: { jogo: JogoCompleto; painel: Painel }) 
         <div className="flex items-center gap-4">
           {lado(casa)}
           <div className="flex-none text-center">
-            <div key={`${jogo.homeScore}-${jogo.awayScore}`} className={`placar-pop numeros font-placar text-6xl font-extrabold xl:text-7xl ${aoVivo ? "text-white" : "text-white/80"}`}>
-              {temPlacar ? `${jogo.homeScore}–${jogo.awayScore}` : "×"}
+            {mostraPontos && (
+              <p className="font-placar text-xs font-bold uppercase tracking-widest text-unifique-teal">
+                {sets.length + 1}º set · {painel.esp.set?.nome ?? "pontos"}
+              </p>
+            )}
+            <div key={grande} className={`numeros whitespace-nowrap font-placar text-6xl font-extrabold xl:text-7xl ${aoVivo ? "text-white" : "text-white/80"}`}>
+              <span className="placar-pop">{grande}</span>
             </div>
+            {mostraPontos && (
+              <div className="mt-1">
+                <span className="numeros inline-block rounded-full bg-white px-3 py-0.5 font-placar text-base font-extrabold text-unifique">
+                  Sets {jogo.homeScore ?? 0}–{jogo.awayScore ?? 0}
+                </span>
+              </div>
+            )}
             {jogo.homePens != null && <p className="text-sm text-white/60">pên. {jogo.homePens}–{jogo.awayPens}</p>}
-            {jogo.partials && <p className="numeros text-sm text-white/60">{formatarParciais(jogo.partials)}</p>}
+            {ehSets && sets.length > 0 && (
+              <p className="numeros mt-1 text-sm text-white/60">{sets.map(([h, a]) => `${h}-${a}`).join(" · ")}</p>
+            )}
+            {!ehSets && jogo.partials && <p className="numeros text-sm text-white/60">{formatarParciais(jogo.partials)}</p>}
           </div>
           {lado(fora)}
         </div>
@@ -69,7 +88,7 @@ export default async function TelaoPage({ params }: { params: Promise<{ id: stri
   const tabelas = [...painel.tabelas.entries()];
 
   return (
-    <div className="modo-telao fixed inset-0 z-[80] overflow-y-auto bg-gradient-to-br from-[#0b0d3b] via-unifique-dark to-[#06233f] text-white">
+    <div className="campeonato modo-telao fixed inset-0 z-[80] overflow-y-auto bg-gradient-to-br from-[#0b0d3b] via-unifique-dark to-[#06233f] text-white">
       <div aria-hidden className="anim-aurora pointer-events-none fixed -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-unifique-blue/20 blur-3xl" />
       <div aria-hidden className="anim-aurora pointer-events-none fixed -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-unifique-teal/15 blur-3xl" />
 
@@ -106,7 +125,7 @@ export default async function TelaoPage({ params }: { params: Promise<{ id: stri
           </div>
         )}
 
-        <div className="grid flex-1 gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className={`grid gap-6 ${tabelas.length > 0 ? "xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]" : ""}`}>
           <section className="space-y-4">
             {destaque.length > 0 && (
               <h2 className="font-placar text-2xl font-bold uppercase tracking-wide text-white/80">
@@ -126,9 +145,9 @@ export default async function TelaoPage({ params }: { params: Promise<{ id: stri
                     return (
                       <div key={j.id} className="flex items-center gap-3 rounded-2xl bg-white/[0.05] px-4 py-3 ring-1 ring-white/10">
                         <Escudo time={c} size={28} />
-                        <span className="min-w-0 flex-1 truncate font-semibold">{c?.name}</span>
+                        <span className="line-clamp-2 min-w-0 flex-1 break-words font-semibold leading-tight">{c?.name}</span>
                         <span className="numeros font-placar text-2xl font-bold">{j.homeScore}–{j.awayScore}</span>
-                        <span className="min-w-0 flex-1 truncate text-right font-semibold">{f?.name}</span>
+                        <span className="line-clamp-2 min-w-0 flex-1 break-words text-right font-semibold leading-tight">{f?.name}</span>
                         <Escudo time={f} size={28} />
                       </div>
                     );
@@ -138,8 +157,8 @@ export default async function TelaoPage({ params }: { params: Promise<{ id: stri
             )}
           </section>
 
+          {tabelas.length > 0 && (
           <section className="space-y-4">
-            {tabelas.length > 0 && painel.jogosMata.length === 0 ? (
               <div className={`grid gap-4 ${tabelas.length > 2 ? "2xl:grid-cols-2" : ""}`}>
                 {tabelas.map(([g, linhas]) => (
                   <div key={g} className="[&>div]:bg-white/95 dark:[&>div]:bg-slate-800">
@@ -147,13 +166,18 @@ export default async function TelaoPage({ params }: { params: Promise<{ id: stri
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="rounded-3xl bg-white/95 p-4 text-gray-900 dark:bg-slate-800">
-                <Chave painel={painel} />
-              </div>
-            )}
           </section>
+          )}
         </div>
+
+        {painel.jogosMata.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="font-placar text-2xl font-bold uppercase tracking-wide text-white/80">🏆 Chaveamento</h2>
+            <div className="overflow-x-auto rounded-3xl bg-white/95 p-4 text-gray-900 dark:bg-slate-800">
+              <Chave painel={painel} />
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
