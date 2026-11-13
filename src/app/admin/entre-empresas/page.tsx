@@ -88,9 +88,9 @@ export default async function AdminEntreEmpresasPage() {
                 {modality.registrations.map((reg) => (
                   <li
                     key={reg.id}
-                    className="flex items-center justify-between rounded bg-gray-50 px-3 py-1.5 text-sm"
+                    className="flex items-center justify-between gap-2 rounded-xl bg-gray-50 py-1 pl-3 pr-1 text-sm"
                   >
-                    <span>
+                    <span className="min-w-0 break-words">
                       <strong>{reg.companyName}</strong>
                       {reg.responsible ? ` · ${reg.responsible}` : ""}
                       {reg.contact ? ` · ${reg.contact}` : ""}
