@@ -31,13 +31,15 @@ export default function PollEditForm({ poll }: { poll: Poll }) {
           <input type="hidden" name="optionIds" value={poll.options.map((o) => o.id).join(",")} />
 
           <div>
-            <label className="block text-xs font-medium text-gray-500">Pergunta</label>
-            <input
-              name="question"
-              defaultValue={poll.question}
-              required
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
-            />
+            <label className="block">
+              <span className="rotulo">Pergunta</span>
+              <input
+                name="question"
+                defaultValue={poll.question}
+                required
+                className="campo"
+              />
+            </label>
           </div>
 
           <div>
@@ -49,8 +51,9 @@ export default function PollEditForm({ poll }: { poll: Poll }) {
                 <div key={o.id} className="flex items-center gap-2">
                   <input
                     name={`opt_${o.id}`}
+                    aria-label="Texto da opção"
                     defaultValue={o.text}
-                    className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm"
+                    className="campo-mini flex-1"
                   />
                   <span className="whitespace-nowrap text-xs text-gray-400">{o.votes} voto(s)</span>
                   <label className="flex items-center gap-1 text-xs text-red-600">
@@ -63,20 +66,20 @@ export default function PollEditForm({ poll }: { poll: Poll }) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-500">
-              Adicionar opções <span className="font-normal text-gray-400">(uma por linha)</span>
+            <label className="block">
+              <span className="rotulo">Adicionar opções <span className="font-normal text-gray-400">(uma por linha)</span></span>
+              <textarea
+                name="newOptions"
+                rows={2}
+                placeholder={"Ex:\nBeach Tennis\nPadel"}
+                className="campo"
+              />
             </label>
-            <textarea
-              name="newOptions"
-              rows={2}
-              placeholder={"Ex:\nBeach Tennis\nPadel"}
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
-            />
           </div>
 
           <button
             type="submit"
-            className="rounded bg-unifique px-4 py-2 text-sm font-medium text-white hover:bg-unifique-dark"
+            className="btn-primario text-sm"
           >
             Salvar enquete
           </button>

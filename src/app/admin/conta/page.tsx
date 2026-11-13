@@ -1,5 +1,6 @@
 import { requireUserPage } from "@/lib/auth";
 import { changeOwnPassword } from "@/lib/actions";
+import AdminTopo from "@/components/admin/AdminTopo";
 
 export const dynamic = "force-dynamic";
 
@@ -13,45 +14,49 @@ export default async function AdminContaPage({
 
   return (
     <div className="mx-auto max-w-md space-y-6">
-      <h1 className="text-2xl font-bold text-unifique">Minha conta</h1>
+      <AdminTopo titulo="Minha conta" />
       <p className="text-sm text-gray-500">
         Usuário: <strong>{user.username}</strong> · {user.name}
       </p>
 
       {params.erro === "atual" && (
-        <p className="rounded bg-red-100 px-3 py-2 text-sm text-red-700">Senha atual incorreta.</p>
+        <p className="aviso-erro">Senha atual incorreta.</p>
       )}
       {params.erro === "curta" && (
-        <p className="rounded bg-red-100 px-3 py-2 text-sm text-red-700">
+        <p className="aviso-erro">
           A nova senha precisa ter pelo menos 4 caracteres.
         </p>
       )}
       {params.sucesso === "1" && (
-        <p className="rounded bg-green-100 px-3 py-2 text-sm text-green-800">Senha alterada!</p>
+        <p className="aviso-ok">Senha alterada!</p>
       )}
 
       <form action={changeOwnPassword} className="space-y-3 rounded-lg bg-white p-5 shadow-sm">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Senha atual</label>
-          <input
-            type="password"
-            name="current"
-            required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
-          />
+          <label className="block">
+            <span className="rotulo">Senha atual</span>
+            <input
+              type="password"
+              name="current"
+              required
+              className="campo"
+            />
+          </label>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nova senha</label>
-          <input
-            type="password"
-            name="next"
-            required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
-          />
+          <label className="block">
+            <span className="rotulo">Nova senha</span>
+            <input
+              type="password"
+              name="next"
+              required
+              className="campo"
+            />
+          </label>
         </div>
         <button
           type="submit"
-          className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+          className="btn-primario"
         >
           Alterar senha
         </button>

@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 import { requireAdminPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createUser, deleteUser, resetUserPassword, toggleUserActive } from "@/lib/actions";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
+import Campo from "@/components/admin/Campo";
 
 export const dynamic = "force-dynamic";
 
@@ -34,52 +37,60 @@ export default async function AdminMembrosPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-unifique">Membros</h1>
-      <p className="text-sm text-gray-500">
-        Cada membro entra com o próprio usuário e senha e pode publicar fotos, comunicados,
-        eventos e tudo do dia a dia. Somente você (conta <strong>master</strong>) cria e
-        gerencia membros — e ninguém além de você mexe na sua conta.
-      </p>
+      <AdminTopo
+        titulo="Membros"
+        descricao={
+          <>
+            Cada membro entra com o próprio usuário e senha e pode publicar fotos, comunicados, eventos e tudo do dia
+            a dia. Somente você (conta <strong>master</strong>) cria e gerencia membros, e ninguém além de você mexe
+            na sua conta.
+          </>
+        }
+      />
 
       {params.erro === "usuario" && (
-        <p className="rounded bg-red-100 px-3 py-2 text-sm text-red-700">
+        <p className="aviso-erro">
           Já existe um membro com esse usuário.
         </p>
       )}
       {params.erro === "dados" && (
-        <p className="rounded bg-red-100 px-3 py-2 text-sm text-red-700">
+        <p className="aviso-erro">
           Preencha nome, usuário e uma senha de pelo menos 4 caracteres.
         </p>
       )}
       {params.sucesso === "1" && (
-        <p className="rounded bg-green-100 px-3 py-2 text-sm text-green-800">Membro criado!</p>
+        <p className="aviso-ok">Membro criado!</p>
       )}
 
-      <section className="rounded-lg bg-white p-4 shadow-sm">
-        <h2 className="font-semibold text-unifique">Novo membro</h2>
+      <section className="cartao">
+        <h2 className="cartao-titulo">Novo membro</h2>
         <form action={createUser} className="mt-3 grid gap-3 sm:grid-cols-2">
-          <input
-            name="name"
-            placeholder="Nome completo"
-            required
-            className="rounded border border-gray-300 px-3 py-2"
-          />
-          <input
-            name="username"
-            type="text"
-            placeholder="Usuário (ex: maria.silva)"
-            required
-            className="rounded border border-gray-300 px-3 py-2"
-          />
-          <input
-            name="password"
-            placeholder="Senha inicial"
-            required
-            className="rounded border border-gray-300 px-3 py-2 sm:col-span-2"
-          />
+          <Campo rotulo="Nome completo">
+            <input
+              name="name"
+              required
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Usuário">
+            <input
+              name="username"
+              type="text"
+              placeholder="Ex: maria.silva"
+              required
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Senha inicial" className="sm:col-span-2">
+            <input
+              name="password"
+              required
+              className="campo"
+            />
+          </Campo>
           <button
             type="submit"
-            className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark sm:col-span-2"
+            className="btn-primario sm:col-span-2"
           >
             Criar membro
           </button>
@@ -90,7 +101,7 @@ export default async function AdminMembrosPage({
         {users.map((u) => {
           const isMaster = u.role === "master";
           return (
-            <div key={u.id} className="rounded-lg bg-white p-4 shadow-sm">
+            <div key={u.id} className="cartao">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="font-medium">
@@ -126,9 +137,7 @@ export default async function AdminMembrosPage({
                     </form>
                     <form action={deleteUser}>
                       <input type="hidden" name="id" value={u.id} />
-                      <button type="submit" className="text-sm text-red-600 hover:underline">
-                        Excluir
-                      </button>
+                      <BotaoApagar mensagem="Excluir este membro? Ele perde o acesso ao site na hora.">Excluir</BotaoApagar>
                     </form>
                   </div>
                 )}
@@ -145,14 +154,14 @@ export default async function AdminMembrosPage({
               ) : (
                 <form action={resetUserPassword} className="mt-3 flex flex-wrap items-center gap-2">
                   <input type="hidden" name="id" value={u.id} />
-                  <input
+                  <input aria-label="Nova senha"
                     name="password"
                     placeholder="Nova senha"
-                    className="w-48 rounded border border-gray-300 px-3 py-1.5 text-sm"
+                    className="campo-mini w-48"
                   />
                   <button
                     type="submit"
-                    className="rounded bg-unifique-blue px-3 py-1.5 text-sm font-medium text-white hover:bg-unifique"
+                    className="btn-azul"
                   >
                     Redefinir senha
                   </button>

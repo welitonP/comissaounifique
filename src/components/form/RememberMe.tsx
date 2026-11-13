@@ -15,7 +15,7 @@ function ler(): Record<string, string> {
   }
 }
 
-export default function RememberMe({ fields = ["name", "phone"] }: { fields?: string[] }) {
+export default function RememberMe({ fields = ["name", "email", "phone"] }: { fields?: string[] }) {
   const ref = useRef<HTMLLabelElement>(null);
   const [lembrar, setLembrar] = useState(true);
   const [preenchido, setPreenchido] = useState(false);

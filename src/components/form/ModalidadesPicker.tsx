@@ -63,7 +63,7 @@ export default function ModalidadesPicker({ modalidades }: { modalidades: { id: 
               >
                 <span
                   className={`flex h-5 w-5 flex-none items-center justify-center rounded-md border-2 ${
-                    on ? "border-white bg-white text-unifique" : "border-gray-300"
+                    on ? "manter-claro border-white bg-white text-unifique" : "border-gray-300"
                   }`}
                 >
                   {on && <Check size={14} strokeWidth={3} />}

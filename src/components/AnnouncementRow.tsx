@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { updateAnnouncement, deleteAnnouncement } from "@/lib/actions";
 import PhotoField from "@/components/PhotoField";
+import BotaoApagar from "@/components/admin/BotaoApagar";
 
 type Announcement = {
   id: string;
@@ -16,7 +17,7 @@ export default function AnnouncementRow({ announcement }: { announcement: Announ
   const a = announcement;
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm">
+    <div className="cartao">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <h2 className="font-semibold">{a.title}</h2>
@@ -39,15 +40,13 @@ export default function AnnouncementRow({ announcement }: { announcement: Announ
           <button
             type="button"
             onClick={() => setEditing((v) => !v)}
-            className="text-sm font-medium text-unifique-blue hover:underline"
+            className="inline-flex min-h-[38px] items-center rounded-xl px-3 py-2 text-sm font-semibold text-unifique-blue transition hover:bg-unifique-light dark:hover:bg-white/5"
           >
             {editing ? "Fechar" : "Editar"}
           </button>
           <form action={deleteAnnouncement}>
             <input type="hidden" name="id" value={a.id} />
-            <button type="submit" className="text-sm text-red-600 hover:underline">
-              Remover
-            </button>
+            <BotaoApagar mensagem="Remover este comunicado e as fotos dele? Não dá para desfazer.">Remover</BotaoApagar>
           </form>
         </div>
       </div>
@@ -59,23 +58,27 @@ export default function AnnouncementRow({ announcement }: { announcement: Announ
         >
           <input type="hidden" name="id" value={a.id} />
           <div>
-            <label className="block text-xs font-medium text-gray-500">Título</label>
-            <input
-              name="title"
-              defaultValue={a.title}
-              required
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
-            />
+            <label className="block">
+              <span className="rotulo">Título</span>
+              <input
+                name="title"
+                defaultValue={a.title}
+                required
+                className="campo"
+              />
+            </label>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500">Mensagem</label>
-            <textarea
-              name="body"
-              defaultValue={a.body}
-              required
-              rows={4}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
-            />
+            <label className="block">
+              <span className="rotulo">Mensagem</span>
+              <textarea
+                name="body"
+                defaultValue={a.body}
+                required
+                rows={4}
+                className="campo"
+              />
+            </label>
           </div>
 
           {a.images.length > 0 && (
@@ -111,7 +114,7 @@ export default function AnnouncementRow({ announcement }: { announcement: Announ
 
           <button
             type="submit"
-            className="rounded-lg bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+            className="btn-primario"
           >
             Salvar alterações
           </button>

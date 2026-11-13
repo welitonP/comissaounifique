@@ -2,6 +2,9 @@ import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { addGalleryPhotos, deleteGalleryPhoto } from "@/lib/actions";
 import PhotoField from "@/components/PhotoField";
+import ConfirmButton from "@/components/ConfirmButton";
+import AdminTopo from "@/components/admin/AdminTopo";
+import Campo from "@/components/admin/Campo";
 
 export const dynamic = "force-dynamic";
 
@@ -20,56 +23,58 @@ export default async function AdminFotosPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-unifique">Fotos</h1>
+        <AdminTopo titulo="Fotos" />
         <p className="mt-1 text-gray-600">
           Galeria pública com os momentos dos jogos e eventos.
         </p>
       </div>
 
       {params.sucesso === "1" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+        <p className="aviso-ok">
           Fotos publicadas na galeria! 🎉
         </p>
       )}
       {params.erro === "sem-foto" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+        <p className="aviso-erro">
           Selecione ao menos uma foto para publicar.
         </p>
       )}
       {params.erro === "muitas-fotos" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+        <p className="aviso-erro">
           Máximo de 4 fotos por envio. Publique em mais de uma leva se precisar.
         </p>
       )}
       {params.erro === "foto-grande" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+        <p className="aviso-erro">
           Cada foto pode ter no máximo 2MB (e 4MB no total). Diminua/comprima as imagens.
         </p>
       )}
       {params.erro === "foto-formato" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+        <p className="aviso-erro">
           Formato de imagem não suportado. Use JPG, PNG, WebP ou GIF.
         </p>
       )}
 
-      <form action={addGalleryPhotos} className="space-y-3 rounded-xl bg-white p-4 shadow-sm">
-        <h2 className="font-semibold text-unifique">Publicar fotos</h2>
-        <input
-          name="caption"
-          placeholder="Legenda (opcional) — ex: Futsal · jogo contra a Viacredi"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2"
-        />
+      <form action={addGalleryPhotos} className="cartao space-y-3">
+        <h2 className="cartao-titulo">Publicar fotos</h2>
+        <Campo rotulo="Legenda" opcional>
+          <input
+            name="caption"
+            placeholder="Ex: Futsal · jogo contra a Viacredi"
+            className="campo"
+          />
+        </Campo>
         <PhotoField />
         <button
           type="submit"
-          className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+          className="btn-primario"
         >
           Publicar na galeria
         </button>
       </form>
 
       {photos.length === 0 ? (
-        <p className="text-gray-500">Nenhuma foto publicada ainda.</p>
+        <p className="vazio">Nenhuma foto publicada ainda.</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {photos.map((p) => (
@@ -87,12 +92,12 @@ export default async function AdminFotosPage({
                 </p>
                 <form action={deleteGalleryPhoto}>
                   <input type="hidden" name="id" value={p.id} />
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded bg-red-50 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
+                  <ConfirmButton
+                    message="Excluir esta foto da galeria? Não dá para desfazer."
+                    className="shrink-0 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400"
                   >
                     Excluir
-                  </button>
+                  </ConfirmButton>
                 </form>
               </div>
             </div>

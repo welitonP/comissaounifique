@@ -1,3 +1,4 @@
+import ConfirmButton from "@/components/ConfirmButton";
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -11,6 +12,9 @@ import {
   toggleCheckoutItem,
 } from "@/lib/actions";
 import { fmtData, fmtDataHora } from "@/lib/datas";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
+import Campo from "@/components/admin/Campo";
 
 export const dynamic = "force-dynamic";
 
@@ -71,67 +75,76 @@ export default async function AdminSaidasPage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-unifique">Saídas de equipamento</h1>
+        <AdminTopo titulo="Saídas de equipamento" />
         <p className="text-sm text-gray-500">
           Controle o que sai para cada jogo e o que já voltou.
         </p>
       </div>
 
       {params.sucesso === "1" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+        <p className="aviso-ok">
           Saída criada! Marque os itens conforme leva e devolve.
         </p>
       )}
       {params.erro === "dados" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+        <p className="aviso-erro">
           Escolha um jogo (ou informe título e data).
         </p>
       )}
 
       {/* Nova saída */}
-      <section className="rounded-xl bg-white p-4 shadow-sm">
-        <h2 className="font-semibold text-unifique">Nova saída</h2>
+      <section className="cartao">
+        <h2 className="cartao-titulo">Nova saída</h2>
         <form action={createCheckout} className="mt-3 grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="text-sm font-medium text-gray-600">Jogo do calendário</label>
-            <select name="eventId" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
-              <option value="">Selecione um jogo...</option>
-              {eventos.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {fmtData(e.date)} · {e.title}
-                </option>
-              ))}
-            </select>
+            <label className="block">
+              <span className="rotulo">Jogo do calendário</span>
+              <select name="eventId" className="campo">
+                <option value="">Selecione um jogo...</option>
+                {eventos.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {fmtData(e.date)} · {e.title}
+                  </option>
+                ))}
+              </select>
+            </label>
             <p className="mt-1 text-xs text-gray-400">
               Sem jogo na lista? Preencha título e data abaixo.
             </p>
           </div>
-          <input
-            name="title"
-            placeholder="Título (se não escolher jogo)"
-            className="rounded-lg border border-gray-300 px-3 py-2"
-          />
-          <input
-            type="datetime-local"
-            name="date"
-            className="rounded-lg border border-gray-300 px-3 py-2"
-          />
-          <select name="kitId" className="rounded-lg border border-gray-300 px-3 py-2">
-            <option value="">Sem kit (lista vazia)</option>
-            {kits.map((k) => (
-              <option key={k.id} value={k.id}>
-                Kit: {k.name}
-              </option>
-            ))}
-          </select>
-          <input
-            name="responsible"
-            placeholder="Responsável (opcional)"
-            className="rounded-lg border border-gray-300 px-3 py-2"
-          />
+          <Campo rotulo="Título">
+            <input
+              name="title"
+              placeholder="Se não escolher jogo"
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Data e hora">
+            <input
+              type="datetime-local"
+              name="date"
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Kit de equipamentos">
+            <select name="kitId" className="campo">
+              <option value="">Sem kit (lista vazia)</option>
+              {kits.map((k) => (
+                <option key={k.id} value={k.id}>
+                  Kit: {k.name}
+                </option>
+              ))}
+            </select>
+          </Campo>
+          <Campo rotulo="Responsável" opcional>
+            <input
+              name="responsible"
+              className="campo"
+            />
+          </Campo>
           <button
             type="submit"
-            className="rounded-lg bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark sm:col-span-2"
+            className="btn-primario sm:col-span-2"
           >
             Criar saída
           </button>
@@ -140,9 +153,9 @@ export default async function AdminSaidasPage({
 
       {/* Saídas em aberto */}
       <section>
-        <h2 className="mb-2 font-semibold text-unifique">Em aberto ({abertas.length})</h2>
+        <h2 className="cartao-titulo mb-2">Em aberto ({abertas.length})</h2>
         {abertas.length === 0 && (
-          <p className="rounded-xl bg-white p-4 text-sm text-gray-500 shadow-sm">
+          <p className="cartao text-sm text-gray-500">
             Nenhuma saída em aberto.
           </p>
         )}
@@ -159,7 +172,7 @@ export default async function AdminSaidasPage({
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <p className="font-semibold text-unifique">{c.title}</p>
+                    <p className="cartao-titulo">{c.title}</p>
                     <p className="text-sm text-gray-500">
                       {fmtDataHora(c.date)}
                       {c.responsible ? ` · resp: ${c.responsible}` : ""}
@@ -167,7 +180,7 @@ export default async function AdminSaidasPage({
                   </div>
                   <div className="flex items-center gap-2">
                     {faltaVoltar > 0 && (
-                      <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-800">
+                      <span className="aviso-info rounded-full px-2 py-0.5 text-xs font-semibold">
                         {faltaVoltar} p/ voltar
                       </span>
                     )}
@@ -176,16 +189,14 @@ export default async function AdminSaidasPage({
                       <input type="hidden" name="status" value="devolvido" />
                       <button
                         type="submit"
-                        className="rounded-lg bg-unifique-blue px-3 py-1.5 text-sm font-medium text-white hover:bg-unifique"
+                        className="btn-azul"
                       >
                         Concluir
                       </button>
                     </form>
                     <form action={deleteCheckout}>
                       <input type="hidden" name="id" value={c.id} />
-                      <button type="submit" className="text-sm text-red-600 hover:underline">
-                        Excluir
-                      </button>
+                      <BotaoApagar mensagem="Apagar esta saída de equipamento? Não dá para desfazer.">Excluir</BotaoApagar>
                     </form>
                   </div>
                 </div>
@@ -216,9 +227,13 @@ export default async function AdminSaidasPage({
                       />
                       <form action={deleteCheckoutItem}>
                         <input type="hidden" name="id" value={it.id} />
-                        <button type="submit" className="text-xs text-gray-300 hover:text-red-600">
-                          ✕
-                        </button>
+                        <ConfirmButton
+                          message="Tirar este item da saída?"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-sm text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
+                        >
+                          <span aria-hidden="true">✕</span>
+                          <span className="sr-only">Tirar item</span>
+                        </ConfirmButton>
                       </form>
                     </li>
                   ))}
@@ -229,10 +244,10 @@ export default async function AdminSaidasPage({
 
                 <form action={addCheckoutItem} className="mt-2 flex gap-2">
                   <input type="hidden" name="checkoutId" value={c.id} />
-                  <input
+                  <input aria-label="Adicionar item"
                     name="name"
                     placeholder="Adicionar item (ex: Água, Colete...)"
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+                    className="campo-mini flex-1"
                   />
                   <button
                     type="submit"
@@ -248,28 +263,32 @@ export default async function AdminSaidasPage({
       </section>
 
       {/* Kits padrão */}
-      <section className="rounded-xl bg-white p-4 shadow-sm">
-        <h2 className="font-semibold text-unifique">Kits padrão</h2>
+      <section className="cartao">
+        <h2 className="cartao-titulo">Kits padrão</h2>
         <p className="text-sm text-gray-500">
           Monte uma vez a lista de cada modalidade. Um item por linha.
         </p>
         <form action={createKit} className="mt-3 space-y-2">
-          <input
-            name="name"
-            placeholder="Nome do kit (ex: Kit Futsal)"
-            required
-            className="w-full rounded-lg border border-gray-300 px-3 py-2"
-          />
-          <textarea
-            name="items"
-            required
-            rows={4}
-            placeholder={"Uniformes\nBolsa de bolas (5 bolas)\nKit primeiros socorros\nÁgua\nColetes"}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          />
+          <Campo rotulo="Nome do kit">
+            <input
+              name="name"
+              placeholder="Ex: Kit Futsal"
+              required
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Itens">
+            <textarea
+              name="items"
+              required
+              rows={4}
+              placeholder={"Uniformes\nBolsa de bolas (5 bolas)\nKit primeiros socorros\nÁgua\nColetes"}
+              className="campo"
+            />
+          </Campo>
           <button
             type="submit"
-            className="rounded-lg bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+            className="btn-primario"
           >
             Salvar kit
           </button>
@@ -279,12 +298,10 @@ export default async function AdminSaidasPage({
           {kits.map((k) => (
             <div key={k.id} className="rounded-lg border border-gray-100 p-3">
               <div className="flex items-center justify-between">
-                <p className="font-semibold text-unifique">{k.name}</p>
+                <p className="cartao-titulo">{k.name}</p>
                 <form action={deleteKit}>
                   <input type="hidden" name="id" value={k.id} />
-                  <button type="submit" className="text-xs text-red-600 hover:underline">
-                    Remover
-                  </button>
+                  <BotaoApagar mensagem="Apagar este kit padrão?">Remover</BotaoApagar>
                 </form>
               </div>
               <ul className="mt-1 list-disc pl-5 text-sm text-gray-600">
@@ -305,12 +322,12 @@ export default async function AdminSaidasPage({
       {/* Histórico */}
       {devolvidas.length > 0 && (
         <section>
-          <h2 className="mb-2 font-semibold text-unifique">Concluídas</h2>
+          <h2 className="cartao-titulo mb-2">Concluídas</h2>
           <div className="space-y-2">
             {devolvidas.map((c) => (
               <div
                 key={c.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white p-3 opacity-80 shadow-sm"
+                className="cartao flex flex-wrap items-center justify-between gap-2 opacity-80"
               >
                 <div>
                   <p className="font-medium">{c.title}</p>
@@ -328,9 +345,7 @@ export default async function AdminSaidasPage({
                   </form>
                   <form action={deleteCheckout}>
                     <input type="hidden" name="id" value={c.id} />
-                    <button type="submit" className="text-sm text-red-600 hover:underline">
-                      Excluir
-                    </button>
+                    <BotaoApagar mensagem="Apagar esta saída de equipamento? Não dá para desfazer.">Excluir</BotaoApagar>
                   </form>
                 </div>
               </div>

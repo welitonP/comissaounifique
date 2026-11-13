@@ -21,7 +21,7 @@ import ConfirmButton from "@/components/ConfirmButton";
 import ShareLink from "@/components/ShareLink";
 import TournamentForm from "@/components/TournamentForm";
 import AdminSignupList, { type AdminSignup } from "@/components/AdminSignupList";
-import { temColunasArquivoRegulamento } from "@/lib/schema-check";
+import { temColunasArquivoRegulamento, temColunasEmail } from "@/lib/schema-check";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +49,12 @@ export default async function AdminTorneioPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   await requireUserPage();
-  const [{ id }, sp, comArquivo] = await Promise.all([params, searchParams, temColunasArquivoRegulamento()]);
+  const [{ id }, sp, comArquivo, comEmail] = await Promise.all([
+    params,
+    searchParams,
+    temColunasArquivoRegulamento(),
+    temColunasEmail(),
+  ]);
 
   const t = await prisma.tournament.findUnique({
     where: { id },
@@ -69,7 +74,16 @@ export default async function AdminTorneioPage({
       photoMime: true,
       signups: {
         orderBy: { createdAt: "asc" },
-        select: { id: true, name: true, phone: true, category: true, note: true, answers: true, createdAt: true },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          category: true,
+          note: true,
+          answers: true,
+          createdAt: true,
+          ...(comEmail ? { email: true } : {}),
+        },
       },
     },
   });
@@ -95,6 +109,7 @@ export default async function AdminTorneioPage({
     id: s.id,
     name: s.name,
     phone: s.phone,
+    email: (s as { email?: string | null }).email ?? null,
     category: s.category,
     note: s.note,
     answers: parseAnswers(s.answers),

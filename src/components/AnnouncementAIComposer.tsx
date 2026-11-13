@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { generateAnnouncement, type ComposeState } from "@/lib/ai-actions";
 import { createAnnouncement } from "@/lib/actions";
+import Campo from "@/components/admin/Campo";
 
 export default function AnnouncementAIComposer() {
   const [state, formAction, pending] = useActionState<ComposeState | null, FormData>(
@@ -19,22 +20,24 @@ export default function AnnouncementAIComposer() {
 
   return (
     <section className="rounded-lg border border-unifique-blue/30 bg-unifique-light p-4">
-      <h2 className="font-semibold text-unifique">Gerar comunicado com IA</h2>
+      <h2 className="cartao-titulo">Gerar comunicado com IA</h2>
       <p className="text-xs text-gray-500">
         Descreva o assunto em poucas palavras e a IA escreve o comunicado. Depois é só revisar e
         publicar.
       </p>
 
-      <form action={formAction} className="mt-3 flex flex-wrap gap-2">
-        <input
-          name="topic"
-          placeholder="Ex: treino de futsal cancelado na quinta por causa da chuva"
-          className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
-        />
+      <form action={formAction} className="mt-3 flex flex-wrap items-end gap-2">
+        <Campo rotulo="Sobre o que é o comunicado?" className="flex-1">
+          <input
+            name="topic"
+            placeholder="Ex: treino de futsal cancelado na quinta por causa da chuva"
+            className="campo"
+          />
+        </Campo>
         <button
           type="submit"
           disabled={pending}
-          className="rounded bg-unifique-blue px-4 py-2 text-sm font-medium text-white hover:bg-unifique disabled:opacity-60"
+          className="btn-azul min-h-[42px]"
         >
           {pending ? "Gerando..." : "Gerar"}
         </button>
@@ -44,25 +47,28 @@ export default function AnnouncementAIComposer() {
 
       {(title || body) && (
         <form action={createAnnouncement} className="mt-4 space-y-2 border-t border-unifique-blue/20 pt-3">
-          <input
-            name="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Título"
-            required
-            className="w-full rounded border border-gray-300 px-3 py-2"
-          />
-          <textarea
-            name="body"
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={4}
-            required
-            className="w-full rounded border border-gray-300 px-3 py-2"
-          />
+          <Campo rotulo="Título">
+            <input
+              name="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Mensagem">
+            <textarea
+              name="body"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={4}
+              required
+              className="campo"
+            />
+          </Campo>
           <button
             type="submit"
-            className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+            className="btn-primario"
           >
             Publicar comunicado
           </button>

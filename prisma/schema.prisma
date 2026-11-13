@@ -1,5 +1,8 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  // "omit": deixa as colunas de e-mail fora das consultas por padrão, para o
+  // site funcionar antes e depois do SQL que cria essas colunas (ver lib/prisma.ts).
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -105,6 +108,7 @@ model Enrollment {
   name          String
   birthDate     String? // data de nascimento (YYYY-MM-DD)
   phone         String? // telefone/WhatsApp
+  email         String? // e-mail corporativo (visível só para a comissão)
   sector        String? // legado (não usado nos novos formulários)
   shirtSize     String? // legado
   contact       String? // legado
@@ -265,6 +269,7 @@ model TrainingSignup {
   training   Training @relation(fields: [trainingId], references: [id], onDelete: Cascade)
   name       String
   phone      String? // WhatsApp (opcional); visível só para a comissão
+  email      String? // e-mail corporativo (visível só para a comissão)
   createdAt  DateTime @default(now())
 }
 
@@ -297,6 +302,7 @@ model TournamentSignup {
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   name         String
   phone        String
+  email        String? // e-mail corporativo (visível só para a comissão)
   category     String? // categoria escolhida (ex: "Feminino" / "Masculino"), quando o torneio usa categorias
   note         String? // observação livre
   answers      String? // respostas às perguntas extras (JSON: {"pergunta":"resposta"})
@@ -391,4 +397,12 @@ model CupEvent {
   kind      String // gol | amarelo | vermelho | destaque
   minute    Int?
   createdAt DateTime @default(now())
+}
+
+// Contadores de limite de envio (anti-abuso): votos, sugestões, inscrições...
+// A chave junta a ação e um resumo embaralhado do IP (o IP em si não é guardado).
+model RateLimit {
+  key     String   @id
+  count   Int      @default(0)
+  resetAt DateTime
 }

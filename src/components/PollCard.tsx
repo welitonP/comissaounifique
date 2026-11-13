@@ -105,6 +105,7 @@ export default function PollCard({
         <div className="mt-1.5 flex gap-2">
           <input
             name="text"
+            aria-label="Sugerir uma modalidade"
             maxLength={80}
             placeholder="Ex: Beach Tennis, Padel..."
             className="min-w-0 flex-1 rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm focus:border-unifique focus:outline-none focus:ring-2 focus:ring-unifique/15 dark:border-white/15 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"

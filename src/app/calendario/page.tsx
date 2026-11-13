@@ -6,6 +6,7 @@ import { createCalendarEvent, createRsvp } from "@/lib/actions";
 import SuccessCelebration from "@/components/SuccessCelebration";
 import ShareWhatsApp from "@/components/ShareWhatsApp";
 import { partesDataBrasil, fmtHora, fmtDataHora } from "@/lib/datas";
+import Campo from "@/components/admin/Campo";
 
 export const dynamic = "force-dynamic";
 
@@ -157,12 +158,17 @@ export default async function CalendarioPage({
 
       <SuccessCelebration active={rsvp === "ok"} message="Presença confirmada! Obrigado por avisar." />
       {rsvp === "ok" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+        <p className="aviso-ok">
           Presença confirmada! Obrigado por avisar.
         </p>
       )}
+      {rsvp === "limite" && (
+        <p className="aviso-erro">
+          Muitas confirmações vieram deste mesmo lugar em pouco tempo. Aguarde um pouco e tente de novo.
+        </p>
+      )}
       {rsvp === "ja" && (
-        <p className="rounded-xl bg-yellow-100 px-4 py-3 text-sm text-yellow-800">
+        <p className="aviso-info">
           Você já confirmou presença neste evento.
         </p>
       )}
@@ -282,10 +288,10 @@ export default async function CalendarioPage({
             </Link>
             <form method="get" className="flex items-center gap-2">
               <input type="hidden" name="pagina" value={pagina} />
-              <select
+              <select aria-label="Mês"
                 name="mes"
                 defaultValue={mes}
-                className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                className="campo-mini"
               >
                 {MESES.map((m, i) => (
                   <option key={m} value={i + 1}>
@@ -293,10 +299,10 @@ export default async function CalendarioPage({
                   </option>
                 ))}
               </select>
-              <select
+              <select aria-label="Ano"
                 name="ano"
                 defaultValue={ano}
-                className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                className="campo-mini"
               >
                 {[ano - 1, ano, ano + 1, hAno]
                   .filter((v, idx, arr) => arr.indexOf(v) === idx)
@@ -424,11 +430,11 @@ export default async function CalendarioPage({
                                   className="hidden"
                                   aria-hidden="true"
                                 />
-                                <input
+                                <input aria-label="Seu nome"
                                   name="name"
                                   required
                                   placeholder="Seu nome"
-                                  className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+                                  className="campo-mini flex-1"
                                 />
                                 <button
                                   type="submit"
@@ -519,39 +525,47 @@ export default async function CalendarioPage({
             + Adicionar evento ao calendário
           </summary>
           <form action={createCalendarEvent} className="mt-3 grid gap-3 sm:grid-cols-2">
-            <input
-              name="title"
-              placeholder="Título (ex: Rodada de Futsal)"
-              required
-              className="rounded border border-gray-300 px-3 py-2 sm:col-span-2"
-            />
-            <input
-              type="datetime-local"
-              name="date"
-              required
-              className="rounded border border-gray-300 px-3 py-2"
-            />
-            <select name="modalityId" className="rounded border border-gray-300 px-3 py-2">
-              <option value="">Sem modalidade</option>
-              {modalities.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-            <input
-              name="location"
-              placeholder="Local (opcional)"
-              className="rounded border border-gray-300 px-3 py-2"
-            />
-            <input
-              name="description"
-              placeholder="Descrição (opcional)"
-              className="rounded border border-gray-300 px-3 py-2"
-            />
+            <Campo rotulo="Título" className="sm:col-span-2">
+              <input
+                name="title"
+                placeholder="Ex: Rodada de Futsal"
+                required
+                className="campo"
+              />
+            </Campo>
+            <Campo rotulo="Data e hora">
+              <input
+                type="datetime-local"
+                name="date"
+                required
+                className="campo"
+              />
+            </Campo>
+            <Campo rotulo="Modalidade">
+              <select name="modalityId" className="campo">
+                <option value="">Sem modalidade</option>
+                {modalities.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </Campo>
+            <Campo rotulo="Local" opcional>
+              <input
+                name="location"
+                className="campo"
+              />
+            </Campo>
+            <Campo rotulo="Descrição" opcional>
+              <input
+                name="description"
+                className="campo"
+              />
+            </Campo>
             <button
               type="submit"
-              className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark sm:col-span-2"
+              className="btn-primario sm:col-span-2"
             >
               Adicionar
             </button>

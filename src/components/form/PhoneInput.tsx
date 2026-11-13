@@ -23,11 +23,13 @@ export default function PhoneInput({
   className = "",
   required = true,
   placeholder = "(47) 99999-9999",
+  ariaLabel,
 }: {
   name?: string;
   className?: string;
   required?: boolean;
   placeholder?: string;
+  ariaLabel?: string;
 }) {
   return (
     <input
@@ -38,6 +40,7 @@ export default function PhoneInput({
       autoComplete="tel-national"
       maxLength={16}
       placeholder={placeholder}
+      aria-label={ariaLabel}
       className={className}
       onInput={(e) => {
         const el = e.currentTarget;

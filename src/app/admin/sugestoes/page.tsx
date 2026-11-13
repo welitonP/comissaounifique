@@ -1,6 +1,8 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { deleteSuggestion, updateSuggestionStatus } from "@/lib/actions";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
 
 const STATUS_LABEL: Record<string, string> = {
   nova: "Nova",
@@ -19,7 +21,7 @@ export default async function AdminSugestoesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-unifique">Sugestões recebidas</h1>
+      <AdminTopo titulo="Sugestões recebidas" />
       <p className="text-sm text-gray-500">
         O que os atletas mandaram pela caixa de sugestões. Atualize o status pra se organizar.
       </p>
@@ -32,7 +34,7 @@ export default async function AdminSugestoesPage() {
 
       <div className="space-y-3">
         {suggestions.map((s) => (
-          <div key={s.id} className="rounded-xl bg-white p-4 shadow-sm">
+          <div key={s.id} className="cartao">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <p className="text-sm font-semibold text-unifique">
@@ -52,10 +54,10 @@ export default async function AdminSugestoesPage() {
             <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3">
               <form action={updateSuggestionStatus} className="flex items-center gap-2">
                 <input type="hidden" name="id" value={s.id} />
-                <select
+                <select aria-label="Situação"
                   name="status"
                   defaultValue={s.status}
-                  className="rounded border border-gray-300 px-2 py-1 text-sm"
+                  className="campo-mini"
                 >
                   <option value="nova">Nova</option>
                   <option value="analise">Em análise</option>
@@ -63,16 +65,14 @@ export default async function AdminSugestoesPage() {
                 </select>
                 <button
                   type="submit"
-                  className="rounded bg-unifique-blue px-3 py-1 text-sm font-medium text-white hover:brightness-110"
+                  className="btn-azul hover:brightness-110"
                 >
                   Atualizar
                 </button>
               </form>
               <form action={deleteSuggestion} className="ml-auto">
                 <input type="hidden" name="id" value={s.id} />
-                <button type="submit" className="text-sm text-red-600 hover:underline">
-                  Excluir
-                </button>
+                <BotaoApagar mensagem="Excluir esta sugestão? Não dá para desfazer.">Excluir</BotaoApagar>
               </form>
             </div>
           </div>

@@ -9,6 +9,9 @@ import SubmitButton from "@/components/form/SubmitButton";
 import Etapas from "@/components/form/Etapas";
 import AnimatedCheck from "@/components/anim/AnimatedCheck";
 import RememberMe from "@/components/form/RememberMe";
+import EmailInput from "@/components/form/EmailInput";
+import { temColunasEmail } from "@/lib/schema-check";
+import { dominiosAceitos, dominiosTexto } from "@/lib/email";
 import ScrollIntoView from "@/components/form/ScrollIntoView";
 import ModalidadesPicker from "@/components/form/ModalidadesPicker";
 
@@ -23,7 +26,9 @@ const rotulo = "block text-sm font-semibold text-gray-700 dark:text-gray-200";
 const ERROS: Record<string, string> = {
   dados: "Faltou alguma informação. Confira os campos com * e marque pelo menos uma modalidade.",
   fechado: "As inscrições foram encerradas.",
-  "ja-inscrito": "Já recebemos uma inscrição com este WhatsApp e ela está em análise. Se quiser mudar algo, fale com a comissão.",
+  "ja-inscrito": "Já recebemos uma inscrição com este WhatsApp ou e-mail e ela está em análise. Se quiser mudar algo, fale com a comissão.",
+  email: `Informe o seu e-mail da Unifique (${dominiosTexto()}).`,
+  limite: "Muitas inscrições vieram deste mesmo lugar em pouco tempo. Aguarde alguns minutos e tente de novo.",
 };
 
 export default async function InscricaoPage({
@@ -32,8 +37,9 @@ export default async function InscricaoPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const [aberto, modalities] = await Promise.all([
+  const [aberto, comEmail, modalities] = await Promise.all([
     isInscricoesAbertas(),
+    temColunasEmail(),
     prisma.modality.findMany({ orderBy: [{ order: "asc" }, { name: "asc" }], select: { id: true, name: true } }),
   ]);
   const sucesso = params.sucesso === "1";
@@ -129,30 +135,41 @@ export default async function InscricaoPage({
           etapas={[
             <div key="dados" className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label className={rotulo}>
+                <label className="block sm:col-span-2">
+                  <span className={rotulo}>
                     Nome completo <span className="text-unifique-blue">*</span>
-                  </label>
+                  </span>
                   <input name="name" required maxLength={100} autoComplete="name" className={campo} />
-                </div>
-                <div>
-                  <label className={rotulo}>
+                </label>
+                {comEmail && (
+                  <label className="block sm:col-span-2">
+                    <span className={rotulo}>
+                      E-mail da Unifique <span className="text-unifique-blue">*</span>
+                    </span>
+                    <EmailInput dominios={dominiosAceitos()} className={campo} />
+                    <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+                      Só colaboradores podem se inscrever. Use o seu e-mail {dominiosTexto()}.
+                    </span>
+                  </label>
+                )}
+                <label className="block">
+                  <span className={rotulo}>
                     Data de nascimento <span className="text-unifique-blue">*</span>
-                  </label>
+                  </span>
                   <input type="date" name="birthDate" required max="2015-12-31" min="1940-01-01" className={campo} />
-                </div>
-                <div>
-                  <label className={rotulo}>
+                </label>
+                <label className="block">
+                  <span className={rotulo}>
                     WhatsApp <span className="text-unifique-blue">*</span>
-                  </label>
+                  </span>
                   <PhoneInput className={campo} />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className={rotulo}>
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className={rotulo}>
                     Setor <span className="text-unifique-blue">*</span>
-                  </label>
+                  </span>
                   <input name="sector" required maxLength={100} placeholder="Ex: TI, Comercial, Atendimento..." className={campo} />
-                </div>
+                </label>
               </div>
               <fieldset>
                 <legend className={rotulo}>
@@ -177,7 +194,7 @@ export default async function InscricaoPage({
           ]}
           final={
             <>
-              <RememberMe fields={["name", "phone", "birthDate", "sector"]} />
+              <RememberMe fields={["name", "email", "phone", "birthDate", "sector"]} />
               <SubmitButton className="w-full rounded-xl bg-unifique py-3.5 font-display text-lg font-semibold text-white shadow transition hover:bg-unifique-dark">
                 Enviar inscrição
               </SubmitButton>

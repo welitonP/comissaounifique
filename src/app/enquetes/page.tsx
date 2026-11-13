@@ -11,6 +11,7 @@ const AVISOS: Record<string, { texto: string; tipo: "ok" | "info" | "erro" }> = 
   "ja-votou": { texto: "Você já votou nessa enquete. Aqui está o resultado parcial.", tipo: "info" },
   "sugestao-ok": { texto: "Modalidade sugerida! A comissão vai avaliar. Obrigado!", tipo: "ok" },
   "sugestao-curta": { texto: "Escreva o nome da modalidade que você quer sugerir.", tipo: "erro" },
+  limite: { texto: "Muitos envios vieram deste mesmo lugar em pouco tempo. Aguarde um pouco e tente de novo.", tipo: "erro" },
 };
 
 const COR = {
@@ -39,7 +40,9 @@ export default async function EnquetesPage({
       ? "voto-registrado"
       : params.erro === "ja-votou"
         ? "ja-votou"
-        : params.sugestao === "ok"
+        : params.erro === "limite" || params.sugestao === "limite"
+          ? "limite"
+          : params.sugestao === "ok"
           ? "sugestao-ok"
           : params.sugestao === "curta"
             ? "sugestao-curta"

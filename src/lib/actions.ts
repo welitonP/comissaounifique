@@ -14,7 +14,9 @@ import {
 } from "./auth";
 import { SESSION_COOKIE, createSessionToken } from "./session";
 import { notifyWebhook } from "./webhook";
-import { temColunasArquivoRegulamento } from "./schema-check";
+import { temColunasArquivoRegulamento, temColunasEmail } from "./schema-check";
+import { emailCorporativo } from "./email";
+import { dentroDoLimite } from "./limite";
 
 export async function loginAction(formData: FormData) {
   const username = String(formData.get("username") || "")
@@ -452,6 +454,9 @@ export async function suggestPollModality(formData: FormData) {
   }
   const poll = await prisma.poll.findUnique({ where: { id: pollId }, select: { id: true } });
   if (!poll) redirect(from);
+  if (!(await dentroDoLimite("enquete-sugestao", 10, 3600))) {
+    redirect(`${from}?sugestao=limite${extra}`);
+  }
   await prisma.pollSuggestion.create({ data: { pollId, text } });
   revalidatePath("/admin/enquetes");
   redirect(`${from}?sugestao=ok${extra}`);
@@ -494,6 +499,13 @@ export async function votePoll(formData: FormData) {
   });
   if (!option || option.pollId !== pollId) {
     redirect("/enquetes");
+  }
+
+  // O cookie barra o voto repetido no mesmo navegador. Para quem limpa os
+  // cookies ou usa robô, há um teto de votos por hora vindos do mesmo lugar
+  // (folgado, porque o Wi-Fi da empresa inteira sai com um IP só).
+  if (!(await dentroDoLimite(`voto:${pollId}`, 40, 3600))) {
+    redirect(`/enquetes?erro=limite&p=${encodeURIComponent(pollId)}`);
   }
 
   await prisma.pollOption.update({
@@ -737,6 +749,10 @@ export async function createSuggestion(formData: FormData) {
   if (message.length < 5) {
     redirect("/sugestoes?erro=curta");
   }
+  // No máximo 5 sugestões por hora do mesmo lugar (barra envio em massa).
+  if (!(await dentroDoLimite("sugestao", 5, 3600))) {
+    redirect("/sugestoes?erro=limite");
+  }
   await prisma.suggestion.create({ data: { name: name || null, message } });
   revalidatePath("/admin/sugestoes");
   redirect("/sugestoes?sucesso=1");
@@ -915,6 +931,15 @@ export async function createEnrollment(formData: FormData) {
   if (!name || !birthDate || !phone || !sector || !shirtSize || modalityIds.length === 0) {
     redirect("/inscricao?erro=dados");
   }
+  // E-mail corporativo obrigatório (quando as colunas já existem no banco).
+  const comEmail = await temColunasEmail();
+  const email = comEmail ? emailCorporativo(String(formData.get("email") || "")) : null;
+  if (comEmail && !email) {
+    redirect("/inscricao?erro=email");
+  }
+  if (!(await dentroDoLimite("inscricao-atleta", 10, 3600))) {
+    redirect("/inscricao?erro=limite");
+  }
 
   const mods = await prisma.modality.findMany({
     where: { id: { in: modalityIds } },
@@ -924,17 +949,21 @@ export async function createEnrollment(formData: FormData) {
     redirect("/inscricao?erro=dados");
   }
 
-  // Evita inscrição repetida: mesmo WhatsApp com inscrição ainda aguardando análise.
+  // Evita inscrição repetida: mesmo WhatsApp ou e-mail com inscrição ainda aguardando análise.
   const normFone = (f: string) => {
     const d = f.replace(/\D/g, "");
     return d.length > 11 && d.startsWith("55") ? d.slice(2) : d;
   };
   const digitos = normFone(phone);
-  const pendentes = await prisma.enrollment.findMany({
+  const pendentes: { phone: string | null; email?: string | null }[] = await prisma.enrollment.findMany({
     where: { status: "pendente" },
-    select: { phone: true },
+    select: { phone: true, ...(comEmail ? { email: true } : {}) },
   });
-  if (digitos.length >= 10 && pendentes.some((e) => normFone(e.phone ?? "") === digitos)) {
+  if (
+    pendentes.some(
+      (e) => (digitos.length >= 10 && normFone(e.phone ?? "") === digitos) || (email && e.email === email),
+    )
+  ) {
     redirect("/inscricao?erro=ja-inscrito");
   }
 
@@ -943,6 +972,7 @@ export async function createEnrollment(formData: FormData) {
       name,
       birthDate,
       phone,
+      ...(comEmail ? { email } : {}),
       sector,
       shirtSize,
       modalityIds: mods.map((m) => m.id).join(","),
@@ -957,7 +987,12 @@ export async function approveEnrollment(formData: FormData) {
   await requireUser();
   const id = String(formData.get("id") || "");
   if (!id) return;
-  const enr = await prisma.enrollment.findUnique({ where: { id } });
+  const comEmail = await temColunasEmail();
+  const achada = await prisma.enrollment.findUnique({
+    where: { id },
+    ...(comEmail ? { omit: { email: false } } : {}),
+  });
+  const enr = achada as (NonNullable<typeof achada> & { email?: string | null }) | null;
   if (!enr || enr.status !== "pendente") return;
 
   const ids = enr.modalityIds.split(",").filter(Boolean);
@@ -969,7 +1004,7 @@ export async function approveEnrollment(formData: FormData) {
     ]
       .filter(Boolean)
       .join(" · ") || null;
-  const contato = enr.phone || enr.contact || null;
+  const contato = [enr.phone || enr.contact, enr.email].filter(Boolean).join(" · ") || null;
 
   // Cria a inscrição no elenco de cada modalidade escolhida
   await prisma.registration.createMany({
@@ -1039,6 +1074,9 @@ export async function createRsvp(formData: FormData) {
   const done = (store.get(cookieName)?.value || "").split(",").filter(Boolean);
   if (done.includes(eventId)) {
     redirect(`/calendario?rsvp=ja#dia`);
+  }
+  if (!(await dentroDoLimite("presenca", 20, 3600))) {
+    redirect("/calendario?rsvp=limite");
   }
 
   await prisma.eventRsvp.create({ data: { eventId, name, going } });
@@ -1393,23 +1431,43 @@ export async function createTournamentSignup(formData: FormData) {
   if (!tournamentId || !name || !phone) {
     redirect(`${back}?erro=dados`);
   }
+  const comEmail = await temColunasEmail();
   const t = await prisma.tournament.findUnique({
     where: { id: tournamentId },
-    select: { slug: true, title: true, open: true, questions: true, categories: true, signups: { select: { name: true, phone: true } } },
+    select: {
+      slug: true,
+      title: true,
+      open: true,
+      questions: true,
+      categories: true,
+      signups: { select: { name: true, phone: true, ...(comEmail ? { email: true } : {}) } },
+    },
   });
   // Prefere a URL bonita (slug) para o retorno.
   if (t?.slug) back = `/torneios/${t.slug}`;
   if (!t || !t.open) {
     redirect(`${back}?erro=fechado`);
   }
+  // E-mail corporativo obrigatório (quando as colunas já existem no banco).
+  const email = comEmail ? emailCorporativo(String(formData.get("email") || "")) : null;
+  if (comEmail && !email) {
+    redirect(`${back}?erro=email`);
+  }
+  if (!(await dentroDoLimite("inscricao-torneio", 20, 3600))) {
+    redirect(`${back}?erro=limite`);
+  }
 
-  // Impede inscrição duplicada no mesmo torneio (mesmo nome ou mesmo telefone).
+  // Impede inscrição duplicada no mesmo torneio (mesmo nome, telefone ou e-mail).
   const normNome = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
   const soDigitos = (s: string) => s.replace(/\D/g, "");
   const nomeAlvo = normNome(name);
   const foneAlvo = soDigitos(phone);
-  const jaInscrito = t.signups.some(
-    (s) => normNome(s.name) === nomeAlvo || (foneAlvo && soDigitos(s.phone) === foneAlvo),
+  const inscritos: { name: string; phone: string; email?: string | null }[] = t.signups;
+  const jaInscrito = inscritos.some(
+    (s) =>
+      normNome(s.name) === nomeAlvo ||
+      (foneAlvo && soDigitos(s.phone) === foneAlvo) ||
+      (email && s.email === email),
   );
   if (jaInscrito) {
     redirect(`${back}?erro=ja-inscrito`);
@@ -1436,7 +1494,7 @@ export async function createTournamentSignup(formData: FormData) {
   const answers = Object.keys(respostas).length > 0 ? JSON.stringify(respostas) : null;
 
   await prisma.tournamentSignup.create({
-    data: { tournamentId, name, phone, category, note: note || null, answers },
+    data: { tournamentId, name, phone, ...(comEmail ? { email } : {}), category, note: note || null, answers },
   });
   // Avisa automações externas (n8n), se configurado. Roda DEPOIS da resposta
   // (after) e é best-effort: se o n8n estiver fora ou com URL errada, a
@@ -1447,6 +1505,7 @@ export async function createTournamentSignup(formData: FormData) {
       slug: t.slug,
       nome: name,
       telefone: phone,
+      email,
       categoria: category,
       observacao: note || null,
     }),
@@ -1501,6 +1560,12 @@ export async function createTrainingSignup(formData: FormData) {
   if (!trainingId || !name || !phone) {
     redirect(`/treinos?erro=dados&t=${trainingId}`);
   }
+  // E-mail corporativo obrigatório (quando as colunas já existem no banco).
+  const comEmail = await temColunasEmail();
+  const email = comEmail ? emailCorporativo(String(formData.get("email") || "")) : null;
+  if (comEmail && !email) {
+    redirect(`/treinos?erro=email&t=${trainingId}`);
+  }
   const treino = await prisma.training.findUnique({
     where: { id: trainingId },
     select: {
@@ -1508,27 +1573,34 @@ export async function createTrainingSignup(formData: FormData) {
       modality: true,
       weekday: true,
       time: true,
-      signups: { select: { name: true, phone: true } },
+      signups: { select: { name: true, phone: true, ...(comEmail ? { email: true } : {}) } },
     },
   });
   if (!treino) {
     redirect("/treinos?erro=dados");
   }
+  if (!(await dentroDoLimite("inscricao-treino", 20, 3600))) {
+    redirect(`/treinos?erro=limite&t=${trainingId}`);
+  }
 
-  // Impede a mesma pessoa de entrar duas vezes no mesmo treino (nome ou WhatsApp).
+  // Impede a mesma pessoa de entrar duas vezes no mesmo treino (nome, WhatsApp ou e-mail).
   const normNome = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
   const soDigitos = (s: string) => s.replace(/\D/g, "");
   const nomeAlvo = normNome(name);
   const foneAlvo = soDigitos(phone);
-  const jaInscrito = treino.signups.some(
-    (s) => normNome(s.name) === nomeAlvo || (foneAlvo && s.phone && soDigitos(s.phone) === foneAlvo),
+  const inscritos: { name: string; phone: string | null; email?: string | null }[] = treino.signups;
+  const jaInscrito = inscritos.some(
+    (s) =>
+      normNome(s.name) === nomeAlvo ||
+      (foneAlvo && s.phone && soDigitos(s.phone) === foneAlvo) ||
+      (email && s.email === email),
   );
   if (jaInscrito) {
     redirect(`/treinos?erro=ja-inscrito&t=${trainingId}`);
   }
 
   await prisma.trainingSignup.create({
-    data: { trainingId, name, phone },
+    data: { trainingId, name, phone, ...(comEmail ? { email } : {}) },
   });
   // Avisa automações externas (n8n), se configurado. Roda DEPOIS da resposta
   // (after) e é best-effort: nunca trava a inscrição.
@@ -1539,6 +1611,7 @@ export async function createTrainingSignup(formData: FormData) {
       horario: treino.time,
       nome: name,
       telefone: phone,
+      email,
     }),
   );
   revalidatePath("/treinos");

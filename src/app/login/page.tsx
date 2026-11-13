@@ -28,7 +28,7 @@ export default async function LoginPage({
         </div>
 
         {params.erro === "1" && (
-          <p className="mb-4 rounded bg-red-100 px-3 py-2 text-sm text-red-700">
+          <p className="aviso-erro mb-4">
             Usuário ou senha incorretos.
           </p>
         )}
@@ -36,29 +36,33 @@ export default async function LoginPage({
         <form action={loginAction} className="space-y-3">
           <input type="hidden" name="next" value={next} />
           <div>
-            <label className="block text-sm font-medium text-gray-700">Usuário</label>
-            <input
-              type="text"
-              name="username"
-              required
-              autoComplete="username"
-              placeholder="ex: weliton.porto"
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
-            />
+            <label className="block">
+              <span className="rotulo">Usuário</span>
+              <input
+                type="text"
+                name="username"
+                required
+                autoComplete="username"
+                placeholder="nome.sobrenome"
+                className="campo"
+              />
+            </label>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Senha</label>
-            <input
-              type="password"
-              name="password"
-              required
-              autoComplete="current-password"
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
-            />
+            <label className="block">
+              <span className="rotulo">Senha</span>
+              <input
+                type="password"
+                name="password"
+                required
+                autoComplete="current-password"
+                className="campo"
+              />
+            </label>
           </div>
           <button
             type="submit"
-            className="w-full rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+            className="btn-primario w-full"
           >
             Entrar
           </button>

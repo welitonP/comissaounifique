@@ -156,6 +156,7 @@ export default function TournamentForm({ tournament }: { tournament?: Tournament
         <form action={gerar} className="mt-2 flex flex-wrap gap-2">
           <input
             name="topic"
+            aria-label="Descreva o torneio para a IA escrever"
             placeholder="Ex: torneio de futvôlei em duplas, sábado às 14h, na areia"
             className={`${campo} mt-0 flex-1`}
           />
@@ -175,99 +176,103 @@ export default function TournamentForm({ tournament }: { tournament?: Tournament
 
         <Secao icon={Type} title="Informações" subtitle="O que aparece no topo da página do torneio.">
           <div>
-            <label className={rotulo}>
-              Título <span className="text-unifique-blue">*</span>
+            <label className="block">
+              <span className={rotulo}>Título <span className="text-unifique-blue">*</span></span>
+              <input
+                name="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: Torneio de Truco"
+                required
+                className={campo}
+              />
             </label>
-            <input
-              name="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Torneio de Truco"
-              required
-              className={campo}
-            />
           </div>
           <div>
-            <label className={rotulo}>
-              Descrição <span className="font-normal text-gray-400">(opcional)</span>
+            <label className="block">
+              <span className={rotulo}>Descrição <span className="font-normal text-gray-400">(opcional)</span></span>
+              <textarea
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                placeholder="Um resumo convidativo: formato, premiação, quem pode participar..."
+                className={campo}
+              />
             </label>
-            <textarea
-              name="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Um resumo convidativo: formato, premiação, quem pode participar..."
-              className={campo}
-            />
           </div>
         </Secao>
 
         <Secao icon={CalendarClock} title="Data e local" subtitle="Com data, o torneio entra no calendário e na home.">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={rotulo}>Data e hora</label>
-              <input
-                type="datetime-local"
-                name="date"
-                defaultValue={tournament?.dateLocal ?? ""}
-                className={campo}
-              />
+              <label className="block">
+                <span className={rotulo}>Data e hora</span>
+                <input
+                  type="datetime-local"
+                  name="date"
+                  defaultValue={tournament?.dateLocal ?? ""}
+                  className={campo}
+                />
+              </label>
             </div>
             <div>
-              <label className={rotulo}>Local</label>
-              <input
-                name="location"
-                defaultValue={tournament?.location ?? ""}
-                placeholder="Ex: Arena Passeboll"
-                className={campo}
-              />
+              <label className="block">
+                <span className={rotulo}>Local</span>
+                <input
+                  name="location"
+                  defaultValue={tournament?.location ?? ""}
+                  placeholder="Ex: Arena Passeboll"
+                  className={campo}
+                />
+              </label>
             </div>
           </div>
         </Secao>
 
         <Secao icon={ListChecks} title="Inscrição" subtitle="Como a galera se inscreve e como a lista fica organizada.">
           <div>
-            <label className={rotulo}>
-              Categorias <span className="font-normal text-gray-400">(uma por linha)</span>
+            <label className="block">
+              <span className={rotulo}>Categorias <span className="font-normal text-gray-400">(uma por linha)</span></span>
+              <textarea
+                name="categories"
+                defaultValue={tournament?.categories ?? ""}
+                rows={2}
+                placeholder={"Ex:\nFeminino\nMasculino"}
+                className={campo}
+              />
             </label>
-            <textarea
-              name="categories"
-              defaultValue={tournament?.categories ?? ""}
-              rows={2}
-              placeholder={"Ex:\nFeminino\nMasculino"}
-              className={campo}
-            />
             <p className={ajuda}>
               Se preencher, o atleta escolhe a categoria (obrigatório) e os inscritos ficam separados.
             </p>
           </div>
           <div>
-            <label className={rotulo}>
-              Perguntas extras <span className="font-normal text-gray-400">(uma por linha)</span>
+            <label className="block">
+              <span className={rotulo}>Perguntas extras <span className="font-normal text-gray-400">(uma por linha)</span></span>
+              <textarea
+                name="questions"
+                defaultValue={tournament?.questions ?? ""}
+                rows={3}
+                placeholder={"Ex:\nTem dupla?\nQual o nome da sua dupla?"}
+                className={campo}
+              />
             </label>
-            <textarea
-              name="questions"
-              defaultValue={tournament?.questions ?? ""}
-              rows={3}
-              placeholder={"Ex:\nTem dupla?\nQual o nome da sua dupla?"}
-              className={campo}
-            />
             <p className={ajuda}>Aparecem no formulário de inscrição como campos opcionais.</p>
           </div>
         </Secao>
 
         <Secao icon={FileText} title="Regulamento" subtitle="Texto e/ou arquivo. Abre numa janela na página do torneio.">
           <div>
-            <label className={rotulo}>
-              Texto do regulamento <span className="font-normal text-gray-400">(opcional)</span>
+            <label className="block">
+              <span className={rotulo}>Texto do regulamento <span className="font-normal text-gray-400">(opcional)</span></span>
+              <textarea
+                name="rules"
+                defaultValue={tournament?.rules ?? ""}
+                rows={7}
+                placeholder={"1) Duplas fixas.\n2) Partidas em melhor de 3.\n3) Tolerância de 10 minutos, depois é W.O."}
+                className={`${campo} font-mono text-[13px]`}
+              />
             </label>
-            <textarea
-              name="rules"
-              defaultValue={tournament?.rules ?? ""}
-              rows={7}
-              placeholder={"1) Duplas fixas.\n2) Partidas em melhor de 3.\n3) Tolerância de 10 minutos, depois é W.O."}
-              className={`${campo} font-mono text-[13px]`}
-            />
           </div>
           <CampoArquivoRegulamento atual={tournament?.rulesFileName ?? null} />
         </Secao>
@@ -296,7 +301,7 @@ export default function TournamentForm({ tournament }: { tournament?: Tournament
         </Secao>
 
         {/* Barra de ações fixa no rodapé da tela */}
-        <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-end gap-3 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:shadow-md">
+        <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-end gap-3 border-t border-gray-200 bg-white/95 px-4 dark:border-white/10 dark:bg-gray-900/95 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:shadow-md">
           <Link
             href={editando ? `/admin/torneios/${tournament!.id}` : "/admin/torneios"}
             className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-100"

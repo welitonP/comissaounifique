@@ -1,6 +1,9 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createMaterial, deleteMaterial, updateMaterialQuantity } from "@/lib/actions";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
+import Campo from "@/components/admin/Campo";
 
 export default async function AdminMateriaisPage() {
   await requireUserPage();
@@ -10,37 +13,43 @@ export default async function AdminMateriaisPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-unifique">Materiais (estoque)</h1>
+      <AdminTopo titulo="Materiais (estoque)" />
 
-      <section className="rounded-lg bg-white p-4 shadow-sm">
-        <h2 className="font-semibold text-unifique">Novo material</h2>
+      <section className="cartao">
+        <h2 className="cartao-titulo">Novo material</h2>
         <form action={createMaterial} className="mt-3 grid gap-3 sm:grid-cols-2">
-          <input
-            name="name"
-            placeholder="Nome (ex: Bola de Futsal)"
-            required
-            className="rounded border border-gray-300 px-3 py-2"
-          />
-          <input
-            name="category"
-            placeholder="Categoria (ex: Futsal)"
-            className="rounded border border-gray-300 px-3 py-2"
-          />
-          <input
-            name="quantity"
-            type="number"
-            placeholder="Quantidade"
-            defaultValue={0}
-            className="rounded border border-gray-300 px-3 py-2"
-          />
-          <input
-            name="notes"
-            placeholder="Observações (opcional)"
-            className="rounded border border-gray-300 px-3 py-2"
-          />
+          <Campo rotulo="Nome">
+            <input
+              name="name"
+              placeholder="Ex: Bola de Futsal"
+              required
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Categoria">
+            <input
+              name="category"
+              placeholder="Ex: Futsal"
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Quantidade">
+            <input
+              name="quantity"
+              type="number"
+              defaultValue={0}
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Observações" opcional>
+            <input
+              name="notes"
+              className="campo"
+            />
+          </Campo>
           <button
             type="submit"
-            className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark sm:col-span-2"
+            className="btn-primario sm:col-span-2"
           >
             Adicionar material
           </button>
@@ -49,7 +58,7 @@ export default async function AdminMateriaisPage() {
 
       <div className="space-y-2">
         {materials.map((m) => (
-          <div key={m.id} className="rounded-lg bg-white p-3 shadow-sm">
+          <div key={m.id} className="cartao">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="font-medium">
@@ -65,30 +74,28 @@ export default async function AdminMateriaisPage() {
               <div className="flex items-center gap-2">
                 <form action={updateMaterialQuantity} className="flex items-center gap-1">
                   <input type="hidden" name="id" value={m.id} />
-                  <input
+                  <input aria-label="Quantidade"
                     type="number"
                     name="quantity"
                     defaultValue={m.quantity}
-                    className="w-20 rounded border border-gray-300 px-2 py-1 text-sm"
+                    className="campo-mini w-20"
                   />
                   <button
                     type="submit"
-                    className="rounded bg-unifique-blue px-3 py-1 text-sm font-medium text-white hover:bg-unifique"
+                    className="btn-azul"
                   >
                     Salvar
                   </button>
                 </form>
                 <form action={deleteMaterial}>
                   <input type="hidden" name="id" value={m.id} />
-                  <button type="submit" className="text-sm text-red-600 hover:underline">
-                    Remover
-                  </button>
+                  <BotaoApagar mensagem="Remover este material do estoque?">Remover</BotaoApagar>
                 </form>
               </div>
             </div>
           </div>
         ))}
-        {materials.length === 0 && <p className="text-gray-500">Nenhum material cadastrado.</p>}
+        {materials.length === 0 && <p className="vazio">Nenhum material cadastrado.</p>}
       </div>
     </div>
   );

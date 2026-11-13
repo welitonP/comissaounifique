@@ -1,3 +1,4 @@
+import { temColunasEmail } from "@/lib/schema-check";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
   }
 
   const id = req.nextUrl.searchParams.get("id") || "";
+  const comEmail = await temColunasEmail();
   const torneio = await prisma.tournament.findUnique({
     where: { id },
     select: {
@@ -28,7 +30,7 @@ export async function GET(req: NextRequest) {
       categories: true,
       signups: {
         orderBy: { createdAt: "asc" },
-        select: { name: true, phone: true, category: true, note: true, answers: true, createdAt: true },
+        select: { name: true, phone: true, category: true, note: true, answers: true, createdAt: true, ...(comEmail ? { email: true } : {}) },
       },
     },
   });
@@ -59,6 +61,7 @@ export async function GET(req: NextRequest) {
 
   const header = [
     "Nome",
+    ...(comEmail ? ["E-mail"] : []),
     "Telefone",
     ...(temCategorias ? ["Categoria"] : []),
     ...perguntas,
@@ -74,6 +77,7 @@ export async function GET(req: NextRequest) {
     }
     return [
       cell(s.name),
+      ...(comEmail ? [cell((s as { email?: string | null }).email)] : []),
       cell(s.phone),
       ...(temCategorias ? [cell(s.category)] : []),
       ...perguntas.map((p) => cell(respostas[p] || "")),

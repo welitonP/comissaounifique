@@ -35,8 +35,12 @@ export default function PrivacidadePage() {
           <h2 className="font-display text-lg font-bold text-unifique">2. Dados que coletamos</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed">
             <li>
-              <strong>Inscrições de atletas:</strong> nome, setor, tamanho de camisa, contato e
-              modalidades escolhidas.
+              <strong>Inscrições de atletas:</strong> nome, e-mail corporativo, data de nascimento,
+              WhatsApp, setor, tamanho de camisa e modalidades escolhidas.
+            </li>
+            <li>
+              <strong>Inscrições em torneios e treinos:</strong> nome, e-mail corporativo e WhatsApp.
+              O e-mail serve para confirmar que a pessoa é colaboradora e evitar inscrição repetida.
             </li>
             <li>
               <strong>Confirmações de presença:</strong> nome informado ao confirmar em um jogo ou
@@ -87,6 +91,16 @@ export default function PrivacidadePage() {
           <p className="mt-2 text-sm leading-relaxed">
             Usamos apenas cookies funcionais: manter a sessão dos membros da comissão e evitar
             votos ou confirmações duplicadas. Não usamos cookies de rastreamento ou publicidade.
+          </p>
+          <p className="mt-2 text-sm leading-relaxed">
+            Para barrar envios em massa (robôs), o site conta quantos envios chegam do mesmo lugar em
+            um curto período. Essa contagem usa um código embaralhado no lugar do endereço IP, que não
+            permite identificar a pessoa, e é apagada automaticamente.
+          </p>
+          <p className="mt-2 text-sm leading-relaxed">
+            Se você marcar &quot;Lembrar meus dados neste aparelho&quot; em uma inscrição, seu nome,
+            e-mail e WhatsApp ficam guardados apenas no seu próprio celular ou computador, para
+            preencher a próxima inscrição. Desmarcar a opção apaga esses dados.
           </p>
         </section>
 

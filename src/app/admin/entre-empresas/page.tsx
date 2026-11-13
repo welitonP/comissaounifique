@@ -6,6 +6,9 @@ import {
   deleteModality,
   deleteRegistration,
 } from "@/lib/actions";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
+import Campo from "@/components/admin/Campo";
 
 export default async function AdminEntreEmpresasPage() {
   await requireUserPage();
@@ -16,40 +19,45 @@ export default async function AdminEntreEmpresasPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-unifique">Entre Empresas</h1>
+      <AdminTopo titulo="Entre Empresas" />
 
-      <section className="rounded-lg bg-white p-4 shadow-sm">
-        <h2 className="font-semibold text-unifique">Nova modalidade</h2>
+      <section className="cartao">
+        <h2 className="cartao-titulo">Nova modalidade</h2>
         <form action={createModality} className="mt-3 space-y-3">
           <div className="flex flex-wrap gap-3">
-            <input
-              name="name"
-              placeholder="Nome (ex: Futsal)"
-              required
-              className="flex-1 rounded border border-gray-300 px-3 py-2"
-            />
-            <input
-              name="order"
-              type="number"
-              placeholder="Ordem"
-              defaultValue={0}
-              className="w-24 rounded border border-gray-300 px-3 py-2"
-            />
+            <Campo rotulo="Nome" className="flex-1">
+              <input
+                name="name"
+                placeholder="Ex: Futsal"
+                required
+                className="campo"
+              />
+            </Campo>
+            <Campo rotulo="Ordem" className="w-24">
+              <input
+                name="order"
+                type="number"
+                defaultValue={0}
+                className="campo"
+              />
+            </Campo>
           </div>
-          <input
-            name="description"
-            placeholder="Descrição curta (opcional)"
-            className="w-full rounded border border-gray-300 px-3 py-2"
-          />
-          <textarea
-            name="info"
-            placeholder="Informações / regras (opcional)"
-            rows={2}
-            className="w-full rounded border border-gray-300 px-3 py-2"
-          />
+          <Campo rotulo="Descrição curta" opcional>
+            <input
+              name="description"
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Informações / regras" opcional>
+            <textarea
+              name="info"
+              rows={2}
+              className="campo"
+            />
+          </Campo>
           <button
             type="submit"
-            className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+            className="btn-primario"
           >
             Criar modalidade
           </button>
@@ -58,9 +66,9 @@ export default async function AdminEntreEmpresasPage() {
 
       <div className="space-y-5">
         {modalities.map((modality) => (
-          <section key={modality.id} className="rounded-lg bg-white p-4 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <div>
+          <section key={modality.id} className="cartao">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
                 <h2 className="text-lg font-bold text-unifique">{modality.name}</h2>
                 {modality.description && (
                   <p className="text-sm text-gray-600">{modality.description}</p>
@@ -68,9 +76,7 @@ export default async function AdminEntreEmpresasPage() {
               </div>
               <form action={deleteModality}>
                 <input type="hidden" name="id" value={modality.id} />
-                <button type="submit" className="text-sm text-red-600 hover:underline">
-                  Remover modalidade
-                </button>
+                <BotaoApagar mensagem="Remover esta modalidade? O elenco dela também é apagado. Não dá para desfazer.">Remover</BotaoApagar>
               </form>
             </div>
 
@@ -91,9 +97,7 @@ export default async function AdminEntreEmpresasPage() {
                     </span>
                     <form action={deleteRegistration}>
                       <input type="hidden" name="id" value={reg.id} />
-                      <button type="submit" className="text-xs text-red-600 hover:underline">
-                        Remover
-                      </button>
+                      <BotaoApagar mensagem="Tirar este atleta do elenco?">Remover</BotaoApagar>
                     </form>
                   </li>
                 ))}
@@ -107,25 +111,25 @@ export default async function AdminEntreEmpresasPage() {
                 className="mt-3 flex flex-wrap gap-2 border-t border-gray-100 pt-3"
               >
                 <input type="hidden" name="modalityId" value={modality.id} />
-                <input
+                <input aria-label="Nome do atleta"
                   name="companyName"
                   placeholder="Nome do atleta"
                   required
-                  className="flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm"
+                  className="campo-mini flex-1"
                 />
-                <input
+                <input aria-label="Posição/Função"
                   name="responsible"
                   placeholder="Posição/Função"
-                  className="rounded border border-gray-300 px-3 py-1.5 text-sm"
+                  className="campo-mini"
                 />
-                <input
+                <input aria-label="Contato"
                   name="contact"
                   placeholder="Contato"
-                  className="rounded border border-gray-300 px-3 py-1.5 text-sm"
+                  className="campo-mini"
                 />
                 <button
                   type="submit"
-                  className="rounded bg-unifique-blue px-3 py-1.5 text-sm font-medium text-white hover:bg-unifique"
+                  className="btn-azul"
                 >
                   Adicionar atleta
                 </button>
@@ -133,7 +137,7 @@ export default async function AdminEntreEmpresasPage() {
             </div>
           </section>
         ))}
-        {modalities.length === 0 && <p className="text-gray-500">Nenhuma modalidade criada.</p>}
+        {modalities.length === 0 && <p className="vazio">Nenhuma modalidade criada.</p>}
       </div>
     </div>
   );

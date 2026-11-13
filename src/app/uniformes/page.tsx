@@ -2,6 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, requireUserPage } from "@/lib/auth";
 import { lendTrackedItem, returnTrackedItem } from "@/lib/actions";
+import AdminTopo from "@/components/admin/AdminTopo";
+import Campo from "@/components/admin/Campo";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +37,7 @@ export default async function UniformesPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-unifique">Uniformes e itens controlados</h1>
+          <AdminTopo titulo="Uniformes e itens controlados" />
           <p className="mt-1 text-gray-600">
             Registre quem está com cada bolsa/uniforme para não perder o controle.
           </p>
@@ -45,22 +47,24 @@ export default async function UniformesPage({
         </span>
       </div>
 
-      <form method="get" className="flex gap-2">
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="Buscar por item, categoria ou pessoa..."
-          className="flex-1 rounded border border-gray-300 px-3 py-2"
-        />
+      <form method="get" className="flex items-end gap-2">
+        <Campo rotulo="Buscar item ou pessoa" className="flex-1">
+          <input
+            type="text"
+            name="q"
+            defaultValue={q}
+            placeholder="Buscar por item, categoria ou pessoa..."
+            className="campo"
+          />
+        </Campo>
         <button
           type="submit"
-          className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+          className="btn-primario"
         >
           Buscar
         </button>
         {q && (
-          <Link href="/uniformes" className="rounded border border-gray-300 px-4 py-2 text-gray-600">
+          <Link href="/uniformes" className="btn-claro">
             Limpar
           </Link>
         )}
@@ -74,7 +78,7 @@ export default async function UniformesPage({
 
       <div className="space-y-3">
         {items.map((item) => (
-          <div key={item.id} className="rounded-lg bg-white p-4 shadow-sm">
+          <div key={item.id} className="cartao">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="font-semibold">
@@ -104,7 +108,7 @@ export default async function UniformesPage({
                     <input type="hidden" name="id" value={item.id} />
                     <button
                       type="submit"
-                      className="rounded bg-unifique-blue px-3 py-1.5 text-sm font-medium text-white hover:bg-unifique"
+                      className="btn-azul"
                     >
                       Devolver
                     </button>
@@ -112,12 +116,12 @@ export default async function UniformesPage({
                 ) : (
                   <form action={lendTrackedItem} className="flex flex-wrap items-center gap-2">
                     <input type="hidden" name="id" value={item.id} />
-                    <input
+                    <input aria-label="Nome de quem pegou"
                       name="holderName"
                       defaultValue={user?.name ?? ""}
                       placeholder="Nome de quem pegou"
                       required
-                      className="w-44 rounded border border-gray-300 px-3 py-1.5 text-sm"
+                      className="campo-mini w-44"
                     />
                     <button
                       type="submit"

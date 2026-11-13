@@ -2,6 +2,8 @@ import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { deleteRsvp } from "@/lib/actions";
 import { fmtDataHora } from "@/lib/datas";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
 
 export const dynamic = "force-dynamic";
 
@@ -25,9 +27,9 @@ export default async function AdminPresencasPage() {
         const vao = ev.rsvps.filter((r) => r.going);
         const naoVao = ev.rsvps.filter((r) => !r.going);
         return (
-          <div key={ev.id} className="rounded-xl bg-white p-4 shadow-sm">
+          <div key={ev.id} className="cartao">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h3 className="font-semibold text-unifique">{ev.title}</h3>
+              <h3 className="cartao-titulo">{ev.title}</h3>
               <p className="text-sm text-gray-500">
                 {fmtDataHora(ev.date)}
                 {ev.location ? ` · ${ev.location}` : ""}
@@ -50,13 +52,11 @@ export default async function AdminPresencasPage() {
                       <span>{r.name}</span>
                       <form action={deleteRsvp}>
                         <input type="hidden" name="id" value={r.id} />
-                        <button type="submit" className="text-xs text-gray-400 hover:text-red-600">
-                          remover
-                        </button>
+                        <BotaoApagar mensagem="Remover esta confirmação de presença?">remover</BotaoApagar>
                       </form>
                     </li>
                   ))}
-                  {vao.length === 0 && <li className="text-sm text-gray-400">—</li>}
+                  {vao.length === 0 && <li className="text-sm text-gray-400">Ninguém ainda</li>}
                 </ul>
               </div>
               <div>
@@ -69,13 +69,11 @@ export default async function AdminPresencasPage() {
                       <span>{r.name}</span>
                       <form action={deleteRsvp}>
                         <input type="hidden" name="id" value={r.id} />
-                        <button type="submit" className="text-xs text-gray-400 hover:text-red-600">
-                          remover
-                        </button>
+                        <BotaoApagar mensagem="Remover esta confirmação de presença?">remover</BotaoApagar>
                       </form>
                     </li>
                   ))}
-                  {naoVao.length === 0 && <li className="text-sm text-gray-400">—</li>}
+                  {naoVao.length === 0 && <li className="text-sm text-gray-400">Ninguém ainda</li>}
                 </ul>
               </div>
             </div>
@@ -87,7 +85,7 @@ export default async function AdminPresencasPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-unifique">Confirmações de presença</h1>
+      <AdminTopo titulo="Confirmações de presença" />
       <p className="text-sm text-gray-500">
         Quem confirmou presença em cada jogo/evento. Visível apenas para a comissão.
       </p>
@@ -100,13 +98,13 @@ export default async function AdminPresencasPage() {
 
       {futuros.length > 0 && (
         <section>
-          <h2 className="mb-2 font-semibold text-unifique">Próximos</h2>
+          <h2 className="cartao-titulo mb-2">Próximos</h2>
           <Bloco lista={futuros} />
         </section>
       )}
       {passados.length > 0 && (
         <section>
-          <h2 className="mb-2 font-semibold text-unifique">Já ocorridos</h2>
+          <h2 className="cartao-titulo mb-2">Já ocorridos</h2>
           <Bloco lista={passados} />
         </section>
       )}

@@ -18,3 +18,22 @@ export async function temColunasArquivoRegulamento(): Promise<boolean> {
   }
   return colunasOk;
 }
+
+// Mesma ideia para as colunas de e-mail das inscrições
+// (scripts/email-e-limites.sql). Enquanto não existem, os formulários não
+// pedem e-mail e nada é gravado nelas.
+let emailOk = false;
+
+export async function temColunasEmail(): Promise<boolean> {
+  if (emailOk) return true;
+  try {
+    const r = await prisma.$queryRaw<{ n: number }[]>`
+      SELECT count(*)::int AS n FROM information_schema.columns
+      WHERE column_name = 'email' AND table_schema = current_schema()
+        AND table_name IN ('TournamentSignup', 'TrainingSignup', 'Enrollment')`;
+    emailOk = (r[0]?.n ?? 0) === 3;
+  } catch {
+    emailOk = false;
+  }
+  return emailOk;
+}

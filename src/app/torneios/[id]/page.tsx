@@ -8,7 +8,9 @@ import SuccessCelebration from "@/components/SuccessCelebration";
 import ShareLink from "@/components/ShareLink";
 import AddToCalendar from "@/components/AddToCalendar";
 import RulesModal from "@/components/RulesModal";
-import { temColunasArquivoRegulamento } from "@/lib/schema-check";
+import { temColunasArquivoRegulamento, temColunasEmail } from "@/lib/schema-check";
+import { dominiosAceitos, dominiosTexto } from "@/lib/email";
+import EmailInput from "@/components/form/EmailInput";
 import PhoneInput from "@/components/form/PhoneInput";
 import SubmitButton from "@/components/form/SubmitButton";
 import RememberMe from "@/components/form/RememberMe";
@@ -70,10 +72,11 @@ export default async function TorneioDetalhePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [{ id: ref }, sp, comArquivo] = await Promise.all([
+  const [{ id: ref }, sp, comArquivo, comEmail] = await Promise.all([
     params,
     searchParams,
     temColunasArquivoRegulamento(),
+    temColunasEmail(),
   ]);
   const t = await prisma.tournament.findFirst({
     where: { OR: [{ slug: ref }, { id: ref }] },
@@ -159,14 +162,17 @@ export default async function TorneioDetalhePage({
   const ok = sp.ok === "1";
   const caminho = `/torneios/${t.slug ?? t.id}`;
   const erroMsg: Record<string, string> = {
-    "ja-inscrito": "Você já está inscrito neste torneio (mesmo nome ou WhatsApp). É uma inscrição por pessoa.",
+    "ja-inscrito": "Você já está inscrito neste torneio (mesmo nome, WhatsApp ou e-mail). É uma inscrição por pessoa.",
     dados: "Preencha seu nome e WhatsApp para se inscrever.",
+    email: `Informe o seu e-mail da Unifique (${dominiosTexto()}).`,
+    limite: "Muitas inscrições vieram deste mesmo lugar em pouco tempo. Aguarde alguns minutos e tente de novo.",
     fechado: "As inscrições deste torneio foram encerradas.",
     categoria: "Escolha a sua categoria para se inscrever.",
   };
   const erro = typeof sp.erro === "string" ? erroMsg[sp.erro] : undefined;
   const campo =
     "mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base focus:border-unifique focus:outline-none focus:ring-2 focus:ring-unifique/15 dark:border-white/15 dark:bg-gray-800 dark:text-white";
+  const rotulo = "block text-sm font-semibold text-gray-700 dark:text-gray-200";
 
   const compartilharEAgenda = (
     <>
@@ -287,18 +293,29 @@ export default async function TorneioDetalhePage({
               </ScrollIntoView>
             )}
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
+            <label className="block">
+              <span className={rotulo}>
                 Nome completo <span className="text-unifique-blue">*</span>
-              </label>
+              </span>
               <input name="name" required maxLength={100} autoComplete="name" className={campo} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                WhatsApp <span className="text-unifique-blue">*</span>
+            </label>
+            {comEmail && (
+              <label className="block">
+                <span className={rotulo}>
+                  E-mail da Unifique <span className="text-unifique-blue">*</span>
+                </span>
+                <EmailInput dominios={dominiosAceitos()} className={campo} />
+                <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+                  Só colaboradores podem se inscrever. Use o seu e-mail {dominiosTexto()}.
+                </span>
               </label>
+            )}
+            <label className="block">
+              <span className={rotulo}>
+                WhatsApp <span className="text-unifique-blue">*</span>
+              </span>
               <PhoneInput className={campo} />
-            </div>
+            </label>
 
             {categorias.length > 0 && (
               <fieldset>
@@ -319,19 +336,19 @@ export default async function TorneioDetalhePage({
             )}
 
             {perguntas.map((pergunta, i) => (
-              <div key={i}>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
+              <label key={i} className="block">
+                <span className={rotulo}>
                   {pergunta} <span className="font-normal text-gray-400">(opcional)</span>
-                </label>
+                </span>
                 <input name={`q_${i}`} maxLength={200} className={campo} />
-              </div>
-            ))}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                Observação <span className="font-normal text-gray-400">(opcional)</span>
               </label>
+            ))}
+            <label className="block">
+              <span className={rotulo}>
+                Observação <span className="font-normal text-gray-400">(opcional)</span>
+              </span>
               <input name="note" maxLength={200} placeholder="Algo que a comissão precise saber" className={campo} />
-            </div>
+            </label>
 
             <RememberMe />
 

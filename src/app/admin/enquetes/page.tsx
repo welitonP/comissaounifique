@@ -8,6 +8,9 @@ import {
 } from "@/lib/actions";
 import PollEditForm from "@/components/PollEditForm";
 import ShareEnquete from "@/components/ShareEnquete";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
+import Campo from "@/components/admin/Campo";
 
 export const dynamic = "force-dynamic";
 
@@ -27,31 +30,34 @@ export default async function AdminEnquetesPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-unifique-dark">Enquetes</h1>
+      <AdminTopo titulo="Enquetes" />
 
       {params.enquete === "salva" && (
-        <p className="rounded bg-green-100 px-4 py-2 text-sm text-green-800">
+        <p className="aviso-ok">
           Enquete atualizada com sucesso.
         </p>
       )}
 
-      <form action={createPoll} className="space-y-3 rounded-lg bg-white p-4 shadow-sm">
-        <input
-          name="question"
-          placeholder="Pergunta da enquete"
-          required
-          className="w-full rounded border border-gray-300 px-3 py-2"
-        />
-        <textarea
-          name="options"
-          placeholder={"Opções, uma por linha\nEx:\nOpção A\nOpção B"}
-          required
-          rows={4}
-          className="w-full rounded border border-gray-300 px-3 py-2"
-        />
+      <form action={createPoll} className="cartao space-y-3">
+        <Campo rotulo="Pergunta da enquete">
+          <input
+            name="question"
+            required
+            className="campo"
+          />
+        </Campo>
+        <Campo rotulo="Opções">
+          <textarea
+            name="options"
+            placeholder={"Opções, uma por linha\nEx:\nOpção A\nOpção B"}
+            required
+            rows={4}
+            className="campo"
+          />
+        </Campo>
         <button
           type="submit"
-          className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+          className="btn-primario"
         >
           Criar enquete
         </button>
@@ -61,14 +67,12 @@ export default async function AdminEnquetesPage({
         {polls.map((poll) => {
           const total = poll.options.reduce((sum, o) => sum + o.votes, 0);
           return (
-            <div key={poll.id} className="rounded-lg bg-white p-4 shadow-sm">
+            <div key={poll.id} className="cartao">
               <div className="flex items-start justify-between gap-3">
                 <h2 className="font-semibold">{poll.question}</h2>
                 <form action={deletePoll}>
                   <input type="hidden" name="id" value={poll.id} />
-                  <button type="submit" className="text-sm text-red-600 hover:underline">
-                    Remover
-                  </button>
+                  <BotaoApagar mensagem="Remover esta enquete? Os votos e as sugestões dela são apagados.">Remover</BotaoApagar>
                 </form>
               </div>
               <ul className="mt-2 space-y-1 text-sm text-gray-600">
@@ -98,11 +102,11 @@ export default async function AdminEnquetesPage({
                         {/* editar o texto (corrige erro de digitação) */}
                         <form action={updatePollSuggestion} className="flex flex-1 items-center gap-2">
                           <input type="hidden" name="id" value={s.id} />
-                          <input
+                          <input aria-label="Texto"
                             name="text"
                             defaultValue={s.text}
                             maxLength={80}
-                            className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm"
+                            className="campo-mini flex-1"
                           />
                           <button
                             type="submit"
@@ -113,9 +117,7 @@ export default async function AdminEnquetesPage({
                         </form>
                         <form action={deletePollSuggestion}>
                           <input type="hidden" name="id" value={s.id} />
-                          <button type="submit" className="text-xs text-red-600 hover:underline">
-                            remover
-                          </button>
+                          <BotaoApagar mensagem="Apagar esta sugestão de modalidade?">remover</BotaoApagar>
                         </form>
                       </li>
                     ))}
@@ -125,7 +127,7 @@ export default async function AdminEnquetesPage({
             </div>
           );
         })}
-        {polls.length === 0 && <p className="text-gray-500">Nenhuma enquete criada.</p>}
+        {polls.length === 0 && <p className="vazio">Nenhuma enquete criada.</p>}
       </div>
     </div>
   );

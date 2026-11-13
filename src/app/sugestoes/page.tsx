@@ -35,12 +35,17 @@ export default async function SugestoesPage({
       </section>
 
       {params.sucesso === "1" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+        <p className="aviso-ok">
           Sugestão enviada com sucesso. Obrigado pela contribuição!
         </p>
       )}
+      {params.erro === "limite" && (
+        <p className="aviso-erro">
+          Muitas sugestões vieram deste mesmo lugar em pouco tempo. Aguarde um pouco e tente de novo.
+        </p>
+      )}
       {params.erro === "curta" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+        <p className="aviso-erro">
           Descreva sua sugestão com um pouco mais de detalhes.
         </p>
       )}
@@ -56,24 +61,26 @@ export default async function SugestoesPage({
           aria-hidden="true"
         />
         <div>
-          <label className="block text-sm font-semibold text-gray-700">
-            Seu nome <span className="font-normal text-gray-400">(opcional)</span>
+          <label className="block">
+            <span className="rotulo">Seu nome <span className="font-normal text-gray-400">(opcional)</span></span>
+            <input
+              name="name"
+              placeholder="Deixe em branco para enviar anonimamente"
+              className="campo"
+            />
           </label>
-          <input
-            name="name"
-            placeholder="Deixe em branco para enviar anonimamente"
-            className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-          />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700">Sua sugestão</label>
-          <textarea
-            name="message"
-            required
-            rows={5}
-            placeholder="Descreva sua sugestão..."
-            className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-2.5 focus:border-unifique focus:outline-none"
-          />
+          <label className="block">
+            <span className="rotulo">Sua sugestão</span>
+            <textarea
+              name="message"
+              required
+              rows={5}
+              placeholder="Descreva sua sugestão..."
+              className="campo"
+            />
+          </label>
         </div>
         <button
           type="submit"

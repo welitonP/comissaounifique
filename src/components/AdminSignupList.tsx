@@ -9,6 +9,7 @@ export type AdminSignup = {
   id: string;
   name: string;
   phone: string;
+  email?: string | null;
   category: string | null;
   note: string | null;
   answers: [string, string][];
@@ -53,6 +54,7 @@ export default function AdminSignupList({
       if (!q) return true;
       return (
         normalizar(s.name).includes(q) ||
+        (!!s.email && s.email.includes(q)) ||
         (qDigitos.length >= 3 && s.phone.replace(/\D/g, "").includes(qDigitos)) ||
         s.answers.some(([, a]) => normalizar(a).includes(q))
       );
@@ -87,7 +89,8 @@ export default function AdminSignupList({
           <input
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome, telefone ou resposta..."
+            placeholder="Buscar por nome, telefone, e-mail ou resposta..."
+            aria-label="Buscar inscrito"
             className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-3 text-sm focus:border-unifique focus:outline-none focus:ring-2 focus:ring-unifique/15"
           />
         </label>
@@ -144,7 +147,17 @@ export default function AdminSignupList({
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">{s.phone}</p>
+                      <p className="text-sm text-gray-600">
+                        {s.phone}
+                        {s.email && (
+                          <>
+                            {" · "}
+                            <a href={`mailto:${s.email}`} className="break-all text-unifique-blue hover:underline">
+                              {s.email}
+                            </a>
+                          </>
+                        )}
+                      </p>
                       {s.answers.length > 0 && (
                         <dl className="mt-1.5 grid gap-x-4 gap-y-0.5 text-xs sm:grid-cols-2">
                           {s.answers.map(([q, a]) => (

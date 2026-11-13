@@ -859,3 +859,114 @@ body:has(.modo-telao) > footer {
     display: none;
   }
 }
+
+/* ===================== Peças das telas da comissão ===================== */
+@layer components {
+  .cartao {
+    @apply rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100 sm:p-5 dark:bg-gray-900 dark:ring-white/10;
+  }
+  .cartao-titulo {
+    @apply font-display text-base font-bold text-unifique dark:text-white;
+  }
+  .rotulo {
+    @apply mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200;
+  }
+  .campo {
+    @apply block w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-unifique focus:outline-none focus:ring-2 focus:ring-unifique/15 dark:border-white/15 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500;
+  }
+  .campo-mini {
+    @apply rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-unifique focus:outline-none focus:ring-2 focus:ring-unifique/15 dark:border-white/15 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500;
+  }
+  .btn-primario {
+    @apply inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-unifique px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-unifique-dark disabled:opacity-60;
+  }
+  .btn-azul {
+    @apply inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-xl bg-unifique-blue px-3.5 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60;
+  }
+  .btn-claro {
+    @apply inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-white/15 dark:bg-transparent dark:text-gray-200 dark:hover:bg-white/5;
+  }
+  /* Apagar/remover: área de toque de pelo menos 38px (antes era um link de 20px) */
+  .btn-perigo {
+    @apply inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10;
+  }
+  .vazio {
+    @apply rounded-2xl border-2 border-dashed border-gray-200 bg-white px-5 py-8 text-center text-sm text-gray-500 dark:border-white/10 dark:bg-gray-900 dark:text-gray-400;
+  }
+  .aviso-ok {
+    @apply rounded-xl bg-green-50 px-4 py-3 text-sm font-medium text-green-800 ring-1 ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30;
+  }
+  .aviso-erro {
+    @apply rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30;
+  }
+  .aviso-info {
+    @apply rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30;
+  }
+}
+
+/* ===================== Modo escuro: rede de segurança =====================
+   Escurece cartões, textos, bordas e campos de qualquer página que NÃO tenha
+   ajuste próprio. O :where() deixa estas regras "fracas": qualquer classe
+   dark: escrita na página ganha delas, então o que já foi ajustado à mão
+   continua igual. Quem precisa ficar claro no escuro usa a classe manter-claro. */
+html.dark :where(main) :where(.bg-white):where(:not(.manter-claro)) {
+  background-color: #111827;
+}
+html.dark :where(main) :where(.bg-gray-50, .bg-gray-100, .bg-unifique-light):where(:not(.manter-claro)) {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+html.dark :where(main) :where(.text-gray-900, .text-gray-800, .text-black) {
+  color: #f3f4f6;
+}
+html.dark :where(main) :where(.text-gray-700) {
+  color: #d1d5db;
+}
+html.dark :where(main) :where(.text-gray-600, .text-gray-500) {
+  color: #9ca3af;
+}
+html.dark :where(main) :where(.text-unifique, .text-unifique-dark):where(:not(.manter-claro, .manter-claro *)) {
+  color: #8fd0ff;
+}
+html.dark :where(main) :where(h1, h2, h3):where(.text-unifique, .text-unifique-dark):where(:not(.manter-claro *)) {
+  color: #fff;
+}
+html.dark :where(main) :where(.border, .border-2, .border-t, .border-b, .border-l, .border-r):where(.border-gray-100, .border-gray-200, .border-gray-300),
+html.dark :where(main) :where(.border-gray-100, .border-gray-200, .border-gray-300) {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+html.dark :where(main) :where(.divide-y, .divide-x) > :where(*) {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+html.dark :where(main) :where(.ring-gray-100, .ring-gray-200, .ring-gray-300) {
+  --tw-ring-color: rgba(255, 255, 255, 0.1);
+}
+html.dark :where(main) :where(.hover\:bg-gray-50:hover, .hover\:bg-gray-100:hover, .hover\:bg-unifique-light:hover) {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+html.dark :where(main) :where(input:not([type="checkbox"], [type="radio"], [type="file"], [type="submit"], [type="color"], [type="range"]), select, textarea):where(:not(.manter-claro)) {
+  background-color: #1f2937;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+html.dark :where(main) :where(input, textarea)::placeholder {
+  color: #6b7280;
+}
+html.dark :where(main) :where(input[type="date"], input[type="datetime-local"], input[type="time"]) {
+  color-scheme: dark;
+}
+html.dark :where(main) :where(table) :where(th) {
+  color: #9ca3af;
+}
+/* Fundos azul-claros com transparência (bg-unifique-light/60 etc.) */
+html.dark :where(main) :where([class^="bg-unifique-light/"], [class*=" bg-unifique-light/"]):where(:not(.manter-claro)) {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+/* Etiquetas e caixas que continuam com fundo claro (amarelo, verde, âmbar...):
+   o texto azul-escuro delas não pode clarear. */
+html.dark :where(main) :where(.bg-unifique-yellow, .bg-unifique-green, .bg-unifique-teal, .bg-amber-50, .bg-amber-100, .bg-yellow-50, .bg-yellow-100, .bg-green-50, .bg-green-100, .bg-red-50, .bg-red-100, .bg-blue-50, .bg-blue-100, .manter-claro):where(.text-unifique, .text-unifique-dark),
+html.dark :where(main) :where(.bg-unifique-yellow, .bg-unifique-green, .bg-unifique-teal, .bg-amber-50, .bg-amber-100, .bg-yellow-50, .bg-yellow-100, .bg-green-50, .bg-green-100, .bg-red-50, .bg-red-100, .bg-blue-50, .bg-blue-100, .manter-claro) :where(.text-unifique, .text-unifique-dark) {
+  color: #181a6e;
+}
+html.dark :where(main) :where(.bg-amber-50, .bg-amber-100, .bg-yellow-50, .bg-yellow-100, .bg-green-50, .bg-green-100, .bg-red-50, .bg-red-100, .bg-blue-50, .bg-blue-100) :where(.text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500) {
+  color: #374151;
+}

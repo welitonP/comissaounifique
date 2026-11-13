@@ -1,6 +1,9 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createTeam, deleteTeam } from "@/lib/actions";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
+import Campo from "@/components/admin/Campo";
 
 export default async function AdminTimesPage() {
   await requireUserPage();
@@ -8,24 +11,27 @@ export default async function AdminTimesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-unifique-dark">Times</h1>
+      <AdminTopo titulo="Times" />
 
-      <form action={createTeam} className="flex flex-wrap gap-3 rounded-lg bg-white p-4 shadow-sm">
-        <input
-          name="name"
-          placeholder="Nome do time"
-          required
-          className="flex-1 rounded border border-gray-300 px-3 py-2"
-        />
-        <input
-          name="modality"
-          placeholder="Modalidade (ex: Futsal, Vôlei)"
-          required
-          className="flex-1 rounded border border-gray-300 px-3 py-2"
-        />
+      <form action={createTeam} className="cartao grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+        <Campo rotulo="Nome do time">
+          <input
+            name="name"
+            required
+            className="campo"
+          />
+        </Campo>
+        <Campo rotulo="Modalidade">
+          <input
+            name="modality"
+            placeholder="Ex: Futsal, Vôlei"
+            required
+            className="campo"
+          />
+        </Campo>
         <button
           type="submit"
-          className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+          className="btn-primario"
         >
           Adicionar
         </button>
@@ -35,20 +41,18 @@ export default async function AdminTimesPage() {
         {teams.map((team) => (
           <div
             key={team.id}
-            className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm"
+            className="cartao flex items-center justify-between"
           >
             <span>
               <strong>{team.name}</strong> · {team.modality}
             </span>
             <form action={deleteTeam}>
               <input type="hidden" name="id" value={team.id} />
-              <button type="submit" className="text-sm text-red-600 hover:underline">
-                Remover
-              </button>
+              <BotaoApagar mensagem="Remover este time? Os jogos dele também podem ser apagados.">Remover</BotaoApagar>
             </form>
           </div>
         ))}
-        {teams.length === 0 && <p className="text-gray-500">Nenhum time cadastrado.</p>}
+        {teams.length === 0 && <p className="vazio">Nenhum time cadastrado.</p>}
       </div>
     </div>
   );

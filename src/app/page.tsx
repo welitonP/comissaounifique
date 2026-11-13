@@ -141,7 +141,7 @@ export default async function HomePage({
               alt="Comissão de Esportes Unifique"
               width={120}
               height={120}
-              className="relative h-24 w-24 rounded-full bg-white shadow-xl sm:h-28 sm:w-28"
+              className="relative h-24 w-24 manter-claro rounded-full bg-white shadow-xl sm:h-28 sm:w-28"
               priority
             />
           </span>
@@ -184,7 +184,7 @@ export default async function HomePage({
         <div className="relative mt-6 flex flex-wrap gap-3">
           <Link
             href="/calendario"
-            className="btn-brilho rounded-xl bg-white px-5 py-2.5 font-display font-semibold text-unifique shadow transition hover:scale-[1.02]"
+            className="manter-claro btn-brilho rounded-xl bg-white px-5 py-2.5 font-display font-semibold text-unifique shadow transition hover:scale-[1.02]"
           >
             Ver calendário
           </Link>

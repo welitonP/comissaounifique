@@ -84,16 +84,18 @@ export default function PhotoField({
 
   return (
     <div>
-      <label className="block text-sm font-semibold text-gray-700">{rotulo}</label>
-      <input
-        ref={inputRef}
-        type="file"
-        name={name}
-        accept="image/*"
-        multiple={multiple}
-        onChange={handleChange}
-        className="mt-1 w-full rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-unifique file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
-      />
+      <label className="block">
+        <span className="block text-sm font-semibold text-gray-700">{rotulo}</span>
+        <input
+          ref={inputRef}
+          type="file"
+          name={name}
+          accept="image/*"
+          multiple={multiple}
+          onChange={handleChange}
+          className="mt-1 w-full rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-unifique file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+        />
+      </label>
       {busy && <p className="mt-1 text-xs text-unifique-blue">Otimizando…</p>}
       {previews.length > 0 && !busy && (
         <div className="mt-2 flex flex-wrap gap-2">

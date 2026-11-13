@@ -5,6 +5,9 @@ import { TZ_BRASIL } from "@/lib/datas";
 import PhoneInput from "@/components/form/PhoneInput";
 import SubmitButton from "@/components/form/SubmitButton";
 import RememberMe from "@/components/form/RememberMe";
+import EmailInput from "@/components/form/EmailInput";
+import { temColunasEmail } from "@/lib/schema-check";
+import { dominiosAceitos, dominiosTexto } from "@/lib/email";
 import ScrollIntoView from "@/components/form/ScrollIntoView";
 import SuccessCelebration from "@/components/SuccessCelebration";
 import AnimatedCheck from "@/components/anim/AnimatedCheck";
@@ -51,8 +54,9 @@ export default async function TreinosPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [params, treinos] = await Promise.all([
+  const [params, comEmail, treinos] = await Promise.all([
     searchParams,
+    temColunasEmail(),
     prisma.training.findMany({
       orderBy: [{ weekday: "asc" }, { time: "asc" }, { order: "asc" }],
       // Publicamente só a QUANTIDADE de participantes (nomes e WhatsApp ficam só com a comissão).
@@ -62,7 +66,13 @@ export default async function TreinosPage({
 
   const okId = typeof params.ok === "string" ? params.ok : null;
   const erroId = typeof params.t === "string" ? params.t : null;
-  const erro = params.erro === "ja-inscrito" ? "ja-inscrito" : params.erro === "dados" ? "dados" : null;
+  const ERROS: Record<string, string> = {
+    "ja-inscrito": "Você já está na lista deste treino (mesmo nome, WhatsApp ou e-mail).",
+    dados: "Informe seu nome e WhatsApp.",
+    email: `Informe o seu e-mail da Unifique (${dominiosTexto()}).`,
+    limite: "Muitas confirmações vieram deste mesmo lugar em pouco tempo. Aguarde alguns minutos.",
+  };
+  const erro = typeof params.erro === "string" && params.erro in ERROS ? ERROS[params.erro] : null;
   const confirmado = okId ? treinos.find((t) => t.id === okId) : undefined;
 
   const porDia = new Map<number, typeof treinos>();
@@ -107,7 +117,7 @@ export default async function TreinosPage({
         </p>
       )}
       {erro && !erroId && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">Informe seu nome e WhatsApp para participar.</p>
+        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">{erro}</p>
       )}
 
       {treinos.length === 0 && (
@@ -200,14 +210,15 @@ export default async function TreinosPage({
                             {erroAqui && (
                               <ScrollIntoView>
                                 <p className="aviso-entrar rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200">
-                                  {erroAqui === "ja-inscrito"
-                                    ? "Você já está na lista deste treino (mesmo nome ou WhatsApp)."
-                                    : "Informe seu nome e WhatsApp."}
+                                  {erroAqui}
                                 </p>
                               </ScrollIntoView>
                             )}
-                            <input name="name" required maxLength={100} autoComplete="name" placeholder="Seu nome" className={campo} />
-                            <PhoneInput className={campo} placeholder="WhatsApp com DDD" />
+                            <input name="name" required maxLength={100} autoComplete="name" placeholder="Seu nome" aria-label="Seu nome" className={campo} />
+                            {comEmail && (
+                              <EmailInput dominios={dominiosAceitos()} className={campo} ariaLabel="E-mail da Unifique" placeholder={`E-mail da Unifique (@${dominiosAceitos()[0]})`} />
+                            )}
+                            <PhoneInput className={campo} placeholder="WhatsApp com DDD" ariaLabel="WhatsApp com DDD" />
                             <RememberMe />
                             <SubmitButton className="w-full rounded-xl bg-unifique-blue py-2.5 text-sm font-semibold text-white transition hover:brightness-110">
                               Confirmar presença

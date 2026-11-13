@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUserPage } from "@/lib/auth";
+import AdminTopo from "@/components/admin/AdminTopo";
+import Campo from "@/components/admin/Campo";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +43,7 @@ export default async function MateriaisPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-unifique">Materiais</h1>
+          <AdminTopo titulo="Materiais" />
           <p className="mt-1 text-gray-600">Estoque de materiais esportivos da comissão.</p>
         </div>
         <span className="rounded-full bg-unifique-light px-4 py-1 text-sm font-medium text-unifique">
@@ -49,22 +51,24 @@ export default async function MateriaisPage({
         </span>
       </div>
 
-      <form method="get" className="flex gap-2">
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="Buscar equipamento (ex: bola, colete, rede...)"
-          className="flex-1 rounded border border-gray-300 px-3 py-2"
-        />
+      <form method="get" className="flex items-end gap-2">
+        <Campo rotulo="Buscar equipamento" className="flex-1">
+          <input
+            type="text"
+            name="q"
+            defaultValue={q}
+            placeholder="Ex: bola, colete, rede..."
+            className="campo"
+          />
+        </Campo>
         <button
           type="submit"
-          className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+          className="btn-primario"
         >
           Buscar
         </button>
         {q && (
-          <Link href="/materiais" className="rounded border border-gray-300 px-4 py-2 text-gray-600">
+          <Link href="/materiais" className="btn-claro">
             Limpar
           </Link>
         )}

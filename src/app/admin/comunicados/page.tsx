@@ -4,6 +4,8 @@ import { createAnnouncement } from "@/lib/actions";
 import AnnouncementAIComposer from "@/components/AnnouncementAIComposer";
 import PhotoField from "@/components/PhotoField";
 import AnnouncementRow from "@/components/AnnouncementRow";
+import AdminTopo from "@/components/admin/AdminTopo";
+import Campo from "@/components/admin/Campo";
 
 export const dynamic = "force-dynamic";
 
@@ -21,55 +23,57 @@ export default async function AdminComunicadosPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-unifique">Comunicados</h1>
+      <AdminTopo titulo="Comunicados" />
 
       {params.sucesso === "1" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+        <p className="aviso-ok">
           Comunicado publicado! 🎉
         </p>
       )}
       {params.sucesso === "editado" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+        <p className="aviso-ok">
           Comunicado atualizado com sucesso.
         </p>
       )}
       {params.erro === "muitas-fotos" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+        <p className="aviso-erro">
           Máximo de 4 fotos por comunicado.
         </p>
       )}
       {params.erro === "foto-grande" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+        <p className="aviso-erro">
           Cada foto pode ter no máximo 2MB (e 4MB no total). Diminua/comprima as imagens.
         </p>
       )}
       {params.erro === "foto-formato" && (
-        <p className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-700">
+        <p className="aviso-erro">
           Formato de imagem não suportado. Use JPG, PNG, WebP ou GIF.
         </p>
       )}
 
       <AnnouncementAIComposer />
 
-      <form action={createAnnouncement} className="space-y-3 rounded-xl bg-white p-4 shadow-sm">
-        <h2 className="font-semibold text-unifique">Novo comunicado</h2>
-        <input
-          name="title"
-          placeholder="Título"
-          required
-          className="w-full rounded-lg border border-gray-300 px-3 py-2"
-        />
-        <textarea
-          name="body"
-          placeholder="Mensagem"
-          required
-          rows={4}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2"
-        />
+      <form action={createAnnouncement} className="cartao space-y-3">
+        <h2 className="cartao-titulo">Novo comunicado</h2>
+        <Campo rotulo="Título">
+          <input
+            name="title"
+            required
+            className="campo"
+          />
+        </Campo>
+        <Campo rotulo="Mensagem">
+          <textarea
+            name="body"
+            required
+            rows={4}
+            className="campo"
+          />
+        </Campo>
         <PhotoField />
         <button
           type="submit"
-          className="rounded-lg bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+          className="btn-primario"
         >
           Publicar
         </button>
@@ -79,7 +83,7 @@ export default async function AdminComunicadosPage({
         {announcements.map((a) => (
           <AnnouncementRow key={a.id} announcement={a} />
         ))}
-        {announcements.length === 0 && <p className="text-gray-500">Nenhum comunicado publicado.</p>}
+        {announcements.length === 0 && <p className="vazio">Nenhum comunicado publicado.</p>}
       </div>
     </div>
   );

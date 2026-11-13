@@ -1,3 +1,4 @@
+import { temColunasEmail } from "@/lib/schema-check";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -26,16 +27,17 @@ export async function GET(req: NextRequest) {
   // Filtro opcional por modalidade (texto exato). "all" ou vazio = todas.
   const modalidade = req.nextUrl.searchParams.get("modalidade") || "";
 
+  const comEmail = await temColunasEmail();
   const treinos = await prisma.training.findMany({
     where: modalidade && modalidade !== "all" ? { modality: modalidade } : undefined,
-    include: { signups: { orderBy: { createdAt: "asc" } } },
+    include: { signups: { orderBy: { createdAt: "asc" }, ...(comEmail ? { omit: { email: false } } : {}) } },
   });
   // Ordena por dia (Segunda -> Domingo) e depois por horário.
   treinos.sort(
     (a, b) => ORDEM.indexOf(a.weekday) - ORDEM.indexOf(b.weekday) || a.time.localeCompare(b.time),
   );
 
-  const header = ["Dia", "Horário", "Modalidade", "Local", "Nome", "WhatsApp", "Inscrito em"];
+  const header = ["Dia", "Horário", "Modalidade", "Local", "Nome", ...(comEmail ? ["E-mail"] : []), "WhatsApp", "Inscrito em"];
   const rows: string[][] = [];
   for (const t of treinos) {
     for (const s of t.signups) {
@@ -45,6 +47,7 @@ export async function GET(req: NextRequest) {
         cell(t.modality),
         cell(t.location),
         cell(s.name),
+        ...(comEmail ? [cell((s as { email?: string | null }).email)] : []),
         cell(s.phone),
         cell(fmtDataHora(s.createdAt)),
       ]);

@@ -1,6 +1,9 @@
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createChampionship, createMatch, deleteMatch, updateMatchResult } from "@/lib/actions";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
+import Campo from "@/components/admin/Campo";
 
 export default async function AdminJogosPage() {
   await requireUserPage();
@@ -16,78 +19,90 @@ export default async function AdminJogosPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-unifique-dark">Jogos e Campeonatos</h1>
+      <AdminTopo titulo="Jogos e Campeonatos" />
 
-      <section className="rounded-lg bg-white p-4 shadow-sm">
-        <h2 className="font-semibold text-unifique-dark">Novo campeonato</h2>
+      <section className="cartao">
+        <h2 className="cartao-titulo">Novo campeonato</h2>
         <form action={createChampionship} className="mt-3 flex flex-wrap gap-3">
-          <input
-            name="name"
-            placeholder="Nome do campeonato"
-            required
-            className="flex-1 rounded border border-gray-300 px-3 py-2"
-          />
-          <input
-            name="season"
-            placeholder="Temporada (ex: 2026)"
-            required
-            className="w-40 rounded border border-gray-300 px-3 py-2"
-          />
+          <Campo rotulo="Nome do campeonato" className="flex-1">
+            <input
+              name="name"
+              required
+              className="campo"
+            />
+          </Campo>
+          <Campo rotulo="Temporada" className="w-40">
+            <input
+              name="season"
+              placeholder="Ex: 2026"
+              required
+              className="campo"
+            />
+          </Campo>
           <button
             type="submit"
-            className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark"
+            className="btn-primario"
           >
             Criar
           </button>
         </form>
       </section>
 
-      <section className="rounded-lg bg-white p-4 shadow-sm">
-        <h2 className="font-semibold text-unifique-dark">Agendar jogo</h2>
+      <section className="cartao">
+        <h2 className="cartao-titulo">Agendar jogo</h2>
         {teams.length < 2 ? (
           <p className="mt-2 text-sm text-gray-500">
             Cadastre pelo menos dois times antes de agendar um jogo.
           </p>
         ) : (
           <form action={createMatch} className="mt-3 grid gap-3 sm:grid-cols-2">
-            <select name="homeTeamId" required className="rounded border border-gray-300 px-3 py-2">
-              <option value="">Time da casa</option>
-              {teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name} ({t.modality})
-                </option>
-              ))}
-            </select>
-            <select name="awayTeamId" required className="rounded border border-gray-300 px-3 py-2">
-              <option value="">Time visitante</option>
-              {teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name} ({t.modality})
-                </option>
-              ))}
-            </select>
-            <input
-              type="datetime-local"
-              name="date"
-              required
-              className="rounded border border-gray-300 px-3 py-2"
-            />
-            <input
-              name="location"
-              placeholder="Local (opcional)"
-              className="rounded border border-gray-300 px-3 py-2"
-            />
-            <select name="championshipId" className="rounded border border-gray-300 px-3 py-2 sm:col-span-2">
-              <option value="">Sem campeonato</option>
-              {championships.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.season})
-                </option>
-              ))}
-            </select>
+            <Campo rotulo="Time da casa">
+              <select name="homeTeamId" required className="campo">
+                <option value="">Time da casa</option>
+                {teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name} ({t.modality})
+                  </option>
+                ))}
+              </select>
+            </Campo>
+            <Campo rotulo="Time visitante">
+              <select name="awayTeamId" required className="campo">
+                <option value="">Time visitante</option>
+                {teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name} ({t.modality})
+                  </option>
+                ))}
+              </select>
+            </Campo>
+            <Campo rotulo="Data e hora">
+              <input
+                type="datetime-local"
+                name="date"
+                required
+                className="campo"
+              />
+            </Campo>
+            <Campo rotulo="Local" opcional>
+              <input
+                name="location"
+                className="campo"
+              />
+            </Campo>
+            <Campo rotulo="Campeonato" className="sm:col-span-2">
+              <select name="championshipId" className="campo">
+                <option value="">Sem campeonato</option>
+                {championships.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.season})
+                  </option>
+                ))}
+              </select>
+            </Campo>
             <button
               type="submit"
-              className="rounded bg-unifique px-4 py-2 font-medium text-white hover:bg-unifique-dark sm:col-span-2"
+              className="btn-primario sm:col-span-2"
             >
               Agendar
             </button>
@@ -96,9 +111,9 @@ export default async function AdminJogosPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-semibold text-unifique-dark">Jogos cadastrados</h2>
+        <h2 className="cartao-titulo">Jogos cadastrados</h2>
         {matches.map((match) => (
-          <div key={match.id} className="rounded-lg bg-white p-4 shadow-sm">
+          <div key={match.id} className="cartao">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="font-medium">
@@ -112,38 +127,36 @@ export default async function AdminJogosPage() {
               </div>
               <form action={deleteMatch}>
                 <input type="hidden" name="id" value={match.id} />
-                <button type="submit" className="text-sm text-red-600 hover:underline">
-                  Remover
-                </button>
+                <BotaoApagar mensagem="Remover este jogo? Não dá para desfazer.">Remover</BotaoApagar>
               </form>
             </div>
             <form action={updateMatchResult} className="mt-3 flex flex-wrap items-center gap-2">
               <input type="hidden" name="id" value={match.id} />
-              <input
+              <input aria-label="Placar casa"
                 type="number"
                 name="homeScore"
                 defaultValue={match.homeScore ?? ""}
                 placeholder="Placar casa"
-                className="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
+                className="campo-mini w-28"
               />
               <span>x</span>
-              <input
+              <input aria-label="Placar visitante"
                 type="number"
                 name="awayScore"
                 defaultValue={match.awayScore ?? ""}
                 placeholder="Placar visitante"
-                className="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
+                className="campo-mini w-28"
               />
               <button
                 type="submit"
-                className="rounded bg-unifique-blue px-3 py-1 text-sm font-medium text-white hover:bg-unifique"
+                className="btn-azul"
               >
                 Salvar resultado
               </button>
             </form>
           </div>
         ))}
-        {matches.length === 0 && <p className="text-gray-500">Nenhum jogo cadastrado.</p>}
+        {matches.length === 0 && <p className="vazio">Nenhum jogo cadastrado.</p>}
       </section>
     </div>
   );

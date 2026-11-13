@@ -1,3 +1,4 @@
+import { temColunasEmail } from "@/lib/schema-check";
 import { requireUserPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isInscricoesAbertas } from "@/lib/settings";
@@ -10,6 +11,8 @@ import {
   toggleInscricoes,
 } from "@/lib/actions";
 import ConfirmButton from "@/components/ConfirmButton";
+import AdminTopo from "@/components/admin/AdminTopo";
+import BotaoApagar from "@/components/admin/BotaoApagar";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +28,14 @@ export default async function AdminInscricoesPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   await requireUserPage();
+  const comEmail = await temColunasEmail();
   const [params, aberto, enrollments, elencoCount] = await Promise.all([
     searchParams,
     isInscricoesAbertas(),
-    prisma.enrollment.findMany({ orderBy: { createdAt: "desc" } }),
+    prisma.enrollment.findMany({
+      orderBy: { createdAt: "desc" },
+      ...(comEmail ? { omit: { email: false } } : {}),
+    }),
     prisma.registration.count(),
   ]);
 
@@ -37,23 +44,23 @@ export default async function AdminInscricoesPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-unifique">Inscrições</h1>
+      <AdminTopo titulo="Inscrições" />
 
       {params.limpou === "inscricoes" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+        <p className="aviso-ok">
           Fila de inscrições limpa. Pronto para a nova temporada.
         </p>
       )}
       {params.limpou === "elenco" && (
-        <p className="rounded-xl bg-green-100 px-4 py-3 text-sm font-medium text-green-800">
+        <p className="aviso-ok">
           Elenco atual limpo. Os novos aprovados montam o elenco do próximo ano.
         </p>
       )}
 
       {/* Abrir/fechar inscrições */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
+      <div className="cartao flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-semibold text-unifique">
+          <p className="cartao-titulo">
             Status: {aberto ? "🟢 Inscrições abertas" : "🔴 Inscrições encerradas"}
           </p>
           <p className="text-sm text-gray-500">
@@ -77,17 +84,17 @@ export default async function AdminInscricoesPage({
 
       {/* Pendentes */}
       <section>
-        <h2 className="mb-2 font-semibold text-unifique">
+        <h2 className="cartao-titulo mb-2">
           Pendentes ({pendentes.length})
         </h2>
         {pendentes.length === 0 && (
-          <p className="rounded-xl bg-white p-4 text-sm text-gray-500 shadow-sm">
+          <p className="cartao text-sm text-gray-500">
             Nenhuma inscrição pendente.
           </p>
         )}
         <div className="space-y-3">
           {pendentes.map((e) => (
-            <div key={e.id} className="rounded-xl bg-white p-4 shadow-sm">
+            <div key={e.id} className="cartao">
               <p className="font-semibold">
                 {e.name}
                 {e.shirtSize ? (
@@ -101,6 +108,7 @@ export default async function AdminInscricoesPage({
                   e.birthDate ? `Nasc. ${e.birthDate.split("-").reverse().join("/")}` : "",
                   e.sector || "",
                   e.phone || e.contact || "",
+                  (e as { email?: string | null }).email || "",
                 ]
                   .filter(Boolean)
                   .join(" · ") || "sem dados extras"}
@@ -113,19 +121,19 @@ export default async function AdminInscricoesPage({
                   <input type="hidden" name="id" value={e.id} />
                   <button
                     type="submit"
-                    className="rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700"
+                    className="inline-flex min-h-[38px] items-center rounded-xl bg-green-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-green-700"
                   >
                     Aprovar (entra no elenco)
                   </button>
                 </form>
                 <form action={rejectEnrollment}>
                   <input type="hidden" name="id" value={e.id} />
-                  <button
-                    type="submit"
-                    className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+                  <ConfirmButton
+                    message={`Recusar a inscrição de ${e.name}?`}
+                    className="btn-claro"
                   >
                     Recusar
-                  </button>
+                  </ConfirmButton>
                 </form>
               </div>
             </div>
@@ -136,12 +144,12 @@ export default async function AdminInscricoesPage({
       {/* Histórico */}
       {outras.length > 0 && (
         <section>
-          <h2 className="mb-2 font-semibold text-unifique">Histórico</h2>
+          <h2 className="cartao-titulo mb-2">Histórico</h2>
           <div className="space-y-2">
             {outras.map((e) => (
               <div
                 key={e.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white p-3 shadow-sm"
+                className="cartao flex flex-wrap items-center justify-between gap-2"
               >
                 <div>
                   <p className="font-medium">
@@ -156,9 +164,7 @@ export default async function AdminInscricoesPage({
                 </div>
                 <form action={deleteEnrollment}>
                   <input type="hidden" name="id" value={e.id} />
-                  <button type="submit" className="text-sm text-red-600 hover:underline">
-                    Excluir
-                  </button>
+                  <BotaoApagar mensagem="Tem certeza? Essa ação não pode ser desfeita.">Excluir</BotaoApagar>
                 </form>
               </div>
             ))}
@@ -178,7 +184,7 @@ export default async function AdminInscricoesPage({
           <form action={clearEnrollments}>
             <ConfirmButton
               message="Limpar TODA a fila de inscrições (pendentes e histórico)? Esta ação não pode ser desfeita."
-              className="rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100"
+              className="rounded-lg border border-amber-400 manter-claro bg-white px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100"
             >
               Limpar fila de inscrições ({enrollments.length})
             </ConfirmButton>
@@ -186,7 +192,7 @@ export default async function AdminInscricoesPage({
           <form action={clearElenco}>
             <ConfirmButton
               message="Limpar TODO o elenco atual do Entre Empresas? Todos os atletas cadastrados nas modalidades serão removidos. Esta ação não pode ser desfeita."
-              className="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+              className="rounded-lg border border-red-300 manter-claro bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
             >
               Limpar elenco atual ({elencoCount})
             </ConfirmButton>
